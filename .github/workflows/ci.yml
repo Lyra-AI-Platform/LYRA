@@ -1,0 +1,58 @@
+name: Lyra CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install fastapi uvicorn pydantic aiofiles httpx python-multipart
+
+      - name: Check copyright headers
+        run: |
+          python -c "
+          import sys
+          from pathlib import Path
+          marker = 'Copyright (C) 2026 Lyra Contributors'
+          protected = ['lyra/main.py', 'lyra/core/engine.py', 'lyra/core/integrity.py', 'lyra/telemetry/collector.py']
+          failed = []
+          for f in protected:
+              p = Path(f)
+              if p.exists():
+                  header = ''.join(p.open().readline() for _ in range(20))
+                  if marker not in header:
+                      failed.append(f)
+          if failed:
+              print('Missing copyright headers:', failed)
+              sys.exit(1)
+          print('All copyright headers present.')
+          "
+
+      - name: Check LICENSE exists
+        run: |
+          test -f LICENSE || (echo "LICENSE file missing!" && exit 1)
+          grep -q "LYRA COMMUNITY LICENSE" LICENSE || (echo "Invalid LICENSE content" && exit 1)
+          echo "LICENSE OK"
+
+      - name: Check Privacy Policy exists
+        run: |
+          test -f PRIVACY_POLICY.md || (echo "PRIVACY_POLICY.md missing!" && exit 1)
+          echo "Privacy Policy OK"
+
+      - name: Syntax check Python files
+        run: |
+          find lyra/ -name "*.py" -exec python -m py_compile {} \;
+          echo "All Python files syntax OK"

@@ -1,0 +1,16 @@
+# Lyra AI Platform — .gitignore
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+data/models/
+data/uploads/
+data/memory/
+data/logs/
+.env
+*.local.env
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+community_data.json

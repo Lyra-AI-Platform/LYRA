@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lyra — Personal AI</title>
+  <link rel="stylesheet" href="/static/css/main.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+
+  <!-- ─── FIRST-RUN CONSENT OVERLAY ─── -->
+  <div id="consentOverlay" class="consent-overlay" style="display:none;">
+    <div class="consent-box">
+      <div class="consent-logo">✦</div>
+      <h1>Welcome to Lyra</h1>
+      <p class="consent-subtitle">Your private AI, running on your machine.</p>
+
+      <div class="consent-section">
+        <h3>🔒 Your Privacy</h3>
+        <p>By default, <strong>everything stays on your device</strong>. Your conversations, files, and memory never leave your machine.</p>
+      </div>
+
+      <div class="consent-section consent-optin">
+        <div class="consent-optin-header">
+          <div>
+            <h3>🌐 Collective Intelligence <span class="badge-optional">Optional</span></h3>
+            <p>Anonymously share topic keywords with the Lyra community to help everyone's AI get smarter together.</p>
+          </div>
+          <input type="checkbox" id="collectiveConsent" class="toggle consent-toggle" />
+        </div>
+        <div class="consent-what">
+          <div class="consent-col">
+            <strong>✓ What IS shared:</strong>
+            <ul>
+              <li>Anonymous topic keywords (e.g. "python", "climate")</li>
+              <li>A random ID (not linked to you)</li>
+              <li>Weekly usage count (just a number)</li>
+            </ul>
+          </div>
+          <div class="consent-col">
+            <strong>✗ What is NEVER shared:</strong>
+            <ul>
+              <li>Your messages or AI responses</li>
+              <li>Uploaded files</li>
+              <li>Your name, email, or IP address</li>
+              <li>Any personal information</li>
+            </ul>
+          </div>
+        </div>
+        <a href="#" onclick="openPrivacyPolicy()" class="consent-policy-link">Read the full Privacy Policy →</a>
+      </div>
+
+      <button class="consent-btn" onclick="acceptConsent()">Start Using Lyra</button>
+      <p class="consent-footer">You can change these settings anytime in <strong>Settings → Privacy</strong></p>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="lyra-logo">
+        <span class="logo-icon">✦</span>
+        <span class="logo-text">Lyra</span>
+      </div>
+      <button class="new-chat-btn" onclick="newConversation()">
+        <span>+</span> New Chat
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">AI Persona</div>
+      <div class="persona-grid" id="personaGrid"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-label">Language Model</div>
+      <select class="model-select" id="llmSelect">
+        <option value="">No model loaded</option>
+      </select>
+      <div class="model-actions">
+        <button class="btn-small" onclick="openModelManager()">⬇ Get Models</button>
+        <button class="btn-small btn-danger" id="loadModelBtn" onclick="loadSelectedModel()">Load</button>
+      </div>
+    </div>
+
+    <div class="sidebar-section flex-grow">
+      <div class="section-label">Conversations</div>
+      <div class="conv-list" id="convList"></div>
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="toggle-row">
+        <label>🧠 Memory</label>
+        <input type="checkbox" id="memoryToggle" checked class="toggle" />
+      </div>
+      <div class="toggle-row">
+        <label>🌐 Web Search</label>
+        <input type="checkbox" id="searchToggle" class="toggle" />
+      </div>
+      <div class="toggle-row">
+        <label>Temperature</label>
+        <input type="range" id="tempSlider" min="0" max="1" step="0.05" value="0.7" class="slider" />
+        <span id="tempValue">0.7</span>
+      </div>
+      <div class="sidebar-btns">
+        <button class="btn-small" onclick="openMemoryView()">Memory</button>
+        <button class="btn-small" onclick="openPrivacySettings()">🔒 Privacy</button>
+        <button class="btn-small" onclick="checkHealth()">Status</button>
+      </div>
+    </div>
+
+    <!-- Auto-Learning Panel -->
+    <div class="sidebar-section learning-section">
+      <div class="section-label">
+        🤖 Auto-Learning
+        <span class="learning-dot" id="learningDot"></span>
+      </div>
+      <div class="learning-activity" id="learningActivity">idle</div>
+      <div class="learning-stats" id="learningStats">
+        <span id="factsCount">0 facts</span>
+        <span id="topicsCount">0 topics</span>
+      </div>
+      <div class="learning-btns">
+        <button class="btn-small" id="learnToggleBtn" onclick="toggleLearning()">⏸ Pause</button>
+        <button class="btn-small" onclick="crawlNow()">⚡ Learn Now</button>
+        <button class="btn-small" onclick="openLearningPanel()">📊 Details</button>
+      </div>
+      <div class="learn-topic-row">
+        <input type="text" id="learnTopicInput" placeholder="Teach Lyra a topic..." class="topic-input" onkeydown="if(event.key==='Enter')addLearnTopic()" />
+        <button class="btn-small" onclick="addLearnTopic()">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="main">
+    <div class="chat-header">
+      <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="header-info">
+        <span class="active-persona" id="activePersonaLabel">✦ Lyra</span>
+        <span class="model-badge" id="modelBadge">No model loaded</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" onclick="clearChat()" title="Clear chat">🗑</button>
+        <button class="icon-btn" onclick="exportChat()" title="Export chat">⬇</button>
+      </div>
+    </div>
+
+    <div class="messages" id="messages">
+      <div class="welcome-screen" id="welcomeScreen">
+        <div class="welcome-logo">✦</div>
+        <h1>Hello, I'm Lyra</h1>
+        <p>Your intelligent, private AI — running entirely on your machine.</p>
+        <div class="welcome-features">
+          <div class="feature">🧠 Remembers across sessions</div>
+          <div class="feature">📄 Analyze any file</div>
+          <div class="feature">🌐 Search the live web</div>
+          <div class="feature">💻 Write & debug code</div>
+          <div class="feature">📚 Learns autonomously</div>
+          <div class="feature">🔒 100% private by default</div>
+        </div>
+        <div class="welcome-hint">
+          <strong>First time?</strong> Click <strong>⬇ Get Models</strong> in the sidebar to download an AI model.
+        </div>
+      </div>
+    </div>
+
+    <div class="thinking-bar" id="thinkingBar" style="display:none;">
+      <div class="thinking-dots"><span></span><span></span><span></span></div>
+      <span id="thinkingLabel">Lyra is thinking...</span>
+    </div>
+
+    <div class="input-area">
+      <div class="file-preview" id="filePreview" style="display:none;">
+        <div class="file-chips" id="fileChips"></div>
+      </div>
+      <div class="input-row">
+        <label class="upload-btn" title="Upload file">
+          📎
+          <input type="file" id="fileInput" multiple style="display:none"
+            accept=".pdf,.txt,.md,.py,.js,.ts,.go,.rs,.java,.c,.cpp,.json,.yaml,.yml,.csv,.xlsx,.docx,.png,.jpg,.jpeg"
+            onchange="handleFileUpload(event)" />
+        </label>
+        <textarea id="messageInput" placeholder="Ask Lyra anything..." rows="1"
+          onkeydown="handleKeydown(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMessage()"><span>↑</span></button>
+      </div>
+      <div class="input-footer">
+        <span class="char-count" id="charCount">0</span>
+        <span class="model-info">Lyra AI © 2026 — Lyra Community License</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model Manager Modal -->
+  <div class="modal" id="modelModal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>⬇ Model Manager</h2>
+        <button onclick="closeModal('modelModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="model-grid" id="modelGrid"></div>
+        <div class="custom-download">
+          <h3>Custom Model URL</h3>
+          <div class="custom-download-row">
+            <input type="text" id="customUrl" placeholder="https://huggingface.co/.../model.gguf" class="text-input" />
+            <input type="text" id="customFilename" placeholder="model.gguf" class="text-input short" />
+            <button class="btn-primary" onclick="downloadCustomModel()">Download</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Memory Modal -->
+  <div class="modal" id="memoryModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🧠 Lyra Memory</h2>
+        <button onclick="closeModal('memoryModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="memory-stats" id="memoryStats"></div>
+        <div class="memory-search">
+          <input type="text" id="memorySearchInput" placeholder="Search memories..." class="text-input" />
+          <button class="btn-primary" onclick="searchMemory()">Search</button>
+        </div>
+        <div id="memoryResults"></div>
+        <button class="btn-danger" onclick="clearMemory()" style="margin-top:16px;">Clear All Memories</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Privacy Settings Modal -->
+  <div class="modal" id="privacyModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>🔒 Privacy & Data Sharing</h2>
+        <button onclick="closeModal('privacyModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="privacy-status" id="privacyStatus"></div>
+
+        <div class="privacy-section">
+          <h3>Collective Intelligence</h3>
+          <p style="font-size:13px;color:var(--text-secondary);margin-bottom:14px">
+            Anonymously contribute topic keywords to help all Lyra users' AI get smarter together.
+            Your conversations are <strong>never</strong> shared. Only anonymous topic keywords.
+          </p>
+          <div id="privacyOptinArea">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <div class="privacy-section" style="margin-top:20px">
+          <h3>What's Always Private</h3>
+          <div class="privacy-always">
+            <div class="privacy-item">🔒 All your conversations</div>
+            <div class="privacy-item">🔒 Uploaded files</div>
+            <div class="privacy-item">🔒 Your memory / knowledge base</div>
+            <div class="privacy-item">🔒 Your IP address</div>
+            <div class="privacy-item">🔒 Your name or identity</div>
+          </div>
+        </div>
+
+        <a href="#" onclick="openFullPrivacyPolicy()" class="consent-policy-link" style="margin-top:16px;display:block">
+          Read the full Privacy Policy →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Panel Modal -->
+  <div class="modal" id="learningModal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>🤖 Lyra Auto-Learning</h2>
+        <button onclick="closeModal('learningModal')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="learning-modal-stats" id="learningModalStats"></div>
+        <div class="learn-section-title">Recent Activity</div>
+        <div class="activity-log" id="activityLog"></div>
+        <div class="learn-section-title" style="margin-top:20px">
+          Tracked Topics
+          <button class="btn-small" onclick="clearTopics()" style="float:right">Clear All</button>
+        </div>
+        <div class="topics-grid" id="topicsGrid"></div>
+        <div class="learn-actions">
+          <div>
+            <label class="learn-label">Learn about a topic now:</label>
+            <div class="custom-download-row">
+              <input type="text" id="crawlTopicInput" placeholder="e.g. quantum computing" class="text-input" />
+              <button class="btn-primary" onclick="crawlTopicNow()">Learn This</button>
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <label class="learn-label">Crawl a URL directly:</label>
+            <div class="custom-download-row">
+              <input type="text" id="crawlUrlInput" placeholder="https://example.com/article" class="text-input" />
+              <input type="text" id="crawlUrlTopic" placeholder="Topic label" class="text-input short" />
+              <button class="btn-primary" onclick="crawlUrlNow()">Crawl</button>
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <button class="btn-small" onclick="crawlRssNow()">📰 Read RSS Feeds Now</button>
+            <button class="btn-small" style="margin-left:8px" onclick="crawlNow()">⚡ Full Learn Cycle Now</button>
+          </div>
+          <div style="margin-top:14px">
+            <label class="learn-label">Auto-crawl interval:</label>
+            <select id="intervalSelect" class="model-select" style="width:auto;display:inline" onchange="setLearningInterval(this.value)">
+              <option value="15">Every 15 minutes</option>
+              <option value="30" selected>Every 30 minutes</option>
+              <option value="60">Every hour</option>
+              <option value="360">Every 6 hours</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Modal -->
+  <div class="modal" id="statusModal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚡ Lyra Status</h2>
+        <button onclick="closeModal('statusModal')">✕</button>
+      </div>
+      <div class="modal-body" id="statusBody"></div>
+    </div>
+  </div>
+
+  <!-- Privacy Policy Modal -->
+  <div class="modal" id="privacyPolicyModal" style="display:none;">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2>🔒 Privacy Policy</h2>
+        <button onclick="closeModal('privacyPolicyModal')">✕</button>
+      </div>
+      <div class="modal-body" style="max-height:65vh;overflow-y:auto" id="privacyPolicyBody">
+        <p style="color:var(--text-secondary);font-size:13px">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/privacy.js"></script>
+</body>
+</html>
