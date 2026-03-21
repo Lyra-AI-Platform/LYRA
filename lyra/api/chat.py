@@ -117,6 +117,15 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
                 lines.append(f"• {snippet}")
             system_prompt += "\n" + "\n".join(lines)
 
+    # Graph knowledge: entity connections and related concepts
+    try:
+        from lyra.memory.graph_memory import graph_memory
+        graph_ctx = graph_memory.get_context_for_prompt(user_message)
+        if graph_ctx:
+            system_prompt += "\n\n" + graph_ctx
+    except Exception:
+        pass
+
     # Web search if requested
     search_context = ""
     if use_web_search or _needs_search(user_message):

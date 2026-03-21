@@ -23,6 +23,7 @@ from lyra.api.models_api import router as models_router
 from lyra.api.memory_api import router as memory_router
 from lyra.api.learning_api import router as learning_router
 from lyra.api.telemetry_api import router as telemetry_router
+from lyra.api.graph_api import router as graph_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,6 +62,7 @@ app.include_router(models_router)
 app.include_router(memory_router)
 app.include_router(learning_router)
 app.include_router(telemetry_router)
+app.include_router(graph_router)
 
 
 @app.get("/", response_class=HTMLResponse)
