@@ -286,15 +286,28 @@ class AutoLearner:
         logger.info(f"AutoLearner crawling: {topic}")
 
         try:
+            from lyra.memory.graph_memory import graph_memory
+
             results = await crawler.crawl_topic(topic, depth=1)
             stored = 0
 
             for item in results:
                 content = item.get("content", "")
-                if not content or len(content) < 100:
+                if not content or len(content) < 500:
                     continue
 
-                # Store main chunk
+                # Store in knowledge graph (entities + relationships)
+                graph_memory.store_knowledge(
+                    topic=topic, content=content, source_url=item.get("url", ""),
+                )
+                if item.get("source") == "wikipedia":
+                    graph_memory.store_wikipedia_article(
+                        title=item.get("title", topic), content=content,
+                        url=item.get("url", ""), topic=topic,
+                        related_topics=item.get("related_topics", []),
+                    )
+
+                # Store main chunk in vector memory (ChromaDB)
                 success = memory.store(
                     content=self._format_knowledge(item, topic),
                     memory_type="learned_knowledge",

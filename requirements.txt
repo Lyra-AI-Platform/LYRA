@@ -31,3 +31,12 @@ openpyxl>=3.1.0
 # Web Search & Crawling
 ddgs>=0.1.0  # formerly duckduckgo-search
 beautifulsoup4>=4.12.0
+
+# Graph Databases — Knowledge Graph (all optional, auto-detected at runtime)
+# Lyra uses whichever is available; falls back to NetworkX if none are running.
+networkx>=3.0               # In-memory graph fallback (always installed)
+neo4j>=5.0.0                # Neo4j Community: bolt://localhost:7687
+python-arango>=7.0.0        # ArangoDB Community: http://localhost:8529
+gremlinpython>=3.7.0        # JanusGraph: ws://localhost:8182/gremlin
+nebula3-python>=3.0.0       # NebulaGraph: 127.0.0.1:9669
+# Memgraph uses the neo4j driver (already listed above, port 7688)
