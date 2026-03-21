@@ -67,7 +67,7 @@ class WebSearch:
         fetched = await asyncio.gather(*tasks, return_exceptions=True)
         for i, content in enumerate(fetched):
             if isinstance(content, str):
-                results[i]["content"] = content[:3000]  # limit per page
+                results[i]["content"] = content[:6000]  # limit per page
         return results
 
     async def _fetch_page(self, result: Dict) -> str:
@@ -104,7 +104,7 @@ class WebSearch:
             lines.append(f"\n[{i}] {r['title']}")
             lines.append(f"URL: {r['url']}")
             if r.get("content"):
-                lines.append(f"Content: {r['content'][:500]}...")
+                lines.append(f"Content: {r['content'][:1000]}...")
             elif r.get("snippet"):
                 lines.append(f"Snippet: {r['snippet']}")
         lines.append("\n[Use these results to answer accurately. Always cite URLs.]")

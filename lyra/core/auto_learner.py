@@ -260,7 +260,7 @@ class AutoLearner:
             count = 0
             for item in items:
                 content = item.get("content", "")
-                if len(content) > 100:
+                if len(content) > 500:
                     stored = memory.store(
                         content=f"[NEWS] {item['title']}\nSource: {item['url']}\n\n{content}",
                         memory_type="learned_news",
@@ -313,7 +313,7 @@ class AutoLearner:
 
                 # Also store additional Wikipedia chunks if present
                 for extra_chunk in item.get("full_chunks", [])[1:4]:
-                    if len(extra_chunk) > 100:
+                    if len(extra_chunk) > 500:
                         memory.store(
                             content=self._format_knowledge(
                                 {**item, "content": extra_chunk}, topic

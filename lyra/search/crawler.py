@@ -60,7 +60,7 @@ class NexusCrawler:
             results.append(wiki)
 
         # 2. DuckDuckGo results
-        search_results = await self.search_and_crawl(topic, max_pages=3)
+        search_results = await self.search_and_crawl(topic, max_pages=5)
         results.extend(search_results)
 
         logger.info(f"Crawled topic '{topic}': {len(results)} chunks")
@@ -103,8 +103,8 @@ class NexusCrawler:
                     return None
 
                 # Chunk into sections (Wikipedia can be huge)
-                chunks = self._chunk_text(extract, max_chars=3000)
-                main_chunk = chunks[0] if chunks else extract[:3000]
+                chunks = self._chunk_text(extract, max_chars=6000)
+                main_chunk = chunks[0] if chunks else extract[:6000]
 
                 return {
                     "source": "wikipedia",
@@ -120,7 +120,7 @@ class NexusCrawler:
             return None
 
     async def search_and_crawl(
-        self, topic: str, max_pages: int = 3
+        self, topic: str, max_pages: int = 5
     ) -> List[Dict[str, Any]]:
         """Search DuckDuckGo and crawl top results."""
         results = []
@@ -144,12 +144,12 @@ class NexusCrawler:
                     continue
 
                 content = await self._fetch_clean(url)
-                if content and len(content) > 200:
+                if content and len(content) > 800:
                     results.append({
                         "source": "web",
                         "title": item.get("title", url),
                         "url": url,
-                        "content": content[:3000],
+                        "content": content[:6000],
                         "snippet": item.get("body", "")[:300],
                         "topic": topic,
                         "quality": "medium",
@@ -291,7 +291,7 @@ class NexusCrawler:
             logger.debug(f"Fetch failed {url}: {e}")
             return ""
 
-    def _chunk_text(self, text: str, max_chars: int = 2000) -> List[str]:
+    def _chunk_text(self, text: str, max_chars: int = 4000) -> List[str]:
         """Split long text into chunks at paragraph boundaries."""
         paragraphs = text.split("\n\n")
         chunks = []
