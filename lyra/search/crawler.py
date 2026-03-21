@@ -1,5 +1,8 @@
 """
-NEXUS Autonomous Web Crawler
+Lyra AI Platform — Autonomous Web Crawler
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+
 Crawls web pages, Wikipedia, RSS feeds, and extracts clean knowledge.
 Used by the auto-learner background system.
 """
@@ -73,7 +76,7 @@ class NexusCrawler:
                 f"&format=json&srlimit=1"
             )
             async with httpx.AsyncClient(timeout=15, follow_redirects=True) as client:
-                resp = await client.get(search_url, headers={"User-Agent": "NEXUS-AI/1.0"})
+                resp = await client.get(search_url, headers={"User-Agent": "Lyra-AI/1.0"})
                 data = resp.json()
 
                 search_results = data.get("query", {}).get("search", [])
@@ -89,7 +92,7 @@ class NexusCrawler:
                     f"&prop=extracts&exintro=false&explaintext=true"
                     f"&exsectionformat=plain&format=json"
                 )
-                resp2 = await client.get(content_url, headers={"User-Agent": "NEXUS-AI/1.0"})
+                resp2 = await client.get(content_url, headers={"User-Agent": "Lyra-AI/1.0"})
                 data2 = resp2.json()
 
                 pages = data2.get("query", {}).get("pages", {})
@@ -122,7 +125,10 @@ class NexusCrawler:
         """Search DuckDuckGo and crawl top results."""
         results = []
         try:
-            from duckduckgo_search import DDGS
+            try:
+                from ddgs import DDGS
+            except ImportError:
+                from duckduckgo_search import DDGS  # fallback for older installs
 
             loop = asyncio.get_event_loop()
 
@@ -180,7 +186,7 @@ class NexusCrawler:
             from xml.etree import ElementTree as ET
 
             async with httpx.AsyncClient(timeout=15) as client:
-                resp = await client.get(url, headers={"User-Agent": "NEXUS-AI/1.0"})
+                resp = await client.get(url, headers={"User-Agent": "Lyra-AI/1.0"})
                 root = ET.fromstring(resp.text)
 
             items = []
@@ -241,7 +247,7 @@ class NexusCrawler:
             ) as client:
                 headers = {
                     "User-Agent": (
-                        "Mozilla/5.0 (compatible; NEXUS-AI/1.0; "
+                        "Mozilla/5.0 (compatible; Lyra-AI/1.0; "
                         "+https://github.com/nexus-ai)"
                     )
                 }

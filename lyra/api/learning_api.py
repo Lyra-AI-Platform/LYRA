@@ -1,6 +1,9 @@
 """
-NEXUS Auto-Learning API
-Endpoints to control and monitor NEXUS's autonomous learning system.
+
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+Lyra Auto-Learning API
+Endpoints to control and monitor Lyra's autonomous learning system.
 """
 import asyncio
 import logging
@@ -43,7 +46,7 @@ async def start_learning():
     """Enable and start autonomous background learning."""
     auto_learner.enabled = True
     auto_learner.start()
-    return {"status": "started", "message": "NEXUS is now learning autonomously"}
+    return {"status": "started", "message": "Lyra is now learning autonomously"}
 
 
 @router.post("/stop")
@@ -55,7 +58,7 @@ async def stop_learning():
 
 @router.post("/topic")
 async def add_topic(request: AddTopicRequest):
-    """Manually add a topic for NEXUS to learn about."""
+    """Manually add a topic for Lyra to learn about."""
     auto_learner.add_topic(request.topic, request.priority)
     return {
         "status": "added",

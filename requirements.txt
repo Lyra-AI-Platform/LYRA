@@ -29,5 +29,5 @@ python-docx>=1.1.0
 openpyxl>=3.1.0
 
 # Web Search & Crawling
-duckduckgo-search>=6.0.0
+ddgs>=0.1.0  # formerly duckduckgo-search
 beautifulsoup4>=4.12.0

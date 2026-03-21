@@ -1,7 +1,10 @@
 """
-NEXUS Vector Memory System
+Lyra AI Platform — Vector Memory System
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+
 Persistent memory across conversations using ChromaDB.
-NEXUS remembers facts, preferences, and context from past sessions.
+Lyra remembers facts, preferences, and context from past sessions.
 """
 import json
 import logging
@@ -18,7 +21,7 @@ MEMORY_DIR.mkdir(parents=True, exist_ok=True)
 
 class NexusMemory:
     """
-    Long-term memory for NEXUS.
+    Long-term memory for Lyra.
     Stores conversation summaries, user facts, and preferences.
     Retrieves relevant memories for each new conversation.
     """
@@ -157,7 +160,7 @@ class NexusMemory:
         if not memories:
             return ""
 
-        lines = ["[NEXUS MEMORY — relevant context from past sessions:]"]
+        lines = ["[Lyra MEMORY — relevant context from past sessions:]"]
         for m in memories:
             ts = m["metadata"].get("timestamp", "")[:10]
             mtype = m["metadata"].get("type", "memory")
