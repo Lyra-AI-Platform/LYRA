@@ -27,7 +27,7 @@ ROOT = Path(__file__).parent.parent.parent
 
 # ─── Expected copyright marker in every source file ───
 COPYRIGHT_MARKER = "Copyright (C) 2026 Lyra Contributors"
-AGPL_MARKER = "GNU AGPL v3"
+AGPL_MARKER = "LYRA COMMUNITY LICENSE"
 
 # ─── Files that must retain copyright headers ───
 PROTECTED_FILES = [
@@ -69,8 +69,8 @@ class IntegrityChecker:
         else:
             # 2. Verify LICENSE content contains AGPL markers
             content = license_path.read_text(errors="replace")
-            if "GNU AFFERO GENERAL PUBLIC LICENSE" not in content.upper() and "AGPL" not in content.upper():
-                report["violations"].append("LICENSE file does not contain AGPL v3 text — may have been replaced.")
+            if "LYRA COMMUNITY LICENSE" not in content.upper() and "LYRA" not in content.upper():
+                report["violations"].append("LICENSE file does not contain Lyra Community License text — may have been replaced.")
                 report["passed"] = False
 
         # 3. Check copyright headers in source files

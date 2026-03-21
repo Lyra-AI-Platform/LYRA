@@ -1,7 +1,9 @@
 """
-NEXUS Autonomous Learning Engine
-────────────────────────────────
-NEXUS teaches itself by:
+Lyra AI Platform — Autonomous Learning Engine
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+
+Lyra teaches itself by:
   1. Extracting topics from conversations (what is the user interested in?)
   2. Periodically crawling the web on those topics autonomously
   3. Storing all learned knowledge in the vector memory
@@ -9,7 +11,7 @@ NEXUS teaches itself by:
   5. Reading RSS feeds for fresh daily knowledge
   6. Prioritizing topics by frequency and recency
 
-This runs as a background asyncio task — NEXUS learns while you chat or idle.
+This runs as a background asyncio task — Lyra learns while you chat or idle.
 """
 import asyncio
 import json
@@ -30,7 +32,7 @@ LEARNING_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 class TopicExtractor:
     """Extracts interesting topics from conversation text."""
 
-    # Topics NEXUS will never bother crawling (too generic / unhelpful)
+    # Topics Lyra will never bother crawling (too generic / unhelpful)
     IGNORE_WORDS: Set[str] = {
         "the", "a", "an", "is", "are", "was", "were", "be", "been",
         "have", "has", "had", "do", "does", "did", "will", "would",
@@ -98,7 +100,7 @@ class TopicExtractor:
 
 class AutoLearner:
     """
-    NEXUS's autonomous background learning engine.
+    Lyra's autonomous background learning engine.
     Runs continuously, learning from conversations and the web.
     """
 
@@ -147,7 +149,7 @@ class AutoLearner:
     def observe_message(self, role: str, content: str):
         """
         Feed a conversation message to the learner.
-        NEXUS extracts topics it should learn about.
+        Lyra extracts topics it should learn about.
         """
         if not content or role == "system":
             return

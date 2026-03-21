@@ -1,5 +1,8 @@
 """
-NEXUS Web Search
+Lyra AI Platform — Web Search
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+
 Searches the web and returns formatted results.
 Uses DuckDuckGo (no API key required) + optional SerpAPI.
 """
@@ -11,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebSearch:
-    """Web search plugin for NEXUS."""
+    """Web search plugin for Lyra."""
 
     async def search(
         self,
@@ -31,7 +34,10 @@ class WebSearch:
     async def _ddg_search(self, query: str, max_results: int) -> List[Dict]:
         """Search using DuckDuckGo (no API key needed)."""
         try:
-            from duckduckgo_search import DDGS
+            try:
+                from ddgs import DDGS
+            except ImportError:
+                from duckduckgo_search import DDGS  # fallback for older installs
             loop = asyncio.get_event_loop()
 
             def _run():

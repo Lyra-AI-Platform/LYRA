@@ -1,5 +1,8 @@
 """
-NEXUS Model Downloader
+
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+Lyra Model Downloader
 Downloads models from HuggingFace Hub with progress tracking.
 """
 import asyncio

@@ -1,5 +1,8 @@
 """
-NEXUS File Processor
+
+Copyright (C) 2026 Lyra Contributors
+Licensed under the Lyra Community License v1.0. See LICENSE for details.
+Lyra File Processor
 Handles uploaded files: PDFs, images, code, text, CSV, etc.
 Extracts content and prepares it for AI analysis.
 """
