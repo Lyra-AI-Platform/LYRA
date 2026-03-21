@@ -109,6 +109,83 @@ async def crawl_rss(background_tasks: BackgroundTasks):
     return {"status": "started", "message": "Crawling RSS feeds now"}
 
 
+class SeedWikipediaRequest(BaseModel):
+    limit: int = 50  # How many vital articles to crawl (max 100)
+
+
+@router.post("/seed-wikipedia")
+async def seed_wikipedia(request: SeedWikipediaRequest, background_tasks: BackgroundTasks):
+    """
+    Bulk-seed Lyra's knowledge from Wikipedia's most important articles.
+    Uses the Wikimedia JSON API (not HTML scraping) across all major domains:
+    mathematics, physics, biology, AI, history, philosophy, and more.
+    """
+    limit = max(1, min(request.limit, len(__import__('lyra.search.crawler', fromlist=['WIKIPEDIA_VITAL_TOPICS']).WIKIPEDIA_VITAL_TOPICS)))
+    background_tasks.add_task(_seed_wikipedia_bg, limit)
+    return {
+        "status": "started",
+        "message": f"Seeding knowledge from {limit} Wikipedia vital articles via JSON API",
+        "note": "This runs in the background — check /api/learning/status for progress",
+    }
+
+
+async def _seed_wikipedia_bg(limit: int):
+    """Background task: bulk crawl Wikipedia vital articles."""
+    from lyra.search.crawler import crawler, WIKIPEDIA_VITAL_TOPICS
+    from lyra.memory.vector_memory import memory
+
+    auto_learner._log_activity(f"📚 Starting Wikipedia bulk seed: {limit} vital articles")
+    topics = WIKIPEDIA_VITAL_TOPICS[:limit]
+    total_stored = 0
+
+    for i, topic in enumerate(topics):
+        if i > 0 and i % 5 == 0:
+            await asyncio.sleep(2)  # Respectful rate limiting
+
+        try:
+            auto_learner.current_activity = f"📖 Wikipedia: {topic} ({i+1}/{len(topics)})"
+            articles = await crawler.crawl_wikipedia_full(topic)
+
+            for article in articles:
+                # Store all chunks of the article
+                for j, chunk in enumerate(article.get("full_chunks", [article.get("content", "")])):
+                    if len(chunk) < 200:
+                        continue
+                    stored = memory.store(
+                        content=f"[WIKIPEDIA — {article['title']}]\nSource: {article['url']}\nTopic: {topic}\n\n{chunk}",
+                        memory_type="learned_knowledge",
+                        metadata={
+                            "topic": topic,
+                            "source": article["url"],
+                            "source_type": "wikipedia_api",
+                            "title": article["title"],
+                            "quality": "high",
+                            "chunk_index": str(j),
+                        },
+                    )
+                    if stored:
+                        total_stored += 1
+                        auto_learner.learned_count += 1
+
+                # Feed related topics into the learning queue
+                for related in article.get("related_topics", [])[:5]:
+                    auto_learner.topic_scores[related.lower()] += 2
+
+            if articles:
+                auto_learner._log_activity(
+                    f"📖 [{i+1}/{len(topics)}] '{topic}': "
+                    f"{sum(len(a.get('full_chunks', [])) for a in articles)} chunks stored"
+                )
+
+        except Exception as e:
+            logger.error(f"Vital article failed '{topic}': {e}")
+
+    auto_learner.crawl_count += 1
+    auto_learner.current_activity = f"idle — Wikipedia seed done: {total_stored} facts"
+    auto_learner._log_activity(f"✅ Wikipedia bulk seed complete: {total_stored} facts stored from {len(topics)} articles")
+    auto_learner._save_state()
+
+
 @router.post("/interval")
 async def set_interval(request: SetIntervalRequest):
     """Change the auto-crawl interval in minutes."""
