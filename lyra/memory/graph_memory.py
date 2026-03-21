@@ -743,15 +743,33 @@ class NetworkXBackend(GraphBackend):
             return []
 
     def search_entities(self, query: str, limit: int = 10) -> List[Dict]:
+        # Split query into tokens so multi-word queries match individual entities
+        tokens = [t for t in query.lower().split() if len(t) > 2]
         q = query.lower()
         results = []
+        scored = []
         for nid, attrs in self.G.nodes(data=True):
             name = attrs.get("name", "")
-            if q in name.lower() or q in attrs.get("description", "").lower():
-                results.append({"name": name, "type": attrs.get("type", ""),
-                                 "description": attrs.get("description", "")[:200]})
-            if len(results) >= limit:
-                break
+            name_l = name.lower()
+            desc_l = attrs.get("description", "").lower()
+            score = 0
+            # Exact full-query match scores highest
+            if q in name_l:
+                score += 10
+            if q in desc_l:
+                score += 5
+            # Individual token matches
+            for t in tokens:
+                if t in name_l:
+                    score += 3
+                if t in desc_l:
+                    score += 1
+            if score > 0:
+                scored.append((score, name, attrs))
+        scored.sort(key=lambda x: -x[0])
+        for score, name, attrs in scored[:limit]:
+            results.append({"name": name, "type": attrs.get("type", ""),
+                             "description": attrs.get("description", "")[:200]})
         return results
 
     def get_stats(self) -> Dict:
