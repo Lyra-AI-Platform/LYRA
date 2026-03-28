@@ -24,6 +24,7 @@ from lyra.api.memory_api import router as memory_router
 from lyra.api.learning_api import router as learning_router
 from lyra.api.telemetry_api import router as telemetry_router
 from lyra.api.graph_api import router as graph_router
+from lyra.api.cognition_api import router as cognition_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,6 +64,7 @@ app.include_router(memory_router)
 app.include_router(learning_router)
 app.include_router(telemetry_router)
 app.include_router(graph_router)
+app.include_router(cognition_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -80,6 +82,7 @@ async def health():
     from lyra.core.auto_learner import auto_learner
     from lyra.core.synthesis_engine import synthesizer
     from lyra.core.reflection import reflector
+    from lyra.core.cognition_engine import cognition_engine
     from lyra.telemetry.collector import telemetry
     mem_stats = memory.get_stats()
     return {
@@ -97,6 +100,9 @@ async def health():
         "synthesis_count": synthesizer.synthesis_count,
         "last_synthesis": synthesizer.last_synthesis,
         "reflection_templates": reflector.templates_stored,
+        "cognition_running": cognition_engine.running,
+        "questions_answered": cognition_engine.questions_answered,
+        "current_question": cognition_engine.current_question[:80] if cognition_engine.current_question else "",
         "telemetry_enabled": telemetry.enabled,
     }
 
@@ -123,6 +129,11 @@ async def on_startup():
     synthesizer.start()
     logger.info("Knowledge Synthesizer: active (4h synthesis cycles)")
 
+    # Start autonomous cognition engine (self-directed Q&A loop — no human needed)
+    from lyra.core.cognition_engine import cognition_engine
+    cognition_engine.start()
+    logger.info("Autonomous Cognition: active — Lyra generating its own questions")
+
     # Start telemetry if previously opted in
     from lyra.telemetry.collector import telemetry
     if telemetry.enabled:
@@ -139,10 +150,12 @@ async def on_shutdown():
     from lyra.core.engine import engine
     from lyra.core.auto_learner import auto_learner
     from lyra.core.synthesis_engine import synthesizer
+    from lyra.core.cognition_engine import cognition_engine
     from lyra.telemetry.collector import telemetry
     logger.info("Lyra shutting down...")
     auto_learner.stop()
     synthesizer.stop()
+    cognition_engine.stop()
     telemetry.stop()
     await engine.unload_model()
 
