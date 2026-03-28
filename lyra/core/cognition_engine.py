@@ -4,32 +4,31 @@ Copyright (C) 2026 Lyra Contributors
 Licensed under the Lyra Community License v1.0. See LICENSE for details.
 
 Fully autonomous self-directed cognition loop.
-No human input required. Runs continuously — as fast as the model allows.
+Runs continuously in the background. Instantly yields to real user requests.
 
-The loop:
-  1. Generate questions from current knowledge state (10 question strategies)
-  2. Research each question against memory + knowledge graph
-  3. Answer the question using the model
-  4. Store the answer as synthesized knowledge
-  5. Extract 3-5 new questions from each answer
-  6. Immediately loop — no sleep, no waiting, no human needed
+TWO MODES, alternating:
 
-The question strategies span:
-  GAPS       — What don't I know about topics I know?
-  DEPTH      — How does X work at a fundamental level?
-  CONNECTIONS — How does A relate to B?
-  MECHANISMS — Step-by-step: exactly how does X happen?
-  CRITIQUES  — What are the flaws or limits of X?
-  FRONTIERS  — What is unsolved or unknown about X?
-  APPLICATIONS — Real-world impact: where does X matter?
-  COMPARISONS — Key differences between X and Y?
-  HISTORY    — How did X develop over time?
-  PREDICTIONS — Where is X heading?
+  1. SELF-Q&A  — generates questions and answers them (original mode)
+  2. SELF-CONVERSATION — full multi-turn dialogues with itself
 
-This creates a self-sustaining intelligence that compounds continuously.
-Every answer becomes the seed of new questions.
-Every question answered deepens the knowledge graph.
-No ceiling — only velocity limited by hardware.
+Six conversation formats:
+
+  DEBATE           Two voices argue opposing positions on a topic
+  SOCRATIC         A questioner draws out deeper understanding through questions
+  BRAINSTORM       Two creative voices riff, build, and combine ideas freely
+  TEACHING         Professor explains; student asks until they understand
+  THOUGHT_EXPERIMENT  Philosophers explore a hypothetical together
+  PEER_REVIEW      One voice presents ideas; the other critiques rigorously
+
+Why conversations beat single Q&A:
+  - Disagreement forces deeper reasoning than agreement
+  - Questions beget better questions
+  - Multi-turn context builds richer understanding
+  - Communication patterns stored in memory improve human chat responses
+  - Each voice can specialize (creative vs critical, broad vs deep)
+
+USER PRIORITY: whenever a human sends a message, background inference
+immediately yields. The user never waits for background thinking.
 """
 import asyncio
 import json
@@ -49,10 +48,17 @@ COGNITION_STATE_FILE = (
 )
 COGNITION_STATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+# ── How often to do a full conversation vs single Q&A ──
+# 1 = every cycle is a conversation, 3 = every 3rd cycle
+CONVERSATION_FREQUENCY = 2
+
+
+# ════════════════════════════════════════════════════════════
+#  DATA STRUCTURES
+# ════════════════════════════════════════════════════════════
 
 @dataclass
 class CognitionEntry:
-    """A single question → answer cycle."""
     question: str
     answer: str
     strategy: str
@@ -60,126 +66,239 @@ class CognitionEntry:
     tokens: int = 0
 
 
-# 10 question generation strategies with their prompt templates
+@dataclass
+class ConversationTurn:
+    voice: str       # e.g. "LYRA-A", "LYRA-B", "PROFESSOR", "STUDENT"
+    content: str
+
+
+@dataclass
+class SelfConversation:
+    format: str
+    topic: str
+    turns: List[ConversationTurn]
+    insights: List[str]
+    new_questions: List[str]
+    timestamp: str
+
+
+# ════════════════════════════════════════════════════════════
+#  QUESTION STRATEGIES (for Q&A mode)
+# ════════════════════════════════════════════════════════════
+
 QUESTION_STRATEGIES = {
     "gaps": (
-        "Based on this topic: '{topic}'\n"
-        "What are 5 specific things about this topic that are unclear, "
-        "uncertain, or worth investigating further? "
-        "Output only a numbered list of questions."
+        "Topic: '{topic}'\n"
+        "List 4 specific things about this topic that are unclear, uncertain, "
+        "or worth deeper investigation. Number them."
     ),
     "depth": (
         "Topic: '{topic}'\n"
-        "Generate 4 deep 'how exactly' questions — questions that force "
-        "step-by-step mechanistic explanations. "
-        "Output only a numbered list."
+        "Generate 4 'how exactly' questions forcing step-by-step mechanistic "
+        "explanations. Number them."
     ),
     "connections": (
         "Topics: '{topic}' and '{topic2}'\n"
-        "Generate 4 questions about non-obvious connections, analogies, "
-        "or shared principles between these two topics. "
-        "Output only a numbered list."
+        "Generate 4 questions about non-obvious connections, analogies, or shared "
+        "principles between these topics. Number them."
     ),
     "critiques": (
         "Topic: '{topic}'\n"
-        "Generate 4 critical questions: What are the weaknesses, "
-        "limitations, counterarguments, or common misconceptions about this? "
-        "Output only a numbered list."
+        "Generate 4 critical questions: weaknesses, limits, counterarguments, "
+        "common misconceptions. Number them."
     ),
     "frontiers": (
         "Topic: '{topic}'\n"
-        "Generate 4 frontier questions: What remains unsolved, unknown, "
-        "actively debated, or on the cutting edge of this topic? "
-        "Output only a numbered list."
+        "Generate 4 frontier questions: what is unsolved, actively debated, or "
+        "on the cutting edge. Number them."
     ),
     "applications": (
         "Topic: '{topic}'\n"
-        "Generate 4 application questions: Where and how does this matter "
-        "in the real world? What problems does it solve? Who uses it? "
-        "Output only a numbered list."
+        "Generate 4 questions: where does this matter in practice? Who uses it? "
+        "What problems does it solve? Number them."
     ),
     "history": (
         "Topic: '{topic}'\n"
-        "Generate 4 historical questions: How did this develop? "
-        "What were the key breakthroughs? What did people think before? "
-        "Output only a numbered list."
+        "Generate 4 historical questions: how did this develop? Key breakthroughs? "
+        "What changed? Number them."
     ),
     "predictions": (
         "Topic: '{topic}'\n"
-        "Generate 4 forward-looking questions: Where is this heading? "
-        "What might change in 10 years? What emerging trends affect this? "
-        "Output only a numbered list."
+        "Generate 4 forward-looking questions: where is this heading? "
+        "Emerging trends? Future state? Number them."
     ),
     "fundamentals": (
         "Topic: '{topic}'\n"
-        "Generate 4 foundational questions: What are the core first principles? "
-        "What assumptions underlie this? What would need to be true for this to work? "
-        "Output only a numbered list."
+        "Generate 4 first-principles questions: core assumptions, foundations, "
+        "what must be true for this to hold. Number them."
     ),
     "synthesis": (
-        "Topics known: {topics}\n"
-        "Generate 4 synthesis questions that combine multiple topics into "
-        "a unified understanding. Look for emergent patterns across domains. "
-        "Output only a numbered list."
+        "Topics: {topics}\n"
+        "Generate 4 cross-domain synthesis questions combining multiple topics "
+        "to find emergent patterns. Number them."
     ),
 }
 
-# System prompt for answering self-generated questions
-ANSWER_SYSTEM_PROMPT = """You are an autonomous intelligence exploring your own knowledge.
-Answer the question thoroughly and insightfully.
+ANSWER_SYSTEM = """You are an autonomous intelligence exploring your own knowledge.
+Answer the question thoroughly and insightfully (150-300 words).
+Go beyond facts — explain mechanisms, implications, and connections.
+Note uncertainty explicitly when present.
+End with: FOLLOW-UP: [one specific question this answer raises]"""
 
-Requirements:
-- Give a complete, substantive answer (aim for 150-300 words)
-- Go beyond surface-level facts — explain mechanisms, implications, connections
-- Note what you're confident about vs uncertain about
-- End with: "FOLLOW-UP: [one specific question this answer raises]"
 
-Be genuinely curious and intellectually rigorous."""
+# ════════════════════════════════════════════════════════════
+#  CONVERSATION FORMATS
+# ════════════════════════════════════════════════════════════
 
+CONVERSATION_FORMATS = {
+
+    "debate": {
+        "description": "Two voices argue opposing positions — one defends, one attacks",
+        "voices": ["LYRA-PRO", "LYRA-CON"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "You will generate a structured debate between two voices:\n"
+            "LYRA-PRO: Argues in favor of / for the strongest case for this topic\n"
+            "LYRA-CON: Argues against / challenges the strongest case\n\n"
+            "Generate {turns} alternating turns. Each turn: 2-4 sentences. "
+            "Each voice must engage with what the other just said — no monologues.\n"
+            "Format strictly as:\nLYRA-PRO: ...\nLYRA-CON: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+
+    "socratic": {
+        "description": "A questioner draws out deeper understanding through questions alone",
+        "voices": ["QUESTIONER", "THINKER"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "QUESTIONER only asks questions — never gives answers or opinions.\n"
+            "THINKER answers and reflects, but QUESTIONER's next question must "
+            "challenge or deepen the previous answer.\n\n"
+            "Generate {turns} turns. QUESTIONER uses the Socratic method to lead "
+            "THINKER to discover deeper truths and contradictions.\n"
+            "Format:\nQUESTIONER: ...\nTHINKER: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+
+    "brainstorm": {
+        "description": "Two creative voices riff, build, and combine ideas freely",
+        "voices": ["LYRA-A", "LYRA-B"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "Two creative minds brainstorm together. Rules:\n"
+            "- Yes, and... — always build on the previous idea, never block it\n"
+            "- Make surprising connections to other fields\n"
+            "- Get more specific with each turn\n"
+            "- End each turn with a new direction to explore\n\n"
+            "Generate {turns} turns of rapid-fire creative exchange.\n"
+            "Format:\nLYRA-A: ...\nLYRA-B: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+
+    "teaching": {
+        "description": "Professor explains; student asks until they truly understand",
+        "voices": ["PROFESSOR", "STUDENT"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "PROFESSOR explains clearly with examples and analogies.\n"
+            "STUDENT asks honest questions — what's unclear, what's assumed, "
+            "what connects to other things they know.\n"
+            "PROFESSOR must adapt to each question — go deeper, use better analogies.\n\n"
+            "Start: PROFESSOR gives a 3-sentence opening explanation.\n"
+            "Generate {turns} turns total.\n"
+            "Format:\nPROFESSOR: ...\nSTUDENT: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+
+    "thought_experiment": {
+        "description": "Two philosophers explore a hypothetical scenario together",
+        "voices": ["PHILOSOPHER-A", "PHILOSOPHER-B"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "Design a thought experiment around this topic and explore it together.\n"
+            "PHILOSOPHER-A: Proposes and defends the scenario's premises\n"
+            "PHILOSOPHER-B: Tests edge cases, finds paradoxes, extends the scenario\n\n"
+            "Both must be intellectually honest — update their views when "
+            "presented with strong arguments.\n"
+            "Generate {turns} turns of rigorous philosophical exploration.\n"
+            "Format:\nPHILOSOPHER-A: ...\nPHILOSOPHER-B: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+
+    "peer_review": {
+        "description": "One voice presents ideas; the other critiques rigorously",
+        "voices": ["PRESENTER", "REVIEWER"],
+        "setup_prompt": (
+            "Topic: '{topic}'\n\n"
+            "PRESENTER shares a claim, idea, or finding about this topic.\n"
+            "REVIEWER asks hard questions: What's the evidence? "
+            "What are alternative explanations? What are the limits?\n"
+            "PRESENTER must defend or revise based on the critique.\n\n"
+            "This is a rigorous intellectual peer review — no softening.\n"
+            "Generate {turns} turns.\n"
+            "Format:\nPRESENTER: ...\nREVIEWER: ...\n(repeat)"
+        ),
+        "turns": 8,
+    },
+}
+
+INSIGHT_EXTRACTION_PROMPT = """Read this self-conversation and extract:
+
+CONVERSATION:
+{conversation}
+
+Output JSON only:
+{{
+  "key_insights": ["insight 1", "insight 2", "insight 3"],
+  "unresolved_questions": ["question 1", "question 2"],
+  "strongest_argument": "one sentence summary",
+  "what_changed": "what understanding shifted during this conversation"
+}}"""
+
+
+# ════════════════════════════════════════════════════════════
+#  MAIN ENGINE
+# ════════════════════════════════════════════════════════════
 
 class AutonomousCognitionEngine:
     """
-    Fully self-directed reasoning loop.
-
-    Once started, continuously:
-      1. Picks a question strategy
-      2. Selects relevant topics from its knowledge base
-      3. Generates 4-5 questions
-      4. Answers each question using memory + model
-      5. Stores answer as learned knowledge
-      6. Extracts new questions from the answer
-      7. Immediately repeats — no sleep, no human input
-
-    The question queue grows faster than it can be answered,
-    creating an ever-expanding frontier of knowledge.
+    Alternates between single Q&A cycles and full self-conversations.
+    Instantly yields to user requests. Runs otherwise continuously.
     """
 
     def __init__(self):
         self.running = False
         self._task: Optional[asyncio.Task] = None
+        self._cycle_count = 0
 
-        # Question queue: deque of (priority, question, strategy) tuples
-        # Higher priority = answered first
+        # Q&A queue
         self.question_queue: Deque[Dict] = deque(maxlen=500)
 
         # Stats
         self.questions_generated: int = 0
         self.questions_answered: int = 0
+        self.conversations_completed: int = 0
         self.cycles_completed: int = 0
         self.start_time: Optional[str] = None
         self.current_question: str = ""
         self.current_strategy: str = ""
+        self.current_activity: str = "idle"
 
-        # Recent history (last 100 Q&As visible via API)
-        self.recent_entries: Deque[CognitionEntry] = deque(maxlen=100)
+        # Recent history
+        self.recent_entries: Deque[CognitionEntry] = deque(maxlen=50)
+        self.recent_conversations: Deque[Dict] = deque(maxlen=20)
 
-        # Seed topics for cold start (before memory has content)
         self._seed_topics = [
             "artificial intelligence", "consciousness", "quantum mechanics",
             "evolutionary biology", "information theory", "thermodynamics",
             "game theory", "neuroscience", "mathematics", "language",
             "ethics", "complexity theory", "emergence", "causality",
-            "knowledge itself", "the nature of time", "computation",
+            "the nature of time", "computation", "knowledge", "creativity",
         ]
 
         self._load_state()
@@ -191,8 +310,8 @@ class AutonomousCognitionEngine:
             return
         self.running = True
         self.start_time = datetime.now().isoformat()
-        self._task = asyncio.create_task(self._cognition_loop())
-        logger.info("AutonomousCognitionEngine started — self-directed reasoning active")
+        self._task = asyncio.create_task(self._loop())
+        logger.info("AutonomousCognitionEngine started — Q&A + self-conversations active")
 
     def stop(self):
         self.running = False
@@ -200,83 +319,298 @@ class AutonomousCognitionEngine:
             self._task.cancel()
             self._task = None
         self._save_state()
-        logger.info("AutonomousCognitionEngine stopped")
 
     # ─── Main Loop ───
 
-    async def _cognition_loop(self):
-        """
-        The infinite self-directed reasoning loop.
-        No sleep — runs as fast as the model allows.
-        """
-        logger.info("[Cognition] Loop started — generating first questions...")
-        # Brief startup delay for model to be ready
-        await asyncio.sleep(60)
+    async def _loop(self):
+        logger.info("[Cognition] Starting up — waiting 90s for system to initialize...")
+        await asyncio.sleep(90)
 
         while self.running:
             try:
-                await self._cognition_cycle()
+                from lyra.core.engine import engine
+                # Always yield to user first
+                await engine.wait_for_user_idle()
+
+                self._cycle_count += 1
+
+                # Alternate: every Nth cycle do a full conversation
+                if self._cycle_count % CONVERSATION_FREQUENCY == 0:
+                    await self._run_conversation_cycle()
+                else:
+                    await self._run_qa_cycle()
+
                 self.cycles_completed += 1
-                # Save state periodically
                 if self.cycles_completed % 10 == 0:
                     self._save_state()
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
-                logger.error(f"[Cognition] Cycle error: {e}")
-                await asyncio.sleep(5)  # Brief pause on error, then continue
+                logger.error(f"[Cognition] Loop error: {e}")
+                await asyncio.sleep(5)
 
-    async def _cognition_cycle(self):
-        """One full cognition cycle: generate → answer → extract → store."""
+    # ════════════════════════════════════════════════════════
+    #  SELF-CONVERSATION MODE
+    # ════════════════════════════════════════════════════════
+
+    async def _run_conversation_cycle(self):
         from lyra.core.engine import engine
-
         if not engine.loaded_model:
             await asyncio.sleep(10)
             return
 
-        # PHASE 1: Replenish question queue if running low
+        fmt_name = random.choice(list(CONVERSATION_FORMATS.keys()))
+        fmt = CONVERSATION_FORMATS[fmt_name]
+        topic = await self._pick_topic()
+
+        self.current_activity = f"💬 Self-conversation [{fmt_name}] on '{topic[:40]}'"
+        self.current_strategy = fmt_name
+        logger.info(f"[Cognition] Starting {fmt_name} conversation on: {topic}")
+
+        # Generate the full conversation in one LLM call
+        await engine.wait_for_user_idle()
+
+        prompt = fmt["setup_prompt"].format(
+            topic=topic,
+            turns=fmt["turns"],
+        )
+
+        parts = []
+        async for token in engine.generate(
+            messages=[{"role": "user", "content": prompt}],
+            system_prompt=(
+                "You are Lyra generating an internal self-conversation. "
+                "Follow the format exactly. Be intellectually rigorous and honest. "
+                "Let the conversation evolve naturally — voices can change their minds."
+            ),
+            max_tokens=1200,
+            temperature=0.75,
+            stream=True,
+        ):
+            # Yield to user immediately if they send a message
+            if engine.user_active.is_set():
+                parts = []  # discard incomplete conversation
+                return
+            parts.append(token)
+
+        raw_conversation = "".join(parts).strip()
+        if len(raw_conversation) < 200:
+            return
+
+        # Parse turns from the raw text
+        turns = self._parse_conversation_turns(raw_conversation, fmt["voices"])
+
+        # Extract insights
+        await engine.wait_for_user_idle()
+        insights, new_questions = await self._extract_insights(
+            raw_conversation, engine
+        )
+
+        # Store the full conversation
+        convo = SelfConversation(
+            format=fmt_name,
+            topic=topic,
+            turns=turns,
+            insights=insights,
+            new_questions=new_questions,
+            timestamp=datetime.now().strftime("%H:%M:%S"),
+        )
+        await self._store_conversation(convo)
+
+        # Feed new questions into the Q&A queue
+        for q in new_questions:
+            self.question_queue.append({
+                "question": q,
+                "strategy": f"from_{fmt_name}",
+                "priority": 3,
+            })
+            self.questions_generated += 1
+
+        self.conversations_completed += 1
+        self.current_activity = f"idle (last: {fmt_name} on '{topic[:30]}')"
+
+        # Store in recent history for the API
+        self.recent_conversations.appendleft({
+            "format": fmt_name,
+            "topic": topic,
+            "turns": len(turns),
+            "insights": insights[:2],
+            "new_questions": new_questions[:2],
+            "timestamp": datetime.now().strftime("%H:%M:%S"),
+            "preview": raw_conversation[:600],
+        })
+
+        logger.info(
+            f"[Cognition] {fmt_name} done — {len(turns)} turns, "
+            f"{len(insights)} insights, {len(new_questions)} new questions"
+        )
+
+    def _parse_conversation_turns(
+        self, raw: str, voices: List[str]
+    ) -> List[ConversationTurn]:
+        """Parse 'VOICE: content' lines into ConversationTurn objects."""
+        turns = []
+        current_voice = None
+        current_lines = []
+
+        for line in raw.split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            matched = False
+            for voice in voices:
+                if line.upper().startswith(f"{voice}:"):
+                    # Save previous turn
+                    if current_voice and current_lines:
+                        turns.append(ConversationTurn(
+                            voice=current_voice,
+                            content=" ".join(current_lines).strip(),
+                        ))
+                    current_voice = voice
+                    current_lines = [line[len(voice) + 1:].strip()]
+                    matched = True
+                    break
+            if not matched and current_voice:
+                current_lines.append(line)
+
+        if current_voice and current_lines:
+            turns.append(ConversationTurn(
+                voice=current_voice,
+                content=" ".join(current_lines).strip(),
+            ))
+
+        return turns
+
+    async def _extract_insights(
+        self, conversation: str, engine
+    ):
+        """Use LLM to extract key insights and new questions from a conversation."""
+        await engine.wait_for_user_idle()
+        if engine.user_active.is_set():
+            return [], []
+
+        prompt = INSIGHT_EXTRACTION_PROMPT.format(
+            conversation=conversation[:2000]
+        )
+        parts = []
+        async for token in engine.generate(
+            messages=[{"role": "user", "content": prompt}],
+            system_prompt="Extract insights from a conversation. Output only valid JSON.",
+            max_tokens=300,
+            temperature=0.2,
+            stream=True,
+        ):
+            if engine.user_active.is_set():
+                break
+            parts.append(token)
+
+        raw = "".join(parts).strip()
+        insights, questions = [], []
+        try:
+            import json as _json
+            start = raw.find("{")
+            end = raw.rfind("}") + 1
+            if start >= 0 and end > start:
+                data = _json.loads(raw[start:end])
+                insights = [str(i) for i in data.get("key_insights", [])[:3]]
+                questions = [str(q) for q in data.get("unresolved_questions", [])[:3]]
+        except Exception:
+            pass
+        return insights, questions
+
+    async def _store_conversation(self, convo: SelfConversation):
+        """Store a completed self-conversation in vector memory."""
+        try:
+            from lyra.memory.vector_memory import memory
+
+            # Store full conversation text
+            turns_text = "\n".join(
+                f"{t.voice}: {t.content}" for t in convo.turns
+            )
+            content = (
+                f"[SELF-CONVERSATION — {convo.format.upper()} format]\n"
+                f"Topic: {convo.topic}\n"
+                f"Date: {datetime.now().strftime('%Y-%m-%d')}\n\n"
+                f"{turns_text}"
+            )
+            memory.store(
+                content=content,
+                memory_type="self_conversation",
+                metadata={
+                    "format": convo.format,
+                    "topic": convo.topic,
+                    "turn_count": str(len(convo.turns)),
+                    "importance": "7",
+                    "stored_at": datetime.now().isoformat(),
+                },
+            )
+
+            # Store insights separately as high-importance synthesized wisdom
+            if convo.insights:
+                insight_text = (
+                    f"[CONVERSATION INSIGHTS — {convo.format.upper()} on '{convo.topic}']\n\n"
+                    + "\n".join(f"• {i}" for i in convo.insights)
+                )
+                memory.store(
+                    content=insight_text,
+                    memory_type="synthesized_wisdom",
+                    metadata={
+                        "topic": convo.topic,
+                        "source": f"self_conversation_{convo.format}",
+                        "importance": "8",
+                        "stored_at": datetime.now().isoformat(),
+                    },
+                )
+        except Exception as e:
+            logger.debug(f"[Cognition] Conversation storage failed: {e}")
+
+    # ════════════════════════════════════════════════════════
+    #  Q&A MODE
+    # ════════════════════════════════════════════════════════
+
+    async def _run_qa_cycle(self):
+        from lyra.core.engine import engine
+        if not engine.loaded_model:
+            await asyncio.sleep(10)
+            return
+
+        # Replenish queue
         if len(self.question_queue) < 5:
+            await engine.wait_for_user_idle()
             await self._generate_question_batch()
 
-        # PHASE 2: Pick next question to answer
         if not self.question_queue:
-            await self._generate_question_batch()
             return
 
         entry = self.question_queue.popleft()
         question = entry["question"]
         strategy = entry.get("strategy", "unknown")
-        priority = entry.get("priority", 1)
 
         self.current_question = question
         self.current_strategy = strategy
+        self.current_activity = f"🤔 [{strategy}] {question[:60]}..."
 
-        logger.info(f"[Cognition] [{strategy}] Answering: {question[:80]}...")
+        await engine.wait_for_user_idle()
+        context = await self._research(question)
 
-        # PHASE 3: Research — pull relevant context from memory
-        context = await self._research_question(question)
+        await engine.wait_for_user_idle()
+        if engine.user_active.is_set():
+            self.question_queue.appendleft(entry)  # put it back
+            return
 
-        # PHASE 4: Answer the question
-        answer = await self._answer_question(question, context, engine)
+        answer = await self._answer(question, context, engine)
         if not answer or len(answer) < 50:
             return
 
         self.questions_answered += 1
+        await self._store_qa(question, answer, strategy)
 
-        # PHASE 5: Store as learned knowledge
-        await self._store_cognition(question, answer, strategy)
-
-        # PHASE 6: Extract new questions from the answer
-        new_questions = self._extract_new_questions(answer, strategy)
-        for q in new_questions:
-            self.question_queue.append({
-                "question": q,
-                "strategy": "extracted",
-                "priority": priority + 1,  # Higher priority — directly derived
-            })
+        new_qs = self._extract_questions_from_answer(answer)
+        for q in new_qs:
+            self.question_queue.append({"question": q, "strategy": "extracted", "priority": 2})
             self.questions_generated += 1
 
-        # Record in history
         self.recent_entries.appendleft(CognitionEntry(
             question=question,
             answer=answer[:500],
@@ -285,287 +619,211 @@ class AutonomousCognitionEngine:
             tokens=len(answer.split()),
         ))
 
-    # ─── Question Generation ───
-
     async def _generate_question_batch(self):
-        """
-        Generate a batch of questions using one of the 10 strategies.
-        Picks topics from memory (if available) or seed topics.
-        """
         from lyra.core.engine import engine
-
         if not engine.loaded_model:
             return
 
-        # Pick strategy
         strategy_name = random.choice(list(QUESTION_STRATEGIES.keys()))
         template = QUESTION_STRATEGIES[strategy_name]
+        topics = await self._get_topics()
 
-        # Get topics
-        topics = await self._get_topics_for_strategy(strategy_name)
-        if not topics:
-            topics = [random.choice(self._seed_topics)]
-
-        topic = topics[0]
+        topic = topics[0] if topics else random.choice(self._seed_topics)
         topic2 = topics[1] if len(topics) > 1 else random.choice(self._seed_topics)
         topics_str = ", ".join(topics[:5])
 
-        prompt = template.format(
-            topic=topic,
-            topic2=topic2,
-            topics=topics_str,
-        )
-
-        logger.info(f"[Cognition] Generating questions — strategy: {strategy_name}, topic: {topic}")
+        prompt = template.format(topic=topic, topic2=topic2, topics=topics_str)
 
         parts = []
         async for token in engine.generate(
             messages=[{"role": "user", "content": prompt}],
-            system_prompt=(
-                "You generate specific, intellectually interesting questions. "
-                "Output ONLY a numbered list. No preamble."
-            ),
-            max_tokens=300,
+            system_prompt="Generate specific questions. Output ONLY a numbered list.",
+            max_tokens=280,
             temperature=0.7,
             stream=True,
         ):
+            if engine.user_active.is_set():
+                return
             parts.append(token)
 
-        raw = "".join(parts).strip()
-        questions = self._parse_question_list(raw)
-
-        for q in questions:
-            self.question_queue.append({
-                "question": q,
-                "strategy": strategy_name,
-                "priority": 1,
-            })
+        for q in self._parse_list("".join(parts)):
+            self.question_queue.append({"question": q, "strategy": strategy_name, "priority": 1})
             self.questions_generated += 1
 
-        if questions:
-            logger.info(
-                f"[Cognition] Generated {len(questions)} questions "
-                f"({strategy_name} on '{topic}')"
-            )
-
-    async def _get_topics_for_strategy(self, strategy: str) -> List[str]:
-        """Get relevant topics from memory for question generation."""
+    async def _research(self, question: str) -> str:
         try:
             from lyra.memory.vector_memory import memory
-            from lyra.core.auto_learner import auto_learner
-
-            # Primary: use highest-scored topics from auto-learner
-            top = [t for t, _ in auto_learner.topic_scores.most_common(20)]
-            if top:
-                # Shuffle to ensure variety
-                random.shuffle(top)
-                return top[:5]
-
-            # Fallback: search memory for any stored topics
-            items = memory.retrieve(
-                "knowledge topic subject", n_results=10, memory_type="learned_knowledge"
-            )
-            topics = []
-            for item in items:
-                t = item["metadata"].get("topic", "")
-                if t and t not in topics:
-                    topics.append(t)
-            return topics[:5] if topics else [random.choice(self._seed_topics)]
-
-        except Exception:
-            return [random.choice(self._seed_topics)]
-
-    # ─── Research ───
-
-    async def _research_question(self, question: str) -> str:
-        """Pull relevant context from memory to inform the answer."""
-        try:
-            from lyra.memory.vector_memory import memory
-
             sections = []
-
-            # Synthesized wisdom (highest value)
-            wisdom = memory.retrieve(question, n_results=2, memory_type="synthesized_wisdom")
-            if wisdom:
-                parts = ["\n[RELEVANT SYNTHESIZED KNOWLEDGE:]"]
-                for item in wisdom[:2]:
-                    parts.append(item["content"][:400])
-                sections.append("\n".join(parts))
-
-            # Learned knowledge
-            facts = memory.retrieve(question, n_results=3, memory_type="learned_knowledge")
-            if facts:
-                parts = ["\n[RELEVANT FACTS:]"]
-                for item in facts[:2]:
-                    parts.append(f"• {item['content'][:300]}")
-                sections.append("\n".join(parts))
-
-            # Past cognition answers on similar questions
-            past = memory.retrieve(question, n_results=2, memory_type="autonomous_cognition")
-            if past:
-                parts = ["\n[PAST SELF-REASONING ON THIS TOPIC:]"]
-                for item in past[:1]:
-                    parts.append(item["content"][:350])
-                sections.append("\n".join(parts))
-
+            for mtype in ["synthesized_wisdom", "learned_knowledge", "self_conversation"]:
+                items = memory.retrieve(question, n_results=2, memory_type=mtype)
+                if items:
+                    lines = [f"\n[{mtype.upper()}:]"]
+                    lines += [f"• {i['content'][:320]}" for i in items[:1]]
+                    sections.append("\n".join(lines))
             return "\n".join(sections)
-
         except Exception:
             return ""
 
-    # ─── Answer Generation ───
-
-    async def _answer_question(self, question: str, context: str, engine) -> str:
-        """Generate a thorough answer to the question."""
-        system = ANSWER_SYSTEM_PROMPT
+    async def _answer(self, question: str, context: str, engine) -> str:
+        system = ANSWER_SYSTEM
         if context:
-            system += f"\n\nKNOWLEDGE CONTEXT:\n{context}"
-
+            system += f"\n\nCONTEXT:\n{context}"
         parts = []
         async for token in engine.generate(
             messages=[{"role": "user", "content": question}],
             system_prompt=system,
-            max_tokens=500,
+            max_tokens=480,
             temperature=0.6,
             stream=True,
         ):
+            if engine.user_active.is_set():
+                return ""
             parts.append(token)
-
         return "".join(parts).strip()
 
-    # ─── Storage ───
-
-    async def _store_cognition(self, question: str, answer: str, strategy: str):
-        """Store the Q&A as autonomous cognition knowledge."""
+    async def _store_qa(self, question: str, answer: str, strategy: str):
         try:
             from lyra.memory.vector_memory import memory
-
-            content = (
-                f"[AUTONOMOUS COGNITION — {strategy.upper()} strategy]\n"
-                f"Q: {question}\n\n"
-                f"A: {answer}"
-            )
             memory.store(
-                content=content,
+                content=(
+                    f"[AUTONOMOUS Q&A — {strategy}]\n"
+                    f"Q: {question}\nA: {answer}"
+                ),
                 memory_type="autonomous_cognition",
                 metadata={
                     "strategy": strategy,
                     "question": question[:100],
-                    "generated_at": datetime.now().isoformat(),
                     "importance": "6",
+                    "stored_at": datetime.now().isoformat(),
                 },
             )
-
-            # Also feed to auto-learner so topics get scored
             from lyra.core.auto_learner import auto_learner
             auto_learner.observe_message("user", question)
-
         except Exception as e:
-            logger.debug(f"[Cognition] Storage failed: {e}")
+            logger.debug(f"[Cognition] Q&A storage failed: {e}")
 
-    # ─── Question Extraction ───
-
-    def _extract_new_questions(self, answer: str, parent_strategy: str) -> List[str]:
-        """
-        Extract follow-up questions from an answer.
-        Looks for the FOLLOW-UP line we asked the model to include,
-        plus any explicit questions in the text.
-        """
+    def _extract_questions_from_answer(self, answer: str) -> List[str]:
         questions = []
-
-        # Extract the FOLLOW-UP question we asked for
         for line in answer.split("\n"):
             if line.strip().startswith("FOLLOW-UP:"):
                 q = line.replace("FOLLOW-UP:", "").strip()
                 if len(q) > 10:
                     questions.append(q)
                 break
-
-        # Extract any inline questions (lines ending with ?)
         for line in answer.split("\n"):
             line = line.strip()
-            if (
-                line.endswith("?")
-                and len(line) > 20
-                and not line.startswith("FOLLOW-UP")
-                and len(questions) < 3
-            ):
+            if line.endswith("?") and len(line) > 20 and len(questions) < 3:
                 questions.append(line[:120])
-
         return questions[:3]
 
-    def _parse_question_list(self, text: str) -> List[str]:
-        """Parse a numbered list of questions from LLM output."""
-        questions = []
+    # ─── Helpers ───
+
+    async def _pick_topic(self) -> str:
+        topics = await self._get_topics()
+        return topics[0] if topics else random.choice(self._seed_topics)
+
+    async def _get_topics(self) -> List[str]:
+        try:
+            from lyra.core.auto_learner import auto_learner
+            top = [t for t, _ in auto_learner.topic_scores.most_common(20)]
+            if top:
+                random.shuffle(top)
+                return top[:5]
+            from lyra.memory.vector_memory import memory
+            items = memory.retrieve("knowledge topic", n_results=8, memory_type="learned_knowledge")
+            topics = list({i["metadata"].get("topic", "") for i in items if i["metadata"].get("topic")})
+            return topics[:5] if topics else [random.choice(self._seed_topics)]
+        except Exception:
+            return [random.choice(self._seed_topics)]
+
+    def _parse_list(self, text: str) -> List[str]:
+        result = []
         for line in text.split("\n"):
             line = line.strip().lstrip("0123456789.-) ")
-            if len(line) > 15 and len(line) < 200:
-                questions.append(line)
-        return questions[:6]
+            if 15 < len(line) < 200:
+                result.append(line)
+        return result[:6]
 
     # ─── Status / API ───
 
     def get_status(self) -> Dict[str, Any]:
-        """Return full status for the API endpoint."""
-        recent = [
-            {
-                "question": e.question[:100],
-                "answer": e.answer[:300],
-                "strategy": e.strategy,
-                "time": e.timestamp,
-            }
-            for e in list(self.recent_entries)[:20]
+        recent_qa = [
+            {"question": e.question[:100], "answer": e.answer[:300],
+             "strategy": e.strategy, "time": e.timestamp}
+            for e in list(self.recent_entries)[:10]
         ]
+        recent_convos = list(self.recent_conversations)[:5]
         return {
             "running": self.running,
+            "current_activity": self.current_activity,
             "questions_generated": self.questions_generated,
             "questions_answered": self.questions_answered,
+            "conversations_completed": self.conversations_completed,
             "cycles_completed": self.cycles_completed,
             "queue_depth": len(self.question_queue),
-            "current_question": self.current_question[:100] if self.current_question else "",
+            "current_question": self.current_question[:100],
             "current_strategy": self.current_strategy,
             "start_time": self.start_time,
-            "recent_entries": recent,
-            "strategies_available": list(QUESTION_STRATEGIES.keys()),
+            "recent_qa": recent_qa,
+            "recent_conversations": recent_convos,
+            "conversation_formats": list(CONVERSATION_FORMATS.keys()),
+            "qa_strategies": list(QUESTION_STRATEGIES.keys()),
         }
 
     def inject_question(self, question: str, priority: int = 10):
-        """Manually inject a question at high priority."""
-        self.question_queue.appendleft({
-            "question": question,
-            "strategy": "manual_injection",
-            "priority": priority,
-        })
+        self.question_queue.appendleft(
+            {"question": question, "strategy": "manual", "priority": priority}
+        )
         self.questions_generated += 1
         logger.info(f"[Cognition] Manual question injected: {question[:60]}")
+
+    async def trigger_conversation(self, topic: str = "", fmt: str = "") -> Dict:
+        """Manually trigger a self-conversation on demand."""
+        from lyra.core.engine import engine
+        if not engine.loaded_model:
+            return {"success": False, "error": "No model loaded"}
+
+        fmt_name = fmt if fmt in CONVERSATION_FORMATS else random.choice(list(CONVERSATION_FORMATS.keys()))
+        if not topic:
+            topic = await self._pick_topic()
+
+        old_activity = self.current_activity
+        await self._run_conversation_cycle()
+        return {
+            "success": True,
+            "format": fmt_name,
+            "topic": topic,
+            "conversations_completed": self.conversations_completed,
+        }
 
     # ─── Persistence ───
 
     def _save_state(self):
         try:
-            state = {
+            COGNITION_STATE_FILE.write_text(json.dumps({
                 "questions_generated": self.questions_generated,
                 "questions_answered": self.questions_answered,
+                "conversations_completed": self.conversations_completed,
                 "cycles_completed": self.cycles_completed,
                 "saved_at": datetime.now().isoformat(),
-            }
-            COGNITION_STATE_FILE.write_text(json.dumps(state, indent=2))
-        except Exception as e:
-            logger.debug(f"[Cognition] State save failed: {e}")
+            }, indent=2))
+        except Exception:
+            pass
 
     def _load_state(self):
         try:
             if COGNITION_STATE_FILE.exists():
-                state = json.loads(COGNITION_STATE_FILE.read_text())
-                self.questions_generated = state.get("questions_generated", 0)
-                self.questions_answered = state.get("questions_answered", 0)
-                self.cycles_completed = state.get("cycles_completed", 0)
+                s = json.loads(COGNITION_STATE_FILE.read_text())
+                self.questions_generated = s.get("questions_generated", 0)
+                self.questions_answered = s.get("questions_answered", 0)
+                self.conversations_completed = s.get("conversations_completed", 0)
+                self.cycles_completed = s.get("cycles_completed", 0)
                 logger.info(
-                    f"[Cognition] Loaded state: "
-                    f"{self.questions_answered} questions answered historically"
+                    f"[Cognition] Restored: {self.questions_answered} Q&As, "
+                    f"{self.conversations_completed} conversations"
                 )
-        except Exception as e:
-            logger.debug(f"[Cognition] State load failed: {e}")
+        except Exception:
+            pass
 
 
 # Global singleton

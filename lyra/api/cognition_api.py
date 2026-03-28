@@ -25,6 +25,11 @@ class InjectRequest(BaseModel):
     priority: int = 10
 
 
+class ConversationRequest(BaseModel):
+    topic: str = ""
+    format: str = ""   # debate | socratic | brainstorm | teaching | thought_experiment | peer_review
+
+
 @router.get("/status")
 async def get_cognition_status():
     """Full status of the autonomous cognition loop."""
@@ -61,6 +66,27 @@ async def inject_question(req: InjectRequest):
     }
 
 
+@router.post("/converse")
+async def trigger_conversation(req: ConversationRequest):
+    """Trigger an immediate self-conversation on a topic in a given format."""
+    result = await cognition_engine.trigger_conversation(req.topic, req.format)
+    return result
+
+
+@router.get("/conversations")
+async def get_recent_conversations():
+    """Get recent self-conversations with insights and new questions."""
+    return {
+        "conversations": list(cognition_engine.recent_conversations),
+        "total_completed": cognition_engine.conversations_completed,
+        "formats_available": list(
+            {name: fmt["description"] for name, fmt in __import__(
+                "lyra.core.cognition_engine", fromlist=["CONVERSATION_FORMATS"]
+            ).CONVERSATION_FORMATS.items()}
+        ),
+    }
+
+
 @router.websocket("/stream")
 async def cognition_stream(websocket: WebSocket):
     """
@@ -91,11 +117,13 @@ async def cognition_stream(websocket: WebSocket):
                 })
                 last_count = current_count
 
-            # Also send heartbeat with current stats every 5 seconds
+            # Send heartbeat with current stats
             await websocket.send_json({
                 "type": "heartbeat",
                 "running": cognition_engine.running,
+                "current_activity": cognition_engine.current_activity,
                 "questions_answered": cognition_engine.questions_answered,
+                "conversations_completed": cognition_engine.conversations_completed,
                 "current_question": cognition_engine.current_question[:100],
                 "current_strategy": cognition_engine.current_strategy,
                 "queue_depth": len(cognition_engine.question_queue),
