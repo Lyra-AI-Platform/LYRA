@@ -26,6 +26,7 @@ from lyra.api.telemetry_api import router as telemetry_router
 from lyra.api.graph_api import router as graph_router
 from lyra.api.cognition_api import router as cognition_router
 from lyra.api.experiment_api import router as experiment_router
+from lyra.authenticator.api import router as auth_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -67,6 +68,7 @@ app.include_router(telemetry_router)
 app.include_router(graph_router)
 app.include_router(cognition_router)
 app.include_router(experiment_router)
+app.include_router(auth_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -141,6 +143,11 @@ async def on_startup():
     from lyra.core.synthesis_engine import synthesizer
     synthesizer.start()
     logger.info("Knowledge Synthesizer: active (4h synthesis cycles)")
+
+    # Start LyraAuth challenge engine
+    from lyra.authenticator.engine import challenge_engine
+    challenge_engine.start()
+    logger.info("LyraAuth: active — human authentication + AI training data collection")
 
     # Start autonomous cognition engine (self-directed Q&A loop — no human needed)
     from lyra.core.cognition_engine import cognition_engine
