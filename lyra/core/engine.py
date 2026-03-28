@@ -27,6 +27,22 @@ class ModelEngine:
         self.model_type = None
         self.tokenizer = None
         self._lock = asyncio.Lock()
+        # Priority flag: set True while a real user is being served.
+        # Background cognition checks this and yields immediately.
+        self.user_active = asyncio.Event()
+
+    def set_user_active(self):
+        """Signal that a real user request is in flight — background tasks must yield."""
+        self.user_active.set()
+
+    def set_user_idle(self):
+        """Signal that the user request is done — background tasks may resume."""
+        self.user_active.clear()
+
+    async def wait_for_user_idle(self, poll_interval: float = 0.5):
+        """Background tasks call this before each inference to respect user priority."""
+        while self.user_active.is_set():
+            await asyncio.sleep(poll_interval)
 
     def get_available_models(self) -> List[Dict[str, Any]]:
         models = []

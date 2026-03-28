@@ -85,8 +85,18 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     if conv_id not in conversations:
         conversations[conv_id] = []
 
+    # ── Signal user priority — background cognition immediately yields ──
+    engine.set_user_active()
+
     # Feed message to auto-learner (fast regex scoring, LLM extraction queued async)
     auto_learner.observe_message("user", user_message)
+
+    # Also inject self-conversation insights relevant to this topic into memory context
+    try:
+        self_convos = memory.retrieve(user_message, n_results=2, memory_type="self_conversation")
+        # Will be included naturally via memory.get_context_for_prompt below
+    except Exception:
+        pass
 
     # Add user message
     conversations[conv_id].append({"role": "user", "content": user_message})
@@ -183,6 +193,7 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
             await websocket.send_json({"type": "token", "content": token})
 
     except Exception as e:
+        engine.set_user_idle()  # Always release priority on error
         await websocket.send_json({"type": "error", "content": f"Generation error: {e}"})
         return
 
@@ -203,6 +214,9 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     asyncio.create_task(
         reflector.evaluate_async(user_message, full_response, conv_id)
     )
+
+    # ── Release user priority — background cognition may resume ──
+    engine.set_user_idle()
 
     # Send completion
     await websocket.send_json({
