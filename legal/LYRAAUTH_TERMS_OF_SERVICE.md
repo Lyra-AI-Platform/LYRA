@@ -1,8 +1,8 @@
 # LyraAuth Terms of Service
 
 **Last updated: March 28, 2026**
-**Service operated by:** [YOUR LEGAL NAME / COMPANY NAME]
-**Contact:** [YOUR EMAIL]
+**Service operated by:** Lyra Labs
+**Contact:** legal@lyraauth.com
 
 ---
 
@@ -77,7 +77,7 @@ You may NOT use LyraAuth to:
 
 ## 6. Intellectual Property
 
-- The Lyra AI model trained using LyraAuth data is owned by [YOUR NAME/COMPANY]
+- The Lyra AI model trained using LyraAuth data is owned by Lyra Labs
 - The LyraAuth widget code is open-sourced under the MIT License (frontend JS only)
 - The backend, challenge engine, and training pipeline remain proprietary
 
@@ -92,15 +92,15 @@ THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. WE DO NOT GUARANTE
 
 ## 8. Limitation of Liability
 
-IN NO EVENT SHALL [YOUR NAME/COMPANY] BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
+IN NO EVENT SHALL Lyra Labs BE LIABLE FOR ANY INDIRECT, INCIDENTAL,
 SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM USE OF THIS SERVICE.
 
 ---
 
 ## 9. Governing Law
 
-These Terms are governed by the laws of [YOUR STATE/COUNTRY].
-Disputes shall be resolved in the courts of [YOUR JURISDICTION].
+These Terms are governed by the laws of Delaware, USA.
+Disputes shall be resolved in the courts of Delaware, USA.
 
 ---
 
