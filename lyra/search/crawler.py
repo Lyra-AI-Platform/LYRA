@@ -106,7 +106,13 @@ class LyraCrawler:
     # ─── Main Entry Point ───
 
     async def crawl_topic(self, topic: str, depth: int = 1) -> List[Dict[str, Any]]:
-        """Crawl the web for a topic. Returns list of knowledge chunks."""
+        """
+        Crawl the web for a topic. Returns list of knowledge chunks.
+        Routes to specialized crawlers based on topic type:
+          - All topics: Wikipedia + DuckDuckGo
+          - Scientific/CS: also arXiv papers
+          - Programming: also GitHub READMEs
+        """
         results = []
 
         # 1. Wikipedia via JSON API (highest quality, always first)
@@ -117,8 +123,41 @@ class LyraCrawler:
         search_results = await self.search_and_crawl(topic, max_pages=5)
         results.extend(search_results)
 
+        # 3. arXiv for scientific / technical topics
+        if self._is_scientific_topic(topic):
+            arxiv_results = await self.crawl_arxiv(topic)
+            results.extend(arxiv_results)
+
+        # 4. GitHub READMEs for programming topics
+        if self._is_programming_topic(topic):
+            github_results = await self.crawl_github_readme(topic)
+            results.extend(github_results)
+
         logger.info(f"Crawled topic '{topic}': {len(results)} chunks")
         return results
+
+    def _is_scientific_topic(self, topic: str) -> bool:
+        """Heuristic: is this topic scientific/technical enough for arXiv?"""
+        sci_keywords = {
+            "machine learning", "neural", "deep learning", "ai", "algorithm",
+            "quantum", "physics", "chemistry", "biology", "mathematics", "math",
+            "statistics", "protein", "genome", "drug", "climate", "astronomy",
+            "cosmology", "neuroscience", "reinforcement", "transformer", "llm",
+            "nlp", "computer vision", "robotics", "optimization", "cryptography",
+        }
+        t = topic.lower()
+        return any(kw in t for kw in sci_keywords)
+
+    def _is_programming_topic(self, topic: str) -> bool:
+        """Heuristic: is this topic programming-related?"""
+        prog_keywords = {
+            "python", "javascript", "typescript", "rust", "go", "java", "c++",
+            "framework", "library", "api", "database", "docker", "kubernetes",
+            "react", "vue", "angular", "fastapi", "django", "flask", "node",
+            "programming", "coding", "software", "development", "devops",
+        }
+        t = topic.lower()
+        return any(kw in t for kw in prog_keywords)
 
     # ─── Wikimedia JSON API ───
 
@@ -313,6 +352,165 @@ class LyraCrawler:
                 logger.debug(f"Vital article failed '{topic}': {e}")
 
         return results
+
+    # ─── arXiv Papers ───
+
+    async def crawl_arxiv(self, topic: str, max_results: int = 4) -> List[Dict[str, Any]]:
+        """
+        Fetch recent papers from arXiv on a topic.
+        Uses the arXiv Atom API — no key required, open access.
+        Returns abstracts + metadata as high-quality knowledge chunks.
+        """
+        try:
+            import httpx
+            from xml.etree import ElementTree as ET
+
+            query = topic.replace(" ", "+")
+            url = (
+                f"http://export.arxiv.org/api/query"
+                f"?search_query=all:{query}"
+                f"&sortBy=relevance&sortOrder=descending"
+                f"&max_results={max_results}"
+            )
+
+            async with httpx.AsyncClient(timeout=20) as client:
+                resp = await client.get(url, headers=WIKI_HEADERS)
+                if resp.status_code != 200:
+                    return []
+
+            root = ET.fromstring(resp.text)
+            ns = {"atom": "http://www.w3.org/2005/Atom"}
+
+            results = []
+            for entry in root.findall("atom:entry", ns):
+                title_el = entry.find("atom:title", ns)
+                summary_el = entry.find("atom:summary", ns)
+                id_el = entry.find("atom:id", ns)
+                authors = entry.findall("atom:author", ns)
+                published_el = entry.find("atom:published", ns)
+
+                title = title_el.text.strip() if title_el is not None else ""
+                summary = summary_el.text.strip() if summary_el is not None else ""
+                paper_id = id_el.text.strip() if id_el is not None else ""
+                author_names = [
+                    a.find("atom:name", ns).text
+                    for a in authors[:3]
+                    if a.find("atom:name", ns) is not None
+                ]
+                published = published_el.text[:10] if published_el is not None else ""
+
+                if not title or not summary or len(summary) < 100:
+                    continue
+
+                content = (
+                    f"[RESEARCH PAPER] {title}\n"
+                    f"Authors: {', '.join(author_names)}\n"
+                    f"Published: {published}\n"
+                    f"Source: {paper_id}\n\n"
+                    f"Abstract:\n{summary}"
+                )
+
+                results.append({
+                    "source": "arxiv",
+                    "title": title,
+                    "url": paper_id,
+                    "content": content,
+                    "topic": topic,
+                    "quality": "high",
+                })
+
+            if results:
+                logger.info(f"arXiv: {len(results)} papers for '{topic}'")
+            return results
+
+        except Exception as e:
+            logger.debug(f"arXiv crawl failed for '{topic}': {e}")
+            return []
+
+    # ─── GitHub READMEs ───
+
+    async def crawl_github_readme(
+        self, topic: str, max_repos: int = 3
+    ) -> List[Dict[str, Any]]:
+        """
+        Search GitHub for repositories related to a programming topic
+        and extract their README content.
+        Uses the GitHub search API (unauthenticated — rate limited but functional).
+        """
+        try:
+            import httpx
+
+            search_url = "https://api.github.com/search/repositories"
+            params = {
+                "q": f"{topic} in:name,description",
+                "sort": "stars",
+                "order": "desc",
+                "per_page": max_repos,
+            }
+            headers = {
+                "Accept": "application/vnd.github.v3+json",
+                "User-Agent": "Lyra-AI/1.0",
+            }
+
+            async with httpx.AsyncClient(timeout=15) as client:
+                resp = await client.get(search_url, params=params, headers=headers)
+                if resp.status_code != 200:
+                    return []
+
+                data = resp.json()
+                repos = data.get("items", [])[:max_repos]
+
+            results = []
+            for repo in repos:
+                name = repo.get("full_name", "")
+                description = repo.get("description", "") or ""
+                stars = repo.get("stargazers_count", 0)
+                url = repo.get("html_url", "")
+                default_branch = repo.get("default_branch", "main")
+
+                # Fetch README
+                readme_url = (
+                    f"https://raw.githubusercontent.com/{name}/"
+                    f"{default_branch}/README.md"
+                )
+                try:
+                    async with httpx.AsyncClient(timeout=10) as client:
+                        readme_resp = await client.get(readme_url, headers=headers)
+                        if readme_resp.status_code == 200:
+                            readme = readme_resp.text[:4000]
+                        else:
+                            readme = description
+                except Exception:
+                    readme = description
+
+                if len(readme) < 100:
+                    continue
+
+                content = (
+                    f"[GITHUB REPOSITORY] {name}\n"
+                    f"Stars: {stars:,} | URL: {url}\n"
+                    f"Description: {description}\n\n"
+                    f"README:\n{readme}"
+                )
+
+                results.append({
+                    "source": "github",
+                    "title": name,
+                    "url": url,
+                    "content": content[:5000],
+                    "topic": topic,
+                    "quality": "medium",
+                })
+
+                await asyncio.sleep(1)  # Respect GitHub rate limits
+
+            if results:
+                logger.info(f"GitHub: {len(results)} repos for '{topic}'")
+            return results
+
+        except Exception as e:
+            logger.debug(f"GitHub crawl failed for '{topic}': {e}")
+            return []
 
     # ─── Web Search + Crawl ───
 
