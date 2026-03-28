@@ -1,6 +1,6 @@
 # LyraAuth Data Processing Agreement (DPA)
 
-**Between:** [YOUR NAME/COMPANY] ("LyraAuth Provider")
+**Between:** Lyra Labs ("LyraAuth Provider")
 **And:** The website operator registering to use LyraAuth ("Data Controller")
 **Date:** March 28, 2026
 

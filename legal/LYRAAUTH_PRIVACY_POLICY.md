@@ -1,8 +1,8 @@
 # LyraAuth Privacy Policy
 
 **Last updated: March 28, 2026**
-**Controller:** [YOUR LEGAL NAME / COMPANY]
-**Contact:** [YOUR EMAIL]
+**Controller:** Lyra Labs
+**Contact:** legal@lyraauth.com
 
 ---
 
@@ -51,7 +51,7 @@ We will remove any identifiable records upon request.
 - Right to opt-out of sale of personal information
 - We do NOT sell personal information
 
-**To exercise rights:** Email [YOUR EMAIL] with subject "Privacy Request"
+**To exercise rights:** Email legal@lyraauth.com with subject "Privacy Request"
 
 ---
 
@@ -92,7 +92,7 @@ files accessible only to authorized systems.
 ## Contact
 
 For privacy questions, data requests, or concerns:
-**Email:** [YOUR EMAIL]
+**Email:** legal@lyraauth.com
 **Response time:** Within 30 days
 
 ---

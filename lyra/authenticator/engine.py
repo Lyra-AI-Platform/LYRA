@@ -55,6 +55,11 @@ class ChallengeType(str, Enum):
     SEQUENCE       = "sequence"
     BETTER_WORD    = "better_word"
     EMOJI_MEANING  = "emoji_meaning"
+    # New high-value types
+    REAL_OR_FAKE   = "real_or_fake"     # AI content detection training data
+    ACCESSIBILITY  = "accessibility"    # alt-text / screen reader training data
+    PHYSICS        = "physics"          # spatial/embodied AI training data
+    VIBE_CHECK     = "vibe_check"       # tone/intent/sarcasm classification
 
 
 @dataclass
@@ -188,6 +193,204 @@ FACT_CHECK_CHALLENGES = [
     ("The tongue has specific zones for different tastes.", False, "Taste receptors for all tastes are distributed across the whole tongue."),
 ]
 
+# ── Real or Fake: AI Content Detection ───────────────────────────────────────
+# Each entry: (human_text, ai_text, explanation)
+# Human texts are genuine — written by real people. AI texts are plausible synthetic.
+REAL_OR_FAKE_CHALLENGES = [
+    (
+        "my dog kept waking me up at 3am wanting to go outside. turns out she just wanted to bark at a raccoon for 20 minutes",
+        "As the dawn broke over the horizon, my loyal canine companion expressed her desire to venture into the nocturnal world outside.",
+        "The first is casual, specific, and has the randomness of real life. The second is overly formal and vague.",
+    ),
+    (
+        "I burned the garlic again. Every single time. I get distracted and then the whole pan smells like regret.",
+        "Cooking can be a challenging endeavor. The preparation of garlic requires careful attention to temperature and timing.",
+        "Real people write about specific failures with emotion. AI tends toward generic instructional language.",
+    ),
+    (
+        "just got my first paycheck from my new job and immediately spent $40 on fancy cheese. no regrets.",
+        "Upon receiving my first remuneration from my new employment, I made a purchase that brought me considerable satisfaction.",
+        "The first has specific, impulsive human detail. The second reads like a formal report.",
+    ),
+    (
+        "The sunset painted the sky in breathtaking hues of amber and rose, casting a golden glow across the tranquil waters below.",
+        "the sky was so orange tonight it looked fake. took like 40 photos and none of them captured it right",
+        "The second is genuinely human — specific frustration with photography. The first is AI-typical 'purple prose'.",
+    ),
+    (
+        "ngl I cried a little when I finished this book. Wasn't expecting it to hit that hard",
+        "This literary work evoked profound emotional responses within me upon its conclusion. The narrative arc was deeply affecting.",
+        "Authentic emotional reactions are specific and informal. AI emotional descriptions are formal and generic.",
+    ),
+    (
+        "In today's fast-paced digital landscape, leveraging synergistic paradigms can unlock transformative value propositions.",
+        "my boss used the phrase 'circle back' four times in one meeting today. we need to talk about this as a society",
+        "Corporate buzzword soup is often AI or template writing. Specific social observations with opinions are human.",
+    ),
+]
+
+# ── Accessibility Labeling ────────────────────────────────────────────────────
+# (scene_description, options_list, best_option_index)
+ACCESSIBILITY_CHALLENGES = [
+    (
+        "🖼️ A photo shows a golden retriever puppy sitting in fallen autumn leaves, looking at the camera with its tongue out.",
+        [
+            "Image of a dog",
+            "Golden retriever puppy sitting in autumn leaves with tongue out, looking at camera",
+            "Animal photograph",
+            "A cute dog in the park",
+        ],
+        1,
+    ),
+    (
+        "🖼️ A chart shows a red line going up steeply from 2020 to 2025, labeled 'Global AI Investment (billions USD)'.",
+        [
+            "A graph",
+            "Red line graph",
+            "Line chart showing Global AI Investment in billions USD rising steeply from 2020 to 2025",
+            "Investment data visualization",
+        ],
+        2,
+    ),
+    (
+        "🖼️ A woman in a wheelchair is smiling and shaking hands with a man in a business suit in a bright office.",
+        [
+            "Two people meeting",
+            "Office photo",
+            "Woman using wheelchair shaking hands with a man in business attire in a professional office setting",
+            "A disabled person at work",
+        ],
+        2,
+    ),
+    (
+        "🖼️ A screenshot of a mobile app shows a blue 'Submit' button at the bottom of a form with empty text fields above it.",
+        [
+            "App screenshot",
+            "Mobile application interface showing a form with empty input fields and a blue Submit button at the bottom",
+            "A form with a button",
+            "Submit button",
+        ],
+        1,
+    ),
+    (
+        "🖼️ A warning triangle icon with an exclamation mark inside, colored yellow on a dark background.",
+        [
+            "Warning icon",
+            "Triangle shape",
+            "Yellow warning triangle with exclamation mark on dark background indicating a caution or alert",
+            "An alert symbol",
+        ],
+        2,
+    ),
+]
+
+# ── Spatial/Physics Reasoning ─────────────────────────────────────────────────
+# (scenario, options, correct_index, explanation)
+PHYSICS_CHALLENGES = [
+    (
+        "🎱 A bowling ball and a tennis ball are dropped from the same height at the same time in a vacuum (no air). What happens?",
+        [
+            "The bowling ball hits the ground first — it's heavier",
+            "They hit the ground at exactly the same time",
+            "The tennis ball hits first — it's lighter so less air resistance",
+            "The bowling ball hits first, then the tennis ball bounces higher",
+        ],
+        1,
+        "In a vacuum, all objects fall at the same rate regardless of mass (Galileo's insight, proven by Apollo 15 moon experiment).",
+    ),
+    (
+        "🏀 A ball is rolling toward the edge of a table. What happens when it goes over the edge?",
+        [
+            "It stops at the edge",
+            "It falls straight down immediately",
+            "It continues forward while also falling — following a curved path",
+            "It flies upward briefly before falling",
+        ],
+        2,
+        "The ball maintains its horizontal velocity while gravity adds downward acceleration — creating a parabolic arc.",
+    ),
+    (
+        "🧊 An ice cube is placed in a full glass of water. After it melts, what happens to the water level?",
+        [
+            "The water level rises — more liquid now",
+            "The water level drops — the ice was pushing it up",
+            "The water level stays the same",
+            "The glass overflows",
+        ],
+        2,
+        "Ice displaces exactly its own weight in water. When it melts, it becomes the same volume of water it displaced.",
+    ),
+    (
+        "🔦 You're in a dark room. You turn on a flashlight. Where does the light go first?",
+        [
+            "It slowly spreads through the room over a few seconds",
+            "It travels at the speed of sound (~343 m/s)",
+            "It arrives everywhere in the room almost simultaneously — at 300,000 km/s",
+            "It hits the nearest wall first, then bounces",
+        ],
+        2,
+        "Light travels at ~300,000 km/s. It crosses a typical room in about 3 nanoseconds — effectively instantaneous to humans.",
+    ),
+    (
+        "🪨 A large rock and a small rock are tied together and thrown into a lake. What happens?",
+        [
+            "The large rock sinks, the small rock floats",
+            "They both sink at the same rate, staying together",
+            "The small rock slows the large rock down",
+            "The large rock pulls the small one down faster than it would fall alone",
+        ],
+        1,
+        "Tied together, they sink as a unit. The combined weight-to-volume ratio determines the rate.",
+    ),
+]
+
+# ── Vibe/Tone/Intent Classification ──────────────────────────────────────────
+# (text, options, correct_index, explanation)
+VIBE_CHALLENGES = [
+    (
+        '"Oh sure, because THAT'S a totally normal thing to do." 🙄',
+        ["Sincere agreement", "Sarcasm / irony", "Genuine question", "Threatening"],
+        1,
+        "The caps, 'totally', and eye-roll emoji are classic sarcasm markers.",
+    ),
+    (
+        '"I just want to say thank you. You really didn\'t have to do that but it genuinely made my week."',
+        ["Sarcasm", "Passive aggression", "Genuine gratitude", "Formal complaint"],
+        2,
+        "Specific detail ('made my week'), no irony markers — this is sincere gratitude.",
+    ),
+    (
+        '"You should be more careful about what you post online. It would be a shame if someone found out."',
+        ["Helpful advice", "Casual warning", "Veiled threat / intimidation", "Friendly reminder"],
+        2,
+        "'It would be a shame if...' is a classic implied threat pattern.",
+    ),
+    (
+        '"lmaooo why did my cat just sit on my laptop and somehow open 47 tabs 💀"',
+        ["Frustrated complaint", "Technical question", "Humorous observation", "Request for help"],
+        2,
+        "The emoji, 'lmaooo', and specific absurd detail (47 tabs) signal humor/entertainment.",
+    ),
+    (
+        '"Per my last email — as I mentioned, the deadline was Tuesday."',
+        ["Neutral reminder", "Passive aggressive / pointed", "Formal business communication", "Urgent request"],
+        1,
+        "'Per my last email' is widely understood as passive-aggressive professional language.",
+    ),
+    (
+        '"I have been a customer for 12 years and I have never experienced service this poor."',
+        ["Casual complaint", "Formal complaint / escalation signal", "Positive review", "General feedback"],
+        1,
+        "Length of tenure mentioned + superlative ('never experienced') = formal complaint signal.",
+    ),
+    (
+        '"no worries if not!! just thought i\'d ask :)"',
+        ["Genuinely not worried", "Anxious / people-pleasing", "Rude dismissal", "Excited offer"],
+        1,
+        "Excessive reassurance + 'just' + smiley = classic people-pleasing anxiety pattern.",
+    ),
+]
+
 
 class ChallengeEngine:
     """
@@ -299,6 +502,49 @@ class ChallengeEngine:
                           options=["Yes, plausible ✓", "No, this seems wrong ✗"],
                           correct_answer="Yes, plausible ✓" if answer else "No, this seems wrong ✗",
                           display_data={"explanation": explanation}, training_value=1.5)
+
+        elif ctype == ChallengeType.REAL_OR_FAKE:
+            human_text, ai_text, explanation = random.choice(REAL_OR_FAKE_CHALLENGES)
+            # Randomly decide which slot gets which text
+            if random.random() > 0.5:
+                option_a, option_b = human_text, ai_text
+                correct = "A"
+            else:
+                option_a, option_b = ai_text, human_text
+                correct = "B"
+            c = Challenge(id=cid, type=ctype,
+                          prompt="Which of these was written by a real human? 🕵️",
+                          options=[f"A: \"{option_a[:120]}\"", f"B: \"{option_b[:120]}\""],
+                          correct_answer=f"{correct}: \"{(option_a if correct == 'A' else option_b)[:120]}\"",
+                          display_data={"explanation": explanation, "option_a": option_a, "option_b": option_b},
+                          training_value=2.0)
+
+        elif ctype == ChallengeType.ACCESSIBILITY:
+            scene, options, correct_idx = random.choice(ACCESSIBILITY_CHALLENGES)
+            c = Challenge(id=cid, type=ctype,
+                          prompt=f"Which description best describes this image for a screen reader?\n\n{scene}",
+                          options=options,
+                          correct_answer=options[correct_idx],
+                          display_data={"scene": scene},
+                          training_value=1.8)
+
+        elif ctype == ChallengeType.PHYSICS:
+            scenario, options, correct_idx, explanation = random.choice(PHYSICS_CHALLENGES)
+            c = Challenge(id=cid, type=ctype,
+                          prompt=scenario,
+                          options=options,
+                          correct_answer=options[correct_idx],
+                          display_data={"explanation": explanation},
+                          training_value=1.7)
+
+        elif ctype == ChallengeType.VIBE_CHECK:
+            text, options, correct_idx, explanation = random.choice(VIBE_CHALLENGES)
+            c = Challenge(id=cid, type=ctype,
+                          prompt=f"What's the tone of this message?\n\n{text}",
+                          options=options,
+                          correct_answer=options[correct_idx],
+                          display_data={"explanation": explanation},
+                          training_value=1.9)
 
         else:
             # Fallback to word complete
