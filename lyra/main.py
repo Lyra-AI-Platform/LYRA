@@ -165,6 +165,15 @@ async def on_startup():
     else:
         logger.info("Collective Intelligence: disabled (opt-in available in settings)")
 
+    # Initialize language backbone (spaCy + WordNet + Markov) — works without LLM
+    from lyra.core.language_backbone import language_backbone
+    await language_backbone.initialize()
+    stats = language_backbone.get_stats()
+    logger.info(
+        f"Language Backbone: active — WordNet {stats['wordnet_synsets']:,} concepts, "
+        f"Markov {stats['markov_trained_words']:,} patterns, spaCy={stats['spacy_available']}"
+    )
+
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
 
