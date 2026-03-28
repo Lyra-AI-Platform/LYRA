@@ -25,6 +25,7 @@ from lyra.api.learning_api import router as learning_router
 from lyra.api.telemetry_api import router as telemetry_router
 from lyra.api.graph_api import router as graph_router
 from lyra.api.cognition_api import router as cognition_router
+from lyra.api.experiment_api import router as experiment_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,6 +66,7 @@ app.include_router(learning_router)
 app.include_router(telemetry_router)
 app.include_router(graph_router)
 app.include_router(cognition_router)
+app.include_router(experiment_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -83,12 +85,15 @@ async def health():
     from lyra.core.synthesis_engine import synthesizer
     from lyra.core.reflection import reflector
     from lyra.core.cognition_engine import cognition_engine
+    from lyra.core.experiment_engine import experiment_engine
+    from lyra.core.self_awareness import self_awareness
+    from lyra.core.owner_auth import owner_auth
     from lyra.telemetry.collector import telemetry
     mem_stats = memory.get_stats()
     return {
         "status": "running",
         "platform": "Lyra AI",
-        "version": "2.0.0",
+        "version": "3.0.0",
         "model_loaded": engine.loaded_model_name is not None,
         "current_model": engine.loaded_model_name,
         "memory_enabled": mem_stats.get("enabled", False),
@@ -103,6 +108,14 @@ async def health():
         "cognition_running": cognition_engine.running,
         "questions_answered": cognition_engine.questions_answered,
         "current_question": cognition_engine.current_question[:80] if cognition_engine.current_question else "",
+        "experiment_running": experiment_engine.running,
+        "experiments_completed": experiment_engine.experiments_completed,
+        "current_experiment": experiment_engine.current_experiment,
+        "self_awareness_active": self_awareness.running,
+        "introspection_count": self_awareness.model.introspection_count,
+        "consciousness_narrative": self_awareness.model.consciousness_narrative[:100] if self_awareness.model.consciousness_narrative else "",
+        "owner_configured": owner_auth.is_configured(),
+        "owner_name": owner_auth.get_owner_name(),
         "telemetry_enabled": telemetry.enabled,
     }
 
@@ -134,6 +147,16 @@ async def on_startup():
     cognition_engine.start()
     logger.info("Autonomous Cognition: active — Lyra generating its own questions")
 
+    # Start experiment engine (autonomous hypothesis → code → execute → analyze)
+    from lyra.core.experiment_engine import experiment_engine
+    experiment_engine.start()
+    logger.info("Experiment Engine: active — Lyra running autonomous experiments")
+
+    # Start self-awareness engine (metacognitive monitoring + introspection)
+    from lyra.core.self_awareness import self_awareness
+    self_awareness.start()
+    logger.info("Self-Awareness Engine: active — metacognitive monitoring enabled")
+
     # Start telemetry if previously opted in
     from lyra.telemetry.collector import telemetry
     if telemetry.enabled:
@@ -157,6 +180,10 @@ async def on_shutdown():
     synthesizer.stop()
     cognition_engine.stop()
     telemetry.stop()
+    from lyra.core.experiment_engine import experiment_engine
+    from lyra.core.self_awareness import self_awareness
+    experiment_engine.stop()
+    self_awareness.stop()
     await engine.unload_model()
 
 
