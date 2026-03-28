@@ -21,6 +21,8 @@ from lyra.models.lyra_models import get_model, list_models
 from lyra.core.auto_learner import auto_learner
 from lyra.core.reasoning_engine import reasoning_engine
 from lyra.core.reflection import reflector
+from lyra.core.self_awareness import self_awareness
+from lyra.core.quantum_sim import quantum_sim
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -167,6 +169,26 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     except Exception:
         pass
 
+    # Self-awareness: inject Lyra's current self-model into context
+    try:
+        self_desc = self_awareness.get_self_description()
+        if self_desc:
+            system_prompt += f"\n\n{self_desc}"
+    except Exception:
+        pass
+
+    # Quantum context: if question involves quantum topics, note simulation availability
+    _quantum_keywords = [
+        "quantum", "qubit", "superposition", "entanglement", "bell state",
+        "grover", "shor", "qft", "teleportation", "vqe", "circuit",
+    ]
+    if any(kw in user_message.lower() for kw in _quantum_keywords):
+        system_prompt += (
+            "\n\n[QUANTUM CAPABILITY] You have access to a full quantum circuit simulator. "
+            f"You have run {quantum_sim.experiments_run} quantum experiments. "
+            "You can simulate Bell states, GHZ states, QFT, Grover search, teleportation, and VQE."
+        )
+
     # Web search if requested
     search_context = ""
     if use_web_search or _needs_search(user_message):
@@ -214,6 +236,13 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     asyncio.create_task(
         reflector.evaluate_async(user_message, full_response, conv_id)
     )
+
+    # Update self-awareness: record conversation use
+    try:
+        self_awareness.observe_capability_use("conversation", success=True)
+        self_awareness.observe_capability_use("reasoning", success=len(full_response) > 100)
+    except Exception:
+        pass
 
     # ── Release user priority — background cognition may resume ──
     engine.set_user_idle()

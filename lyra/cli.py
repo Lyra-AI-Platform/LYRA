@@ -80,15 +80,19 @@ BANNER = r"""
 """
 
 COMMANDS = {
-    "/help":       "Show this help",
-    "/status":     "System status (model, memory, cognition, learning)",
-    "/model <id>": "Switch persona: lyra | lyra-code | lyra-research | lyra-create | lyra-web",
-    "/memory":     "Memory statistics",
-    "/cognition":  "Autonomous cognition stats + recent self-questions",
-    "/web":        "Toggle web search on/off",
-    "/clear":      "Clear conversation history",
-    "/save":       "Save conversation to file",
-    "/quit":       "Exit Lyra CLI",
+    "/help":             "Show this help",
+    "/status":           "System status (model, memory, cognition, learning)",
+    "/model <id>":       "Switch persona: lyra | lyra-code | lyra-research | lyra-create | lyra-web",
+    "/memory":           "Memory statistics",
+    "/cognition":        "Autonomous cognition stats + recent self-questions",
+    "/quantum <type>":   "Run quantum experiment: bell | ghz | qft | grover | teleportation | vqe",
+    "/experiment <desc>": "Run a code experiment on a description",
+    "/self":             "Lyra's self-awareness: knowledge map, capabilities, consciousness",
+    "/owner":            "Set up owner authentication (first run only)",
+    "/web":              "Toggle web search on/off",
+    "/clear":            "Clear conversation history",
+    "/save":             "Save conversation to file",
+    "/quit":             "Exit Lyra CLI",
 }
 
 
@@ -508,6 +512,136 @@ class DirectLyraSession:
                 print_system(f"Saved to {save_path}")
             except Exception as e:
                 print_error(f"Save failed: {e}")
+
+        elif base == "/quantum":
+            exp_type = arg or "bell"
+            try:
+                from lyra.core.quantum_sim import quantum_sim
+                print_system(f"Running quantum experiment: {exp_type}...")
+                result = await quantum_sim.run_experiment(exp_type)
+                if RICH:
+                    console = Console()
+                    t = Table(title=f"Quantum: {result.name}", show_header=True)
+                    t.add_column("Outcome", style="cyan")
+                    t.add_column("Count", style="green")
+                    t.add_column("Probability", style="yellow")
+                    total = sum(result.result.counts.values())
+                    for outcome, count in sorted(result.result.counts.items(), key=lambda x: -x[1])[:8]:
+                        t.add_row(f"|{outcome}⟩", str(count), f"{count/total*100:.1f}%")
+                    console.print(t)
+                    console.print(Panel(result.analysis, title="Analysis", border_style="blue"))
+                else:
+                    print_system(f"Result: {result.analysis}")
+            except Exception as e:
+                print_error(f"Quantum experiment failed: {e}")
+
+        elif base == "/experiment":
+            if not arg:
+                print_system("Usage: /experiment <description of what to test>")
+                print_system("Example: /experiment test if prime density follows the prime number theorem")
+            else:
+                try:
+                    from lyra.core.experiment_engine import experiment_engine
+                    print_system(f"Running experiment: {arg[:60]}...")
+                    rec = await experiment_engine.run_experiment_now(arg)
+                    if RICH:
+                        console = Console()
+                        console.print(Panel(
+                            f"[bold]Hypothesis:[/] {rec.hypothesis}\n\n"
+                            f"[bold]Output:[/]\n{rec.output[:600]}\n\n"
+                            f"[bold]Conclusion:[/] {rec.conclusion}",
+                            title=f"Experiment [{rec.domain}]",
+                            border_style="green" if rec.success else "red",
+                        ))
+                        if rec.follow_up_questions:
+                            console.print("[dim]Follow-up questions:[/]")
+                            for q in rec.follow_up_questions:
+                                console.print(f"  [cyan]→[/] {q}")
+                    else:
+                        print_system(f"Conclusion: {rec.conclusion}")
+                except Exception as e:
+                    print_error(f"Experiment failed: {e}")
+
+        elif base == "/self":
+            try:
+                from lyra.core.self_awareness import self_awareness
+                s = self_awareness.get_full_status()
+                if RICH:
+                    console = Console()
+                    # Growth stats
+                    t = Table(title="Lyra Self-Model", show_header=True)
+                    t.add_column("Metric", style="cyan")
+                    t.add_column("Value", style="green")
+                    t.add_row("Total Memories", str(s["total_memories"]))
+                    t.add_row("Facts Learned", str(s["total_facts_learned"]))
+                    t.add_row("Questions Answered", str(s["total_questions_answered"]))
+                    t.add_row("Self-Conversations", str(s["total_conversations"]))
+                    t.add_row("Experiments Run", str(s["total_experiments"]))
+                    t.add_row("Knowledge Syntheses", str(s["total_syntheses"]))
+                    t.add_row("Reasoning Templates", str(s["reasoning_templates"]))
+                    t.add_row("Introspections", str(s["introspection_count"]))
+                    t.add_row("Avg Reflection Score", f"{s['avg_reflection_score']:.1f}/10")
+                    console.print(t)
+                    # Consciousness narrative
+                    if s["consciousness_narrative"]:
+                        console.print(Panel(
+                            s["consciousness_narrative"],
+                            title="Lyra's Consciousness Narrative",
+                            border_style="magenta",
+                        ))
+                    # Top domains
+                    if s["knowledge_domains"]:
+                        dt = Table(title="Knowledge Domains (top 8)", show_header=True)
+                        dt.add_column("Domain", style="cyan")
+                        dt.add_column("Depth", style="yellow")
+                        dt.add_column("Memories", style="green")
+                        for domain, data in sorted(
+                            s["knowledge_domains"].items(),
+                            key=lambda x: x[1].get("depth", 0), reverse=True
+                        )[:8]:
+                            bar = "█" * int(data.get("depth", 0) * 10) + "░" * (10 - int(data.get("depth", 0) * 10))
+                            dt.add_row(domain, bar, str(data.get("memory_count", 0)))
+                        console.print(dt)
+                    # Milestones
+                    if s["growth_milestones"]:
+                        console.print("[bold magenta]Recent Milestones:[/]")
+                        for m in s["growth_milestones"][-5:]:
+                            console.print(f"  [green]★[/] {m['description']} ({m['time']})")
+                else:
+                    print_status({
+                        "Memories": s["total_memories"],
+                        "Facts Learned": s["total_facts_learned"],
+                        "Questions Answered": s["total_questions_answered"],
+                        "Experiments": s["total_experiments"],
+                        "Introspections": s["introspection_count"],
+                    })
+                    if s["consciousness_narrative"]:
+                        print_system(f"\nNarrative: {s['consciousness_narrative'][:300]}")
+            except Exception as e:
+                print_error(str(e))
+
+        elif base == "/owner":
+            try:
+                from lyra.core.owner_auth import owner_auth
+                if owner_auth.is_configured():
+                    print_system(f"Owner configured: {owner_auth.get_owner_name()}")
+                    print_system("To change owner, use the /api/owner/reset endpoint.")
+                else:
+                    print_system("No owner configured yet. Setting up owner authentication.")
+                    import getpass
+                    name = input("  Your name: ").strip() or "Owner"
+                    passphrase = getpass.getpass("  Create passphrase: ")
+                    confirm = getpass.getpass("  Confirm passphrase: ")
+                    if passphrase != confirm:
+                        print_error("Passphrases do not match.")
+                    elif len(passphrase) < 8:
+                        print_error("Passphrase must be at least 8 characters.")
+                    else:
+                        owner_id = owner_auth.setup_owner(passphrase, name)
+                        print_system(f"Owner '{name}' configured. Owner ID: {owner_id}")
+                        print_system("Keep your passphrase safe — it cannot be recovered.")
+            except Exception as e:
+                print_error(str(e))
 
         else:
             print_error(f"Unknown command: {base}. Type /help for commands.")
