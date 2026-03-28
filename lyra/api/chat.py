@@ -203,21 +203,54 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
 
     # Stream response
     full_response = ""
-    try:
-        async for token in engine.generate(
-            messages=conversations[conv_id],
-            system_prompt=system_prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            stream=True,
-        ):
-            full_response += token
-            await websocket.send_json({"type": "token", "content": token})
 
-    except Exception as e:
-        engine.set_user_idle()  # Always release priority on error
-        await websocket.send_json({"type": "error", "content": f"Generation error: {e}"})
-        return
+    # ── Language Backbone fallback when no LLM model is loaded ──
+    if not engine.loaded_model_name:
+        try:
+            from lyra.core.language_backbone import language_backbone
+            if not language_backbone._initialized:
+                await language_backbone.initialize()
+            # Use language backbone for word-level understanding + answer
+            understanding = language_backbone.understand(user_message)
+            memory_ctx = memory.get_context_for_prompt(user_message) if use_memory else ""
+            backbone_answer = language_backbone.answer(user_message, memory_ctx)
+            # Annotate with understanding
+            entities = understanding.get("entities", [])
+            keywords = understanding.get("keywords", [])[:5]
+            full_response = backbone_answer
+            if keywords:
+                full_response += f"\n\n*[Detected keywords: {', '.join(keywords)}]*"
+            if entities:
+                full_response += f"\n*[Entities: {', '.join(f'{e[0]} ({e[1]})' for e in entities[:3])}]*"
+            full_response += (
+                "\n\n*Note: Running in Language Backbone mode (no LLM loaded). "
+                "Load a model for full conversational AI. "
+                "Word knowledge from WordNet (117,659 concepts) + spaCy NLP.*"
+            )
+            # Emit as a stream of tokens
+            for word in full_response.split():
+                await websocket.send_json({"type": "token", "content": word + " "})
+            # Feed to language backbone learning
+            language_backbone.read_and_learn(user_message)
+        except Exception as e:
+            full_response = f"No model loaded. Language backbone error: {e}"
+            await websocket.send_json({"type": "token", "content": full_response})
+    else:
+        try:
+            async for token in engine.generate(
+                messages=conversations[conv_id],
+                system_prompt=system_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True,
+            ):
+                full_response += token
+                await websocket.send_json({"type": "token", "content": token})
+
+        except Exception as e:
+            engine.set_user_idle()  # Always release priority on error
+            await websocket.send_json({"type": "error", "content": f"Generation error: {e}"})
+            return
 
     # Store assistant response
     conversations[conv_id].append({"role": "assistant", "content": full_response})
