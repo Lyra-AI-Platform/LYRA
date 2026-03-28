@@ -78,18 +78,25 @@ async def health():
     from lyra.core.engine import engine
     from lyra.memory.vector_memory import memory
     from lyra.core.auto_learner import auto_learner
+    from lyra.core.synthesis_engine import synthesizer
+    from lyra.core.reflection import reflector
     from lyra.telemetry.collector import telemetry
+    mem_stats = memory.get_stats()
     return {
         "status": "running",
         "platform": "Lyra AI",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "model_loaded": engine.loaded_model_name is not None,
         "current_model": engine.loaded_model_name,
-        "memory_enabled": memory.get_stats().get("enabled", False),
-        "memory_count": memory.get_stats().get("count", 0),
+        "memory_enabled": mem_stats.get("enabled", False),
+        "memory_count": mem_stats.get("count", 0),
         "learning_running": auto_learner.running,
         "facts_learned": auto_learner.learned_count,
         "learning_activity": auto_learner.current_activity,
+        "synthesis_running": synthesizer.running,
+        "synthesis_count": synthesizer.synthesis_count,
+        "last_synthesis": synthesizer.last_synthesis,
+        "reflection_templates": reflector.templates_stored,
         "telemetry_enabled": telemetry.enabled,
     }
 
@@ -100,16 +107,21 @@ async def on_startup():
     from lyra.core.integrity import checker
     checker.startup_check()
 
-    logger.info("=" * 55)
+    logger.info("=" * 60)
     logger.info("  Lyra AI Platform  |  Copyright (C) 2026 Lyra Contributors")
     logger.info("  Licensed under the Lyra Community License v1.0")
     logger.info(f"  Data: {DATA_DIR}")
     logger.info("  Access Lyra at: http://localhost:7860")
-    logger.info("=" * 55)
+    logger.info("=" * 60)
 
-    # Start autonomous learning
+    # Start autonomous learning (LLM-guided, 10-min cycles)
     from lyra.core.auto_learner import auto_learner
     auto_learner.start()
+
+    # Start knowledge synthesis engine (4-hour cycles)
+    from lyra.core.synthesis_engine import synthesizer
+    synthesizer.start()
+    logger.info("Knowledge Synthesizer: active (4h synthesis cycles)")
 
     # Start telemetry if previously opted in
     from lyra.telemetry.collector import telemetry
@@ -119,14 +131,18 @@ async def on_startup():
     else:
         logger.info("Collective Intelligence: disabled (opt-in available in settings)")
 
+    logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
     from lyra.core.engine import engine
     from lyra.core.auto_learner import auto_learner
+    from lyra.core.synthesis_engine import synthesizer
     from lyra.telemetry.collector import telemetry
     logger.info("Lyra shutting down...")
     auto_learner.stop()
+    synthesizer.stop()
     telemetry.stop()
     await engine.unload_model()
 
