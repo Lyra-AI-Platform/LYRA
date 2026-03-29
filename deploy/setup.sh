@@ -42,14 +42,15 @@ id -u $APP_USER &>/dev/null || useradd -r -m -d $APP_DIR -s /bin/bash $APP_USER
 echo "[4/9] Deploying Lyra code..."
 if [ -d "$APP_DIR/.git" ]; then
   echo "  → Updating existing repo..."
-  sudo -u $APP_USER git -C $APP_DIR fetch origin
-  sudo -u $APP_USER git -C $APP_DIR checkout $BRANCH
-  sudo -u $APP_USER git -C $APP_DIR pull origin $BRANCH
+  git -C $APP_DIR fetch origin
+  git -C $APP_DIR checkout $BRANCH
+  git -C $APP_DIR reset --hard origin/$BRANCH
 else
-  echo "  → Cloning repo..."
+  echo "  → Cloning fresh..."
+  rm -rf $APP_DIR
   git clone --branch $BRANCH $REPO_URL $APP_DIR
-  chown -R $APP_USER:$APP_USER $APP_DIR
 fi
+chown -R $APP_USER:$APP_USER $APP_DIR
 
 # ── 5. Python environment ─────────────────────────
 echo "[5/9] Setting up Python environment..."
