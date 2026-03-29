@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Documentation — Lyra AI Platform</title>
+  <meta name="description" content="Integration guides, API reference, and deployment instructions for Lyra AI Platform." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    .docs-layout { display: grid; grid-template-columns: 240px 1fr; gap: 48px; max-width: 1120px; margin: 0 auto; padding: 40px 24px; }
+    .docs-sidebar { position: sticky; top: 80px; height: fit-content; }
+    .docs-sidebar ul { list-style: none; }
+    .docs-sidebar li { margin-bottom: 4px; }
+    .docs-sidebar a { display: block; padding: 6px 12px; font-size: 14px; color: var(--text-muted); border-radius: 6px; }
+    .docs-sidebar a:hover { color: white; background: rgba(255,255,255,0.05); }
+    .docs-sidebar .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); padding: 16px 12px 4px; }
+    .docs-content h2 { font-size: 1.8rem; margin: 48px 0 16px; padding-top: 48px; border-top: 1px solid var(--border); }
+    .docs-content h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+    .docs-content h3 { font-size: 1.15rem; margin: 28px 0 10px; color: var(--text); }
+    .docs-content p { margin-bottom: 16px; }
+    .docs-content ul { padding-left: 20px; color: var(--text-muted); font-size: 15px; line-height: 1.8; }
+    .docs-content .code-block { margin: 20px 0; }
+    .note { background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2); border-radius: 10px; padding: 16px 20px; margin: 20px 0; font-size: 14px; }
+    .note strong { color: var(--accent3); }
+    @media (max-width: 768px) { .docs-layout { grid-template-columns: 1fr; } .docs-sidebar { display: none; } }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#products">Products</a></li>
+      <li><a href="../index.html#pricing">Pricing</a></li>
+      <li><a href="docs.html" style="color:white;">Docs</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="../index.html#get-started" class="btn btn-primary" style="padding:8px 18px;font-size:14px;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div style="padding-top:72px;">
+<div class="docs-layout">
+
+  <!-- Sidebar -->
+  <aside class="docs-sidebar">
+    <div class="section-title">Getting Started</div>
+    <ul>
+      <li><a href="#quickstart">Quick Start</a></li>
+      <li><a href="#sitekey">Site Keys</a></li>
+    </ul>
+    <div class="section-title">Integration</div>
+    <ul>
+      <li><a href="#html">Plain HTML</a></li>
+      <li><a href="#react">React / Next.js</a></li>
+      <li><a href="#django">Django / Flask</a></li>
+      <li><a href="#wordpress">WordPress</a></li>
+    </ul>
+    <div class="section-title">API</div>
+    <ul>
+      <li><a href="#api">API Reference</a></li>
+      <li><a href="#verify">Server Verify</a></li>
+      <li><a href="#training">Training Export</a></li>
+    </ul>
+    <div class="section-title">Deploy</div>
+    <ul>
+      <li><a href="#deploy">VPS Deploy Guide</a></li>
+      <li><a href="#nginx">Nginx + HTTPS</a></li>
+      <li><a href="#systemd">Systemd Service</a></li>
+    </ul>
+    <div class="section-title">Products</div>
+    <ul>
+      <li><a href="#lyraauth">LyraAuth</a></li>
+      <li><a href="#detect">Real or Fake</a></li>
+      <li><a href="#accessibility">Accessibility AI</a></li>
+      <li><a href="#physics">Physics Reasoning</a></li>
+      <li><a href="#vibe">Vibe &amp; Tone</a></li>
+    </ul>
+  </aside>
+
+  <!-- Content -->
+  <div class="docs-content">
+
+    <h2 id="quickstart">Quick Start</h2>
+    <p>Add Lyra human verification to any website in under 5 minutes.</p>
+
+    <h3>1. Register and get your keys</h3>
+    <p>Register your site at <code style="background:var(--bg3);padding:2px 6px;border-radius:4px;font-size:13px;">https://lyraauth.com/api/auth/register</code> to receive a <strong>site key</strong> (public, goes in your HTML) and a <strong>secret key</strong> (private, stays on your server).</p>
+
+    <div class="code-block">
+      <div class="comment">POST /api/auth/register</div><br />
+      {<br />
+      &nbsp;&nbsp;<span class="attr">"domain"</span>: <span class="string">"yoursite.com"</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"email"</span>: <span class="string">"you@yoursite.com"</span><br />
+      }<br /><br />
+      <div class="comment">Response:</div><br />
+      {<br />
+      &nbsp;&nbsp;<span class="attr">"site_key"</span>: <span class="string">"lyra_sk_abc123..."</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"secret_key"</span>: <span class="string">"lyra_secret_xyz..."</span><br />
+      }
+    </div>
+
+    <h3 id="html">2. Add to your HTML form</h3>
+    <div class="code-block">
+      <span class="tag">&lt;form</span> <span class="attr">action</span>=<span class="string">"/submit"</span> <span class="attr">method</span>=<span class="string">"POST"</span><span class="tag">&gt;</span><br />
+      &nbsp;&nbsp;<span class="comment">&lt;!-- your existing form fields --&gt;</span><br />
+      &nbsp;&nbsp;<span class="tag">&lt;input</span> <span class="attr">type</span>=<span class="string">"email"</span> <span class="attr">name</span>=<span class="string">"email"</span> <span class="tag">/&gt;</span><br /><br />
+      &nbsp;&nbsp;<span class="comment">&lt;!-- add LyraAuth widget --&gt;</span><br />
+      &nbsp;&nbsp;<span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"lyraauth"</span><br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">data-sitekey</span>=<span class="string">"YOUR_SITE_KEY"</span><span class="tag">&gt;&lt;/div&gt;</span><br /><br />
+      &nbsp;&nbsp;<span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="string">"submit"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span><br />
+      <span class="tag">&lt;/form&gt;</span><br /><br />
+      <span class="comment">&lt;!-- load widget before closing body --&gt;</span><br />
+      <span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="string">"https://lyraauth.com/widget.js"</span> <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span>
+    </div>
+
+    <h2 id="verify">Server-Side Verification</h2>
+    <p>After form submission, verify the token on your backend before processing. Never trust client-side verification alone.</p>
+
+    <h3>Python (requests)</h3>
+    <div class="code-block">
+      <span style="color:#81d4fa;">import</span> requests<br /><br />
+      <span style="color:#81d4fa;">def</span> verify_human(token: str) -&gt; bool:<br />
+      &nbsp;&nbsp;resp = requests.post(<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"https://lyraauth.com/api/auth/siteverify"</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;data={<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"secret"</span>: <span class="string">"YOUR_SECRET_KEY"</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"token"</span>: token<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br />
+      &nbsp;&nbsp;)<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">return</span> resp.json().get(<span class="string">"success"</span>, False)
+    </div>
+
+    <h3>Node.js (fetch)</h3>
+    <div class="code-block">
+      <span style="color:#81d4fa;">async function</span> verifyHuman(token) {<br />
+      &nbsp;&nbsp;const res = <span style="color:#81d4fa;">await</span> fetch(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;method: <span class="string">'POST'</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;body: new URLSearchParams({ secret: <span class="string">'YOUR_SECRET_KEY'</span>, token })<br />
+      &nbsp;&nbsp;});<br />
+      &nbsp;&nbsp;const data = <span style="color:#81d4fa;">await</span> res.json();<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">return</span> data.success;<br />
+      }
+    </div>
+
+    <h3 id="react">React / Next.js</h3>
+    <div class="code-block">
+      <span style="color:#81d4fa;">import</span> { useEffect, useRef } <span style="color:#81d4fa;">from</span> <span class="string">'react'</span>;<br /><br />
+      <span style="color:#81d4fa;">export function</span> LyraAuthWidget({ siteKey, onVerified }) {<br />
+      &nbsp;&nbsp;const ref = useRef();<br />
+      &nbsp;&nbsp;useEffect(() =&gt; {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;if (window.LyraAuth) {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.LyraAuth.render(ref.current, { siteKey, onSuccess: onVerified });<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;}<br />
+      &nbsp;&nbsp;}, []);<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">return</span> &lt;div ref={ref} /&gt;;<br />
+      }
+    </div>
+
+    <h2 id="api">API Reference</h2>
+
+    <h3>GET /api/auth/challenge</h3>
+    <p>Returns a new challenge for a site key.</p>
+    <div class="code-block">
+      <div class="comment">Request</div><br />
+      GET /api/auth/challenge?site_key=lyra_sk_abc123<br /><br />
+      <div class="comment">Response</div><br />
+      {<br />
+      &nbsp;&nbsp;<span class="attr">"challenge_id"</span>: <span class="string">"ch_xyz..."</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"type"</span>: <span class="string">"sequence"</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"question"</span>: <span class="string">"What comes next: 2, 4, 8, ?"</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"options"</span>: [<span class="string">"12"</span>, <span class="string">"14"</span>, <span class="string">"16"</span>, <span class="string">"18"</span>],<br />
+      &nbsp;&nbsp;<span class="attr">"expires_at"</span>: <span class="string">"2026-03-28T12:05:00Z"</span><br />
+      }
+    </div>
+
+    <h3>POST /api/auth/verify</h3>
+    <p>Submit a challenge response and get a verification token.</p>
+
+    <h3>POST /api/auth/siteverify</h3>
+    <p>Server-to-server verification. Use your secret key to validate a token.</p>
+
+    <h3 id="training">GET /api/auth/training/stats</h3>
+    <p>View training data statistics for your site key.</p>
+
+    <h3>GET /api/auth/training/export</h3>
+    <p>Export your training data as JSONL (instruction / completion / preference format).</p>
+
+    <div class="note">
+      <strong>Note:</strong> Training data export requires a Pro or Enterprise account. Each record is quality-filtered: response time 500ms–60s, confidence ≥ 0.7.
+    </div>
+
+    <h2 id="deploy">VPS Deploy Guide</h2>
+    <p>Self-host the full Lyra AI platform on any VPS. Recommended: DigitalOcean, Hetzner, or Linode ($6–12/month).</p>
+
+    <h3>1. Provision your server</h3>
+    <div class="code-block">
+      <div class="comment"># Ubuntu 22.04 LTS recommended</div><br />
+      apt update &amp;&amp; apt upgrade -y<br />
+      apt install -y python3.11 python3-pip git nginx certbot python3-certbot-nginx
+    </div>
+
+    <h3>2. Clone and install</h3>
+    <div class="code-block">
+      git clone https://github.com/lyra-ai-platform/lyra /opt/lyra<br />
+      cd /opt/lyra<br />
+      pip install -r requirements.txt<br />
+      python -m spacy download en_core_web_sm
+    </div>
+
+    <h3 id="nginx">3. Nginx configuration</h3>
+    <div class="code-block">
+      <div class="comment"># /etc/nginx/sites-available/lyraauth.com</div><br />
+      server {<br />
+      &nbsp;&nbsp;server_name lyraauth.com www.lyraauth.com;<br />
+      &nbsp;&nbsp;location / {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;proxy_pass http://127.0.0.1:7860;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header Host $host;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;proxy_set_header X-Real-IP $remote_addr;<br />
+      &nbsp;&nbsp;}<br />
+      &nbsp;&nbsp;location /widget.js {<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;alias /opt/lyra/lyra/authenticator/frontend/lyraauth.js;<br />
+      &nbsp;&nbsp;}<br />
+      }<br /><br />
+      <div class="comment"># Enable HTTPS with Let's Encrypt (free)</div><br />
+      certbot --nginx -d lyraauth.com -d www.lyraauth.com
+    </div>
+
+    <h3 id="systemd">4. Systemd service</h3>
+    <div class="code-block">
+      <div class="comment"># /etc/systemd/system/lyra.service</div><br />
+      [Unit]<br />
+      Description=Lyra AI Platform<br />
+      After=network.target<br /><br />
+      [Service]<br />
+      User=lyra<br />
+      WorkingDirectory=/opt/lyra<br />
+      ExecStart=/usr/bin/python3 -m lyra.main<br />
+      Restart=always<br />
+      Environment=LYRA_HOST=127.0.0.1<br />
+      Environment=LYRA_PORT=7860<br /><br />
+      [Install]<br />
+      WantedBy=multi-user.target<br /><br />
+      <div class="comment"># Enable and start</div><br />
+      systemctl daemon-reload<br />
+      systemctl enable lyra<br />
+      systemctl start lyra
+    </div>
+
+    <div class="note">
+      <strong>DNS:</strong> Point your domain's A record to your VPS IP address. HTTPS certificate from Let's Encrypt is free and auto-renews every 90 days.
+    </div>
+
+  </div>
+</div>
+</div>
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <p>&copy; 2026 Lyra Labs. All rights reserved.</p>
+      <div style="display:flex;gap:20px;">
+        <a href="terms.html" style="font-size:13px;color:var(--text-dim);">Terms</a>
+        <a href="privacy.html" style="font-size:13px;color:var(--text-dim);">Privacy</a>
+        <a href="dpa.html" style="font-size:13px;color:var(--text-dim);">DPA</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -15,5 +15,4 @@ Thumbs.db
 *.tmp
 community_data.json
 
-# Website — private, not for public repo
-website/
+# website/ now included in repo
