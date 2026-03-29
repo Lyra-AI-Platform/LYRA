@@ -30,6 +30,10 @@ apt-get install -y -qq \
   git nginx certbot python3-certbot-nginx \
   build-essential curl wget unzip
 
+# Ensure nginx service is started after fresh install
+systemctl enable nginx 2>/dev/null || true
+systemctl start nginx 2>/dev/null || true
+
 # ── 3. Create app user ────────────────────────────
 echo "[3/9] Creating app user..."
 id -u $APP_USER &>/dev/null || useradd -r -m -d $APP_DIR -s /bin/bash $APP_USER
@@ -120,7 +124,7 @@ chown -R $APP_USER:www-data $APP_DIR/website 2>/dev/null || true
 # Enable site
 ln -sf /etc/nginx/sites-available/$DOMAIN /etc/nginx/sites-enabled/$DOMAIN
 rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
+nginx -t && (systemctl reload nginx 2>/dev/null || systemctl restart nginx 2>/dev/null || service nginx restart 2>/dev/null || true)
 
 # ── 7. HTTPS certificate ──────────────────────────
 echo "[7/9] Getting HTTPS certificate (free via Let's Encrypt)..."
