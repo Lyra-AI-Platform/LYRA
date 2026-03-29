@@ -26,7 +26,7 @@ apt-get update -qq && apt-get upgrade -y -qq
 # ── 2. Install dependencies ───────────────────────
 echo "[2/9] Installing system dependencies..."
 apt-get install -y -qq \
-  python3.11 python3.11-venv python3-pip \
+  python3 python3-venv python3-pip \
   git nginx certbot python3-certbot-nginx \
   build-essential curl wget unzip
 
@@ -53,7 +53,7 @@ fi
 
 # ── 5. Python environment ─────────────────────────
 echo "[5/9] Setting up Python environment..."
-sudo -u $APP_USER python3.11 -m venv $APP_DIR/.venv
+sudo -u $APP_USER python3 -m venv $APP_DIR/.venv
 sudo -u $APP_USER $APP_DIR/.venv/bin/pip install --quiet --upgrade pip
 sudo -u $APP_USER $APP_DIR/.venv/bin/pip install --quiet -r $APP_DIR/requirements.txt
 sudo -u $APP_USER $APP_DIR/.venv/bin/python -m spacy download en_core_web_sm
