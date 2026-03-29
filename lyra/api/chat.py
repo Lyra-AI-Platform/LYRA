@@ -19,6 +19,10 @@ from lyra.memory.vector_memory import memory
 from lyra.search.web_search import search
 from lyra.models.lyra_models import get_model, list_models
 from lyra.core.auto_learner import auto_learner
+from lyra.core.reasoning_engine import reasoning_engine
+from lyra.core.reflection import reflector
+from lyra.core.self_awareness import self_awareness
+from lyra.core.quantum_sim import quantum_sim
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -83,8 +87,18 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     if conv_id not in conversations:
         conversations[conv_id] = []
 
-    # Feed message to auto-learner (extracts topics for background learning)
+    # ── Signal user priority — background cognition immediately yields ──
+    engine.set_user_active()
+
+    # Feed message to auto-learner (fast regex scoring, LLM extraction queued async)
     auto_learner.observe_message("user", user_message)
+
+    # Also inject self-conversation insights relevant to this topic into memory context
+    try:
+        self_convos = memory.retrieve(user_message, n_results=2, memory_type="self_conversation")
+        # Will be included naturally via memory.get_context_for_prompt below
+    except Exception:
+        pass
 
     # Add user message
     conversations[conv_id].append({"role": "user", "content": user_message})
@@ -93,14 +107,42 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     lyra_model = get_model(model_id)
     system_prompt = lyra_model["system_prompt"]
 
-    # Inject memory context (conversations + learned knowledge)
-    memory_context = ""
+    # ── Reasoning Engine: classify complexity and build enhanced context ──
+    reasoning_result = await reasoning_engine.build_enhanced_context(user_message)
+    complexity = reasoning_result.complexity
+
+    if complexity != "simple":
+        await websocket.send_json({
+            "type": "status",
+            "content": f"🧠 Reasoning ({complexity})..."
+        })
+
+    # ── Memory context injection ──
     if use_memory:
+        # Core memory context (importance-ranked: wisdom > templates > user facts > knowledge)
         memory_context = memory.get_context_for_prompt(user_message)
         if memory_context:
             system_prompt += f"\n\n{memory_context}"
 
-        # Also retrieve relevant learned knowledge from web crawls
+        # Reasoning engine's enhanced context (sub-question research + synthesized wisdom)
+        if reasoning_result.enhanced_context:
+            system_prompt += f"\n\n{reasoning_result.enhanced_context}"
+
+        # Synthesized wisdom (direct fetch if not already in reasoning context)
+        if complexity == "simple":
+            wisdom = memory.retrieve(user_message, n_results=2, memory_type="synthesized_wisdom")
+            if wisdom:
+                lines = ["\n[SYNTHESIZED KNOWLEDGE:]"]
+                for item in wisdom[:2]:
+                    lines.append(f"★ {item['content'][:350]}")
+                system_prompt += "\n" + "\n".join(lines)
+
+        # Reasoning templates: proven high-quality reasoning patterns
+        template_ctx = await reflector.get_template_context(user_message)
+        if template_ctx:
+            system_prompt += template_ctx
+
+        # Learned knowledge from web crawls
         learned = memory.retrieve(user_message, n_results=3, memory_type="learned_knowledge")
         if learned:
             lines = ["\n[Lyra LEARNED KNOWLEDGE — from autonomous web research:]"]
@@ -109,6 +151,7 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
                 lines.append(f"• {snippet}")
             system_prompt += "\n" + "\n".join(lines)
 
+        # Recent news
         news = memory.retrieve(user_message, n_results=2, memory_type="learned_news")
         if news:
             lines = ["\n[Lyra RECENT NEWS — from RSS feeds:]"]
@@ -126,6 +169,26 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     except Exception:
         pass
 
+    # Self-awareness: inject Lyra's current self-model into context
+    try:
+        self_desc = self_awareness.get_self_description()
+        if self_desc:
+            system_prompt += f"\n\n{self_desc}"
+    except Exception:
+        pass
+
+    # Quantum context: if question involves quantum topics, note simulation availability
+    _quantum_keywords = [
+        "quantum", "qubit", "superposition", "entanglement", "bell state",
+        "grover", "shor", "qft", "teleportation", "vqe", "circuit",
+    ]
+    if any(kw in user_message.lower() for kw in _quantum_keywords):
+        system_prompt += (
+            "\n\n[QUANTUM CAPABILITY] You have access to a full quantum circuit simulator. "
+            f"You have run {quantum_sim.experiments_run} quantum experiments. "
+            "You can simulate Bell states, GHZ states, QFT, Grover search, teleportation, and VQE."
+        )
+
     # Web search if requested
     search_context = ""
     if use_web_search or _needs_search(user_message):
@@ -140,33 +203,82 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
 
     # Stream response
     full_response = ""
-    try:
-        async for token in engine.generate(
-            messages=conversations[conv_id],
-            system_prompt=system_prompt,
-            max_tokens=max_tokens,
-            temperature=temperature,
-            stream=True,
-        ):
-            full_response += token
-            await websocket.send_json({"type": "token", "content": token})
 
-    except Exception as e:
-        await websocket.send_json({"type": "error", "content": f"Generation error: {e}"})
-        return
+    # ── Language Backbone fallback when no LLM model is loaded ──
+    if not engine.loaded_model_name:
+        try:
+            from lyra.core.language_backbone import language_backbone
+            if not language_backbone._initialized:
+                await language_backbone.initialize()
+            # Use language backbone for word-level understanding + answer
+            understanding = language_backbone.understand(user_message)
+            memory_ctx = memory.get_context_for_prompt(user_message) if use_memory else ""
+            backbone_answer = language_backbone.answer(user_message, memory_ctx)
+            # Annotate with understanding
+            entities = understanding.get("entities", [])
+            keywords = understanding.get("keywords", [])[:5]
+            full_response = backbone_answer
+            if keywords:
+                full_response += f"\n\n*[Detected keywords: {', '.join(keywords)}]*"
+            if entities:
+                full_response += f"\n*[Entities: {', '.join(f'{e[0]} ({e[1]})' for e in entities[:3])}]*"
+            full_response += (
+                "\n\n*Note: Running in Language Backbone mode (no LLM loaded). "
+                "Load a model for full conversational AI. "
+                "Word knowledge from WordNet (117,659 concepts) + spaCy NLP.*"
+            )
+            # Emit as a stream of tokens
+            for word in full_response.split():
+                await websocket.send_json({"type": "token", "content": word + " "})
+            # Feed to language backbone learning
+            language_backbone.read_and_learn(user_message)
+        except Exception as e:
+            full_response = f"No model loaded. Language backbone error: {e}"
+            await websocket.send_json({"type": "token", "content": full_response})
+    else:
+        try:
+            async for token in engine.generate(
+                messages=conversations[conv_id],
+                system_prompt=system_prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                stream=True,
+            ):
+                full_response += token
+                await websocket.send_json({"type": "token", "content": token})
+
+        except Exception as e:
+            engine.set_user_idle()  # Always release priority on error
+            await websocket.send_json({"type": "error", "content": f"Generation error: {e}"})
+            return
 
     # Store assistant response
     conversations[conv_id].append({"role": "assistant", "content": full_response})
 
-    # Feed assistant response to auto-learner too
-    auto_learner.observe_message("assistant", full_response)
+    # Feed complete exchange to auto-learner (captures knowledge gaps from AI response)
+    auto_learner.observe_exchange(user_message, full_response)
 
     # Store memory
     if use_memory and full_response:
-        # Store interesting facts from conversation
         asyncio.create_task(
             _store_memory_async(user_message, full_response, conv_id)
         )
+
+    # Self-reflection: evaluate quality and store high-quality patterns as templates
+    # Runs async in background — never delays the user response
+    asyncio.create_task(
+        reflector.evaluate_async(user_message, full_response, conv_id)
+    )
+
+    # Update self-awareness: record conversation use
+    try:
+        self_awareness.observe_capability_use("conversation", success=True)
+        self_awareness.observe_capability_use("reasoning", success=len(full_response) > 100)
+    except Exception:
+        pass
+
+    # ── Release user priority — background cognition may resume ──
+    engine.set_user_idle()
 
     # Send completion
     await websocket.send_json({

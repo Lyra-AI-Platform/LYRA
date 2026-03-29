@@ -24,6 +24,9 @@ from lyra.api.memory_api import router as memory_router
 from lyra.api.learning_api import router as learning_router
 from lyra.api.telemetry_api import router as telemetry_router
 from lyra.api.graph_api import router as graph_router
+from lyra.api.cognition_api import router as cognition_router
+from lyra.api.experiment_api import router as experiment_router
+from lyra.authenticator.api import router as auth_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,6 +66,9 @@ app.include_router(memory_router)
 app.include_router(learning_router)
 app.include_router(telemetry_router)
 app.include_router(graph_router)
+app.include_router(cognition_router)
+app.include_router(experiment_router)
+app.include_router(auth_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -78,18 +84,40 @@ async def health():
     from lyra.core.engine import engine
     from lyra.memory.vector_memory import memory
     from lyra.core.auto_learner import auto_learner
+    from lyra.core.synthesis_engine import synthesizer
+    from lyra.core.reflection import reflector
+    from lyra.core.cognition_engine import cognition_engine
+    from lyra.core.experiment_engine import experiment_engine
+    from lyra.core.self_awareness import self_awareness
+    from lyra.core.owner_auth import owner_auth
     from lyra.telemetry.collector import telemetry
+    mem_stats = memory.get_stats()
     return {
         "status": "running",
         "platform": "Lyra AI",
-        "version": "1.0.0",
+        "version": "3.0.0",
         "model_loaded": engine.loaded_model_name is not None,
         "current_model": engine.loaded_model_name,
-        "memory_enabled": memory.get_stats().get("enabled", False),
-        "memory_count": memory.get_stats().get("count", 0),
+        "memory_enabled": mem_stats.get("enabled", False),
+        "memory_count": mem_stats.get("count", 0),
         "learning_running": auto_learner.running,
         "facts_learned": auto_learner.learned_count,
         "learning_activity": auto_learner.current_activity,
+        "synthesis_running": synthesizer.running,
+        "synthesis_count": synthesizer.synthesis_count,
+        "last_synthesis": synthesizer.last_synthesis,
+        "reflection_templates": reflector.templates_stored,
+        "cognition_running": cognition_engine.running,
+        "questions_answered": cognition_engine.questions_answered,
+        "current_question": cognition_engine.current_question[:80] if cognition_engine.current_question else "",
+        "experiment_running": experiment_engine.running,
+        "experiments_completed": experiment_engine.experiments_completed,
+        "current_experiment": experiment_engine.current_experiment,
+        "self_awareness_active": self_awareness.running,
+        "introspection_count": self_awareness.model.introspection_count,
+        "consciousness_narrative": self_awareness.model.consciousness_narrative[:100] if self_awareness.model.consciousness_narrative else "",
+        "owner_configured": owner_auth.is_configured(),
+        "owner_name": owner_auth.get_owner_name(),
         "telemetry_enabled": telemetry.enabled,
     }
 
@@ -100,16 +128,41 @@ async def on_startup():
     from lyra.core.integrity import checker
     checker.startup_check()
 
-    logger.info("=" * 55)
+    logger.info("=" * 60)
     logger.info("  Lyra AI Platform  |  Copyright (C) 2026 Lyra Contributors")
     logger.info("  Licensed under the Lyra Community License v1.0")
     logger.info(f"  Data: {DATA_DIR}")
     logger.info("  Access Lyra at: http://localhost:7860")
-    logger.info("=" * 55)
+    logger.info("=" * 60)
 
-    # Start autonomous learning
+    # Start autonomous learning (LLM-guided, 10-min cycles)
     from lyra.core.auto_learner import auto_learner
     auto_learner.start()
+
+    # Start knowledge synthesis engine (4-hour cycles)
+    from lyra.core.synthesis_engine import synthesizer
+    synthesizer.start()
+    logger.info("Knowledge Synthesizer: active (4h synthesis cycles)")
+
+    # Start LyraAuth challenge engine
+    from lyra.authenticator.engine import challenge_engine
+    challenge_engine.start()
+    logger.info("LyraAuth: active — human authentication + AI training data collection")
+
+    # Start autonomous cognition engine (self-directed Q&A loop — no human needed)
+    from lyra.core.cognition_engine import cognition_engine
+    cognition_engine.start()
+    logger.info("Autonomous Cognition: active — Lyra generating its own questions")
+
+    # Start experiment engine (autonomous hypothesis → code → execute → analyze)
+    from lyra.core.experiment_engine import experiment_engine
+    experiment_engine.start()
+    logger.info("Experiment Engine: active — Lyra running autonomous experiments")
+
+    # Start self-awareness engine (metacognitive monitoring + introspection)
+    from lyra.core.self_awareness import self_awareness
+    self_awareness.start()
+    logger.info("Self-Awareness Engine: active — metacognitive monitoring enabled")
 
     # Start telemetry if previously opted in
     from lyra.telemetry.collector import telemetry
@@ -119,15 +172,34 @@ async def on_startup():
     else:
         logger.info("Collective Intelligence: disabled (opt-in available in settings)")
 
+    # Initialize language backbone (spaCy + WordNet + Markov) — works without LLM
+    from lyra.core.language_backbone import language_backbone
+    await language_backbone.initialize()
+    stats = language_backbone.get_stats()
+    logger.info(
+        f"Language Backbone: active — WordNet {stats['wordnet_synsets']:,} concepts, "
+        f"Markov {stats['markov_trained_words']:,} patterns, spaCy={stats['spacy_available']}"
+    )
+
+    logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
+
 
 @app.on_event("shutdown")
 async def on_shutdown():
     from lyra.core.engine import engine
     from lyra.core.auto_learner import auto_learner
+    from lyra.core.synthesis_engine import synthesizer
+    from lyra.core.cognition_engine import cognition_engine
     from lyra.telemetry.collector import telemetry
     logger.info("Lyra shutting down...")
     auto_learner.stop()
+    synthesizer.stop()
+    cognition_engine.stop()
     telemetry.stop()
+    from lyra.core.experiment_engine import experiment_engine
+    from lyra.core.self_awareness import self_awareness
+    experiment_engine.stop()
+    self_awareness.stop()
     await engine.unload_model()
 
 
