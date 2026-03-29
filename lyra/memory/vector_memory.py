@@ -1,197 +1,65 @@
-"""
-Lyra AI Platform — Vector Memory System
-Copyright (C) 2026 Lyra Contributors
-Licensed under the Lyra Community License v1.0. See LICENSE for details.
-
-Persistent memory across conversations using ChromaDB.
-Lyra remembers facts, preferences, and context from past sessions.
-"""
-import json
-import logging
-import hashlib
+"""Lyra Vector Memory with importance scoring"""
+import json, logging, hashlib
 from datetime import datetime
-from typing import List, Dict, Any, Optional
 from pathlib import Path
-
+from typing import List, Dict, Any, Optional
 logger = logging.getLogger(__name__)
-
 MEMORY_DIR = Path(__file__).parent.parent.parent / "data" / "memory"
 MEMORY_DIR.mkdir(parents=True, exist_ok=True)
-
-
+IMPORTANCE_BY_TYPE = {"reasoning_template": 9.0, "synthesized_wisdom": 10.0, "knowledge_gap": 8.0, "user_fact": 7.0, "learned_knowledge": 5.0, "conversation": 2.0}
 class NexusMemory:
-    """
-    Long-term memory for Lyra.
-    Stores conversation summaries, user facts, and preferences.
-    Retrieves relevant memories for each new conversation.
-    """
-
     def __init__(self):
-        self.client = None
-        self.collection = None
-        self.embedder = None
-        self._initialized = False
-
+        self.client = None; self.collection = None; self._fallback: List[Dict] = []; self._initialized = False
     def _init(self):
-        """Lazy init — only load ChromaDB when first used."""
-        if self._initialized:
-            return
+        if self._initialized: return
+        self._initialized = True
         try:
             import chromadb
-            from chromadb.config import Settings
-
-            self.client = chromadb.PersistentClient(
-                path=str(MEMORY_DIR),
-                settings=Settings(anonymized_telemetry=False),
-            )
-            self.collection = self.client.get_or_create_collection(
-                name="nexus_memory",
-                metadata={"hnsw:space": "cosine"},
-            )
-            self._initialized = True
-            logger.info(f"Memory system initialized. Stored memories: {self.collection.count()}")
-        except ImportError:
-            logger.warning("ChromaDB not installed. Memory disabled. Run: pip install chromadb")
+            self.client = chromadb.PersistentClient(path=str(MEMORY_DIR))
+            self.collection = self.client.get_or_create_collection("lyra_memory", metadata={"hnsw:space": "cosine"})
         except Exception as e:
-            logger.error(f"Memory init failed: {e}")
-
-    def _embed(self, text: str) -> List[float]:
-        """Create text embedding. Falls back to simple hash if no embedder."""
-        try:
-            from sentence_transformers import SentenceTransformer
-            if self.embedder is None:
-                self.embedder = SentenceTransformer("all-MiniLM-L6-v2")
-            embedding = self.embedder.encode(text).tolist()
-            return embedding
-        except ImportError:
-            # Fallback: simple pseudo-embedding from hash (not semantic but works)
-            h = hashlib.sha256(text.encode()).hexdigest()
-            return [int(h[i:i+2], 16) / 255.0 for i in range(0, 384*2, 2)][:384]
-
-    def store(
-        self,
-        content: str,
-        memory_type: str = "conversation",
-        metadata: Dict = None,
-        conversation_id: str = None,
-    ) -> bool:
-        """Store a memory entry."""
+            logger.info(f"ChromaDB unavailable, using fallback: {e}")
+    def store(self, content: str, memory_type: str = "conversation", metadata: Dict = None) -> bool:
         self._init()
-        if not self._initialized or not self.collection:
-            return False
-
         try:
-            doc_id = hashlib.sha256(
-                f"{content}{datetime.now().isoformat()}".encode()
-            ).hexdigest()[:16]
-
-            meta = {
-                "type": memory_type,
-                "timestamp": datetime.now().isoformat(),
-                "conversation_id": conversation_id or "global",
-            }
-            if metadata:
-                meta.update({k: str(v) for k, v in metadata.items()})
-
-            embedding = self._embed(content)
-            self.collection.add(
-                ids=[doc_id],
-                documents=[content],
-                embeddings=[embedding],
-                metadatas=[meta],
-            )
+            if self.collection:
+                import uuid
+                mid = str(uuid.uuid4())
+                meta = metadata or {}
+                meta.update({"type": memory_type, "timestamp": datetime.now().isoformat(), "importance": IMPORTANCE_BY_TYPE.get(memory_type, 5.0)})
+                self.collection.add(documents=[content], metadatas=[meta], ids=[mid])
+            else:
+                self._fallback.append({"content": content, "type": memory_type, "metadata": metadata or {}})
             return True
         except Exception as e:
-            logger.error(f"Memory store failed: {e}")
-            return False
-
-    def retrieve(
-        self,
-        query: str,
-        n_results: int = 5,
-        memory_type: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
-        """Retrieve relevant memories for a query."""
+            logger.debug(f"Memory store error: {e}"); return False
+    def search(self, query: str, n_results: int = 5, memory_type: str = None) -> List[Dict]:
         self._init()
-        if not self._initialized or not self.collection:
-            return []
-
         try:
-            count = self.collection.count()
-            if count == 0:
-                return []
-
-            n = min(n_results, count)
-            embedding = self._embed(query)
-            where = {"type": memory_type} if memory_type else None
-
-            results = self.collection.query(
-                query_embeddings=[embedding],
-                n_results=n,
-                where=where,
-            )
-
-            memories = []
-            for i, doc in enumerate(results["documents"][0]):
-                memories.append({
-                    "content": doc,
-                    "metadata": results["metadatas"][0][i],
-                    "distance": results["distances"][0][i] if results.get("distances") else None,
-                })
-            return memories
+            if self.collection and self.collection.count() > 0:
+                where = {"type": memory_type} if memory_type else None
+                results = self.collection.query(query_texts=[query], n_results=min(n_results, self.collection.count()), where=where)
+                docs = results["documents"][0] if results["documents"] else []
+                metas = results["metadatas"][0] if results["metadatas"] else []
+                return [{"content": d, **m} for d, m in zip(docs, metas)]
         except Exception as e:
-            logger.error(f"Memory retrieve failed: {e}")
-            return []
-
-    def store_user_fact(self, fact: str) -> bool:
-        """Store a fact about the user (preferences, info, etc.)."""
-        return self.store(fact, memory_type="user_fact")
-
-    def store_conversation_summary(self, summary: str, conv_id: str) -> bool:
-        """Store a summary of a completed conversation."""
-        return self.store(summary, memory_type="conversation_summary", conversation_id=conv_id)
-
-    def get_context_for_prompt(self, query: str) -> str:
-        """
-        Retrieve relevant memories and format them as context
-        to inject into the AI's system prompt.
-        """
-        memories = self.retrieve(query, n_results=6)
-        if not memories:
-            return ""
-
-        lines = ["[Lyra MEMORY — relevant context from past sessions:]"]
+            logger.debug(f"Memory search error: {e}")
+        return [m for m in self._fallback if query.lower() in m["content"].lower()][:n_results]
+    def get_context_for_prompt(self, query: str, max_tokens: int = 800) -> str:
+        memories = self.search(query, n_results=8)
+        if not memories: return ""
+        lines = []
+        total = 0
         for m in memories:
-            ts = m["metadata"].get("timestamp", "")[:10]
-            mtype = m["metadata"].get("type", "memory")
-            lines.append(f"• [{ts}] ({mtype}) {m['content']}")
-
+            line = f"[{m.get('type','memory')}] {m.get('content','')[:200]}"
+            total += len(line)
+            if total > max_tokens * 4: break
+            lines.append(line)
         return "\n".join(lines)
-
     def get_stats(self) -> Dict:
-        """Return memory statistics."""
         self._init()
-        if not self._initialized or not self.collection:
-            return {"enabled": False, "count": 0}
-        return {
-            "enabled": True,
-            "count": self.collection.count(),
-            "path": str(MEMORY_DIR),
-        }
-
-    def clear(self) -> bool:
-        """Clear all memories."""
-        self._init()
-        if not self._initialized or not self.collection:
-            return False
         try:
-            self.client.delete_collection("nexus_memory")
-            self.collection = self.client.get_or_create_collection("nexus_memory")
-            return True
-        except Exception as e:
-            logger.error(f"Memory clear failed: {e}")
-            return False
-
-
-# Global singleton
+            if self.collection: return {"enabled": True, "count": self.collection.count()}
+        except: pass
+        return {"enabled": False, "count": len(self._fallback)}
 memory = NexusMemory()
