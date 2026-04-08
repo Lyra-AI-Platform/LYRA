@@ -118,13 +118,39 @@
     </div>
   </div>
 
+  <!-- Training data section -->
+  <div style="margin-top:48px;padding-top:32px;border-top:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+      <div>
+        <h2 style="font-size:1.125rem;margin-bottom:4px;">Training Data</h2>
+        <p style="font-size:.875rem;margin:0;">Every verification your users complete is saved as a labeled AI training example.</p>
+      </div>
+      <button class="btn btn-outline" onclick="exportTraining()" id="export-btn">Export JSONL</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="training-stats">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Total Records</div>
+        <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-total">—</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Challenges Served</div>
+        <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-served">—</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Pass Rate</div>
+        <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-rate">—</div>
+      </div>
+    </div>
+    <p style="font-size:.75rem;color:var(--dim);margin-top:10px;">Export downloads all collected data as JSONL — ready to fine-tune any model.</p>
+  </div>
+
   <!-- Billing link -->
-  <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div>
       <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Free plan</div>
       <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">10,000 verifications/month included</div>
     </div>
-    <a href="billing.html" class="btn btn-outline">Manage billing</a>
+    <a href="billing.html" class="btn btn-primary">Upgrade plan</a>
   </div>
 </div>
 
@@ -340,9 +366,49 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  async function loadTrainingStats() {
+    try {
+      const res = await fetch('/api/auth/status');
+      if (!res.ok) return;
+      const d = await res.json();
+      document.getElementById('stat-total').textContent  = (d.training_records || 0).toLocaleString();
+      document.getElementById('stat-served').textContent = (d.challenges_served || 0).toLocaleString();
+      const rate = d.challenges_served > 0
+        ? Math.round((d.challenges_passed / d.challenges_served) * 100) + '%'
+        : '—';
+      document.getElementById('stat-rate').textContent = rate;
+    } catch {}
+  }
+
+  async function exportTraining() {
+    const btn = document.getElementById('export-btn');
+    btn.disabled = true; btn.textContent = 'Exporting...';
+    try {
+      const res = await fetch('/api/auth/training/export', { headers: authHeaders() });
+      if (!res.ok) throw new Error('Export failed');
+      const d = await res.json();
+      if (!d.records || d.records.length === 0) {
+        toast('No training data yet. Data appears once users start completing challenges.');
+        return;
+      }
+      const jsonl = d.records.map(r => JSON.stringify(r)).join('\n');
+      const blob  = new Blob([jsonl], { type: 'application/jsonl' });
+      const url   = URL.createObjectURL(blob);
+      const a     = document.createElement('a');
+      a.href = url; a.download = 'lyraauth-training-' + new Date().toISOString().slice(0,10) + '.jsonl';
+      a.click(); URL.revokeObjectURL(url);
+      toast(`Exported ${d.records.length.toLocaleString()} training records.`);
+    } catch(ex) {
+      toast(ex.message);
+    } finally {
+      btn.disabled = false; btn.textContent = 'Export JSONL';
+    }
+  }
+
   // Init
   loadMe();
   loadSites();
+  loadTrainingStats();
 </script>
 </body>
 </html>

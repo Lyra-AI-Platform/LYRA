@@ -16,26 +16,59 @@
     }
     .dash-nav-logo { font-size:.9375rem; font-weight:600; }
     .dash-nav-right { display:flex; align-items:center; gap:10px; }
-    .dash-body { max-width:700px; margin:0 auto; padding:40px 24px 80px; }
+    .dash-body { max-width:1000px; margin:0 auto; padding:40px 24px 80px; }
     .page-head { margin-bottom:36px; }
     .page-head h1 { font-size:1.5rem; margin-bottom:6px; }
-    /* Plan cards */
-    .plans { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:36px; }
-    .plan-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px; }
-    .plan-card.current { border-color:var(--text); }
-    .plan-badge { font-size:.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); margin-bottom:8px; }
-    .plan-price { font-size:2rem; font-weight:700; letter-spacing:-.04em; margin-bottom:4px; }
-    .plan-price span { font-size:.9375rem; font-weight:400; color:var(--muted); }
-    .plan-desc { font-size:.8125rem; color:var(--muted); margin-bottom:16px; line-height:1.5; }
-    .plan-features { list-style:none; margin-bottom:20px; }
-    .plan-features li { font-size:.8125rem; color:var(--muted); padding:5px 0; border-bottom:1px solid var(--border); display:flex; gap:8px; align-items:center; }
+
+    /* Current plan banner */
+    .current-banner {
+      display:flex; align-items:center; justify-content:space-between;
+      flex-wrap:wrap; gap:12px;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:20px 24px; margin-bottom:36px;
+    }
+    .current-plan-name { font-size:1.125rem; font-weight:600; }
+    .current-plan-sub  { font-size:.8125rem; color:var(--muted); margin-top:3px; }
+
+    /* Plans grid */
+    .plans-grid {
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:12px; margin-bottom:20px;
+      align-items:stretch;
+    }
+    .plan {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:22px 18px;
+      display:flex; flex-direction:column;
+    }
+    .plan.active { border-color:var(--text); box-shadow:0 2px 16px rgba(0,0,0,.08); }
+    .plan-name { font-size:.6875rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin-bottom:8px; }
+    .plan-price { font-size:1.75rem; font-weight:700; letter-spacing:-.04em; margin-bottom:4px; }
+    .plan-price span { font-size:.875rem; font-weight:400; color:var(--muted); }
+    .plan-tagline { font-size:.8125rem; color:var(--muted); margin-bottom:14px; line-height:1.5; }
+    .plan-features { list-style:none; flex:1; margin-bottom:18px; }
+    .plan-features li { font-size:.8125rem; color:var(--muted); padding:5px 0; border-bottom:1px solid var(--border); display:flex; gap:6px; }
     .plan-features li:last-child { border-bottom:none; }
     .plan-features li::before { content:'✓'; color:var(--green); font-weight:700; flex-shrink:0; }
-    /* Alert */
-    .alert { padding:14px 18px; border-radius:var(--radius-sm); font-size:.875rem; margin-bottom:24px; }
+    .plan-btn {
+      width:100%; padding:9px; border-radius:6px;
+      font-size:.8125rem; font-weight:600; cursor:pointer;
+      font-family:inherit; text-align:center; display:block; text-decoration:none;
+      border:1px solid var(--border-hi); background:transparent; color:var(--text);
+    }
+    .plan-btn:hover { background:var(--surface2); opacity:1; }
+    .plan-btn.primary { background:var(--text); color:var(--bg); border-color:var(--text); }
+    .plan-btn.primary:hover { background:#292524; }
+    .plan-btn:disabled, .plan-btn.current { opacity:.5; cursor:default; }
+
+    .alert { padding:12px 18px; border-radius:8px; font-size:.875rem; margin-bottom:24px; }
     .alert-success { background:#f0fdf4; border:1px solid #86efac; color:#166534; }
     .alert-info    { background:#eff6ff; border:1px solid #93c5fd; color:#1e40af; }
-    @media(max-width:640px) { .plans { grid-template-columns:1fr; } }
+
+    @media(max-width:900px) { .plans-grid { grid-template-columns:repeat(3,1fr); } }
+    @media(max-width:580px) { .plans-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:380px) { .plans-grid { grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -50,172 +83,190 @@
 
 <div class="dash-body">
   <div class="page-head">
-    <h1>Billing</h1>
-    <p>Manage your plan and payment details.</p>
+    <h1>Billing &amp; Plan</h1>
+    <p>Manage your subscription. Upgrade, downgrade, or cancel anytime.</p>
   </div>
 
-  <!-- Success / cancel messages -->
-  <div id="msg-success" class="alert alert-success" style="display:none;">
-    Payment successful! Your account has been upgraded to Pro.
-  </div>
-  <div id="msg-cancel" class="alert alert-info" style="display:none;">
-    Payment cancelled. You're still on the Free plan.
-  </div>
+  <div id="msg-success" class="alert alert-success" style="display:none;">Payment successful — your account has been upgraded!</div>
+  <div id="msg-cancel"  class="alert alert-info"    style="display:none;">No charge was made. You're still on your current plan.</div>
 
   <!-- Current plan -->
-  <div style="margin-bottom:28px;padding:20px 24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+  <div class="current-banner" id="current-banner">
     <div>
-      <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);">Current plan</div>
-      <div style="font-size:1.125rem;font-weight:600;margin-top:4px;" id="current-plan-name">Loading...</div>
+      <div class="current-plan-name" id="cur-name">Loading...</div>
+      <div class="current-plan-sub"  id="cur-sub"></div>
     </div>
-    <div id="manage-btn-wrap"></div>
+    <div id="portal-btn-wrap"></div>
   </div>
 
-  <!-- Plans -->
-  <div class="plans">
-    <div class="plan-card" id="plan-free">
-      <div class="plan-badge">Free</div>
+  <!-- All plans -->
+  <div class="plans-grid" id="plans-grid">
+
+    <div class="plan" id="plan-free">
+      <div class="plan-name">Free</div>
       <div class="plan-price">$0<span>/mo</span></div>
-      <div class="plan-desc">For personal and open-source projects.</div>
+      <div class="plan-tagline">Personal &amp; open source.</div>
       <ul class="plan-features">
-        <li>10,000 verifications/month</li>
+        <li>10,000 verifications/mo</li>
         <li>3 sites</li>
-        <li>All 14 challenge types</li>
+        <li>All 14+ challenges</li>
         <li>Training data pipeline</li>
+        <li>Community support</li>
       </ul>
-      <button class="btn btn-outline" style="width:100%;justify-content:center;" disabled id="btn-free">Current plan</button>
+      <button class="plan-btn current" disabled id="btn-free">Free plan</button>
     </div>
 
-    <div class="plan-card" id="plan-pro">
-      <div class="plan-badge">Pro</div>
+    <div class="plan" id="plan-starter">
+      <div class="plan-name">Starter</div>
       <div class="plan-price">$9<span>/mo</span></div>
-      <div class="plan-desc">For growing sites that need unlimited scale.</div>
+      <div class="plan-tagline">Small businesses.</div>
       <ul class="plan-features">
-        <li>Unlimited verifications</li>
-        <li>Unlimited sites</li>
+        <li>100,000 verifications/mo</li>
+        <li>10 sites</li>
         <li>All Free features</li>
-        <li>Training data export (JSONL)</li>
+        <li>Email support</li>
+        <li>Training data export</li>
+      </ul>
+      <button class="plan-btn" id="btn-starter" onclick="checkout('starter')">Subscribe — $9/mo</button>
+    </div>
+
+    <div class="plan" id="plan-pro">
+      <div class="plan-name">Pro — Most Popular</div>
+      <div class="plan-price">$29<span>/mo</span></div>
+      <div class="plan-tagline">Growing sites.</div>
+      <ul class="plan-features">
+        <li>500,000 verifications/mo</li>
+        <li>Unlimited sites</li>
+        <li>All Starter features</li>
+        <li>Custom branding</li>
         <li>Analytics dashboard</li>
         <li>Priority support</li>
       </ul>
-      <button class="btn btn-primary" style="width:100%;justify-content:center;" id="btn-pro" onclick="upgradeToPro()">Upgrade to Pro</button>
+      <button class="plan-btn primary" id="btn-pro" onclick="checkout('pro')">Subscribe — $29/mo</button>
     </div>
 
-    <div class="plan-card" id="plan-enterprise">
-      <div class="plan-badge">Enterprise</div>
-      <div class="plan-price">$49<span>/mo</span></div>
-      <div class="plan-desc">For teams that need full control.</div>
+    <div class="plan" id="plan-business">
+      <div class="plan-name">Business</div>
+      <div class="plan-price">$79<span>/mo</span></div>
+      <div class="plan-tagline">High-traffic &amp; teams.</div>
       <ul class="plan-features">
-        <li>Everything in Pro</li>
+        <li>2M verifications/mo</li>
+        <li>Unlimited sites</li>
+        <li>Team access</li>
+        <li>SLA 99.9% uptime</li>
+        <li>White-label widget</li>
+        <li>Priority support</li>
+      </ul>
+      <button class="plan-btn" id="btn-business" onclick="checkout('business')">Subscribe — $79/mo</button>
+    </div>
+
+    <div class="plan" id="plan-enterprise">
+      <div class="plan-name">Enterprise</div>
+      <div class="plan-price">$249<span>/mo</span></div>
+      <div class="plan-tagline">Large orgs. Full control.</div>
+      <ul class="plan-features">
+        <li>Unlimited verifications</li>
         <li>Self-hosted option</li>
         <li>Custom challenge types</li>
-        <li>SLA 99.9% uptime</li>
         <li>GDPR DPA included</li>
-        <li>Dedicated support</li>
+        <li>Dedicated manager</li>
+        <li>Custom contracts</li>
       </ul>
-      <a href="mailto:support@lyraauth.com" class="btn btn-outline" style="width:100%;justify-content:center;display:flex;">Contact sales</a>
+      <a href="mailto:support@lyraauth.com" class="plan-btn" id="btn-enterprise">Contact sales</a>
     </div>
+
   </div>
 
-  <div style="border-top:1px solid var(--border);padding-top:24px;">
-    <h3 style="margin-bottom:8px;">Questions?</h3>
-    <p style="font-size:.875rem;">Email us at <a href="mailto:support@lyraauth.com" style="color:var(--text);font-weight:500;">support@lyraauth.com</a> — we usually respond within a few hours.</p>
-  </div>
+  <p style="font-size:.8125rem;color:var(--dim);margin-top:8px;">All plans billed monthly. Cancel anytime from this page. Need help? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">support@lyraauth.com</a></p>
 </div>
 
 <script>
   const API = '/api';
-  let token = localStorage.getItem('lyra_token');
+  const token = localStorage.getItem('lyra_token');
   if (!token) window.location.href = 'login.html';
+
+  const params = new URLSearchParams(location.search);
+  if (params.get('success'))   document.getElementById('msg-success').style.display = 'block';
+  if (params.get('cancelled')) document.getElementById('msg-cancel').style.display  = 'block';
 
   function signOut() {
     localStorage.removeItem('lyra_token');
     localStorage.removeItem('lyra_user');
     window.location.href = 'login.html';
   }
+  function authH() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }; }
 
-  function authHeaders() {
-    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
-  }
+  const TIER_LABELS = {
+    free:       { name:'Free plan',       sub:'10,000 verifications/month included' },
+    starter:    { name:'Starter plan',    sub:'100,000 verifications/month' },
+    pro:        { name:'Pro plan',        sub:'500,000 verifications/month · Unlimited sites' },
+    business:   { name:'Business plan',   sub:'2,000,000 verifications/month · Team access' },
+    enterprise: { name:'Enterprise plan', sub:'Unlimited verifications · Self-hosted option' },
+  };
 
-  // Show success/cancel messages from Stripe redirect
-  const params = new URLSearchParams(location.search);
-  if (params.get('success')) document.getElementById('msg-success').style.display = 'block';
-  if (params.get('cancelled')) document.getElementById('msg-cancel').style.display = 'block';
-
-  async function loadBilling() {
+  async function load() {
     try {
-      const [meRes, billingRes] = await Promise.all([
-        fetch(`${API}/users/me`, { headers: authHeaders() }),
-        fetch(`${API}/billing/status`, { headers: authHeaders() }),
+      const [meRes, bilRes] = await Promise.all([
+        fetch(`${API}/users/me`,        { headers: authH() }),
+        fetch(`${API}/billing/status`,  { headers: authH() }),
       ]);
       if (meRes.status === 401) { signOut(); return; }
-      const me      = await meRes.json();
-      const billing = billingRes.ok ? await billingRes.json() : {};
-      const tier    = me.tier || 'free';
+      const me  = await meRes.json();
+      const bil = bilRes.ok ? await bilRes.json() : {};
+      const tier = me.tier || 'free';
+      const info = TIER_LABELS[tier] || TIER_LABELS.free;
 
-      // Update current plan display
-      const planNames = { free: 'Free plan', pro: 'Pro plan', enterprise: 'Enterprise plan' };
-      document.getElementById('current-plan-name').textContent = planNames[tier] || 'Free plan';
+      document.getElementById('cur-name').textContent = info.name;
+      document.getElementById('cur-sub').textContent  = info.sub;
 
-      // Highlight current plan
-      ['free','pro','enterprise'].forEach(t => {
-        const card = document.getElementById(`plan-${t}`);
-        if (card) card.classList.toggle('current', t === tier);
+      // Highlight current plan card
+      ['free','starter','pro','business','enterprise'].forEach(t => {
+        document.getElementById('plan-'+t)?.classList.toggle('active', t === tier);
+        const b = document.getElementById('btn-'+t);
+        if (b && t === tier) {
+          b.textContent = 'Current plan';
+          b.disabled = true;
+          b.classList.add('current');
+          b.classList.remove('primary');
+        }
       });
 
-      // Update buttons
-      const btnFree = document.getElementById('btn-free');
-      const btnPro  = document.getElementById('btn-pro');
-      if (tier === 'free') {
-        btnFree.textContent = 'Current plan';
-        btnFree.disabled = true;
-        btnPro.textContent = 'Upgrade to Pro — $9/mo';
-      } else if (tier === 'pro' || tier === 'enterprise') {
-        btnFree.textContent = 'Downgrade';
-        btnFree.disabled = false;
-        btnPro.textContent = 'Current plan';
-        btnPro.disabled = true;
-
-        // Show manage billing button
-        const wrap = document.getElementById('manage-btn-wrap');
-        if (billing.has_subscription) {
-          wrap.innerHTML = `<button class="btn btn-outline" onclick="openPortal()">Manage billing</button>`;
-        }
+      // Show manage billing portal if subscribed
+      if (bil.has_subscription) {
+        document.getElementById('portal-btn-wrap').innerHTML =
+          `<button class="btn btn-outline" onclick="portal()" style="padding:8px 18px;font-size:.875rem;">Manage billing</button>`;
       }
-    } catch (e) {
-      console.error(e);
-    }
+    } catch(e) { console.error(e); }
   }
 
-  async function upgradeToPro() {
-    const btn = document.getElementById('btn-pro');
-    btn.disabled = true;
-    btn.textContent = 'Redirecting...';
+  async function checkout(plan) {
+    const btn = document.getElementById('btn-'+plan);
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Redirecting...';
     try {
-      const res = await fetch(`${API}/billing/checkout`, { method:'POST', headers:authHeaders() });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Checkout failed');
-      window.location.href = data.checkout_url;
-    } catch (ex) {
+      const res = await fetch(`${API}/billing/checkout`, {
+        method:'POST', headers:authH(),
+        body: JSON.stringify({ plan }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.detail || 'Checkout failed');
+      window.location.href = d.checkout_url;
+    } catch(ex) {
       alert(ex.message);
-      btn.disabled = false;
-      btn.textContent = 'Upgrade to Pro — $9/mo';
+      btn.disabled = false; btn.textContent = orig;
     }
   }
 
-  async function openPortal() {
+  async function portal() {
     try {
-      const res = await fetch(`${API}/billing/portal`, { method:'POST', headers:authHeaders() });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail);
-      window.location.href = data.portal_url;
-    } catch (ex) {
-      alert(ex.message);
-    }
+      const res = await fetch(`${API}/billing/portal`, { method:'POST', headers:authH() });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.detail);
+      window.location.href = d.portal_url;
+    } catch(ex) { alert(ex.message); }
   }
 
-  loadBilling();
+  load();
 </script>
 </body>
 </html>
