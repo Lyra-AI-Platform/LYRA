@@ -3,80 +3,78 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lyra AI Platform — Your Private, Self-Training AI</title>
-  <meta name="description" content="The AI platform that gets smarter every time someone uses it. Human verification, real intelligence — all owned by you." />
+  <title>Lyra AI — Human Verification That Trains Your AI</title>
+  <meta name="description" content="Drop-in reCAPTCHA replacement. Every challenge solved trains your private AI. Zero surveillance, you own the data." />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
   <link rel="stylesheet" href="css/main.css" />
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     NAV
-══════════════════════════════════════════════════ -->
 <nav class="nav" id="nav">
   <div class="nav-inner">
-    <a href="/" class="nav-logo">
-      <span class="star">✦</span> Lyra AI
-    </a>
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
     <ul class="nav-links">
       <li><a href="#products">Products</a></li>
       <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#integrate">Integrate</a></li>
       <li><a href="#pricing">Pricing</a></li>
       <li><a href="pages/docs.html">Docs</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="pages/docs.html" class="btn btn-outline" style="padding:8px 18px;font-size:14px;">Docs</a>
-      <a href="#get-started" class="btn btn-primary" style="padding:8px 18px;font-size:14px;">Get Started</a>
+      <a href="pages/docs.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Docs</a>
+      <a href="#integrate" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Get Started</a>
     </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
 </nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="#products">Products</a>
+  <a href="#how-it-works">How It Works</a>
+  <a href="#integrate">Integrate</a>
+  <a href="#pricing">Pricing</a>
+  <a href="pages/docs.html">Docs</a>
+  <a href="#integrate" class="btn btn-primary mobile-cta" style="text-align:center;">Get Started</a>
+</div>
 
-<!-- ══════════════════════════════════════════════════
-     HERO
-══════════════════════════════════════════════════ -->
+<!-- ══ HERO ══ -->
 <section class="hero" id="home">
-  <div class="hero-bg"></div>
-  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;">
 
-    <div class="hero-badge fade-up">
-      <span>✦</span> The AI Platform You Actually Own
-    </div>
+    <div class="hero-badge fade-up">✦ Drop-in reCAPTCHA Replacement</div>
 
     <h1 class="hero-title fade-up-2">
-      AI That Gets Smarter<br />
-      <span class="gradient-text">Every Time Someone Uses It</span>
+      Human Verification That<br />
+      <span class="gradient-text">Trains Your AI</span>
     </h1>
 
     <p class="hero-sub fade-up-3">
-      Lyra is a fully private AI platform with human verification built in. Every
-      challenge solved trains your AI — no Google, no surveillance, no dependencies.
+      Every challenge solved by your users is a labeled training example saved to your pipeline.
+      No Google. No surveillance. You own the data — and the model it builds.
     </p>
 
     <div class="hero-actions fade-up-4">
-      <a href="#get-started" class="btn btn-primary btn-lg">
-        Start Free &rarr;
-      </a>
-      <a href="pages/docs.html" class="btn btn-outline btn-lg">
-        Read the Docs
-      </a>
+      <a href="#integrate" class="btn btn-primary btn-lg">Add to Your Site &rarr;</a>
+      <a href="pages/docs.html" class="btn btn-outline btn-lg">Read the Docs</a>
     </div>
 
     <div class="hero-stats fade-up-4">
-      <div class="hero-stat">
+      <div>
         <div class="hero-stat-num gradient-text">14+</div>
         <div class="hero-stat-label">Challenge Types</div>
       </div>
-      <div class="hero-stat">
+      <div>
         <div class="hero-stat-num gradient-text">100%</div>
-        <div class="hero-stat-label">Private — Your Data</div>
+        <div class="hero-stat-label">Your Data</div>
       </div>
-      <div class="hero-stat">
-        <div class="hero-stat-num gradient-text">0</div>
-        <div class="hero-stat-label">3rd-Party Dependencies</div>
+      <div>
+        <div class="hero-stat-num gradient-text">2 lines</div>
+        <div class="hero-stat-label">To Install</div>
       </div>
-      <div class="hero-stat">
+      <div>
         <div class="hero-stat-num gradient-text">∞</div>
-        <div class="hero-stat-label">Learning Potential</div>
+        <div class="hero-stat-label">Training Scale</div>
       </div>
     </div>
 
@@ -85,146 +83,110 @@
 
 <div class="divider"></div>
 
-<!-- ══════════════════════════════════════════════════
-     PRODUCTS
-══════════════════════════════════════════════════ -->
+<!-- ══ PRODUCTS ══ -->
 <section class="section" id="products">
   <div class="container">
-    <div style="text-align:center;margin-bottom:60px;">
+    <div style="text-align:center;margin-bottom:56px;">
       <span class="section-label">Platform</span>
-      <h2>Everything You Need to<br /><span class="gradient-text">Build &amp; Train Your AI</span></h2>
-      <p style="max-width:560px;margin:16px auto 0;">Five specialized products, one unified platform. Each one captures a different type of human intelligence and feeds it directly into Lyra.</p>
+      <h2>Five Ways to Capture<br /><span class="gradient-text">Human Intelligence</span></h2>
+      <p style="max-width:520px;margin:14px auto 0;">Each product captures a different type of human cognition — all feeding your private AI training pipeline.</p>
     </div>
 
     <div class="products-grid">
-
-      <!-- LyraAuth -->
       <div class="product-card" style="--card-color:#8b5cf6;">
-        <div class="product-icon" style="background:rgba(139,92,246,0.15);">🔐</div>
+        <div class="product-icon">🔐</div>
         <h3>LyraAuth</h3>
-        <p>Modern human verification that replaces reCAPTCHA. Challenges test real cognitive ability — and every response trains your AI.</p>
-        <div>
-          <span class="product-tag">Bot Detection</span>
-          <span class="product-tag">Training Data</span>
-          <span class="product-tag">Drop-in</span>
-        </div>
-        <div style="margin-top:20px;">
-          <a href="pages/lyraauth.html" class="btn btn-outline" style="padding:8px 18px;font-size:13px;">Learn More &rarr;</a>
-        </div>
+        <p>Modern human verification. Replaces reCAPTCHA. Cognitive challenges that bots can't solve — every response trains your AI.</p>
+        <div><span class="product-tag">Bot Detection</span><span class="product-tag">Training Data</span><span class="product-tag">Drop-in</span></div>
+        <div style="margin-top:16px;"><a href="pages/lyraauth.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
 
-      <!-- Real or Fake -->
       <div class="product-card" style="--card-color:#ec4899;">
-        <div class="product-icon" style="background:rgba(236,72,153,0.15);">🤖</div>
+        <div class="product-icon">🤖</div>
         <h3>Real or Fake</h3>
-        <p>Users identify AI-generated vs human-written text. Builds a labeled dataset of AI detection examples — the most valuable data on the internet right now.</p>
-        <div>
-          <span class="product-tag">AI Detection</span>
-          <span class="product-tag">RLHF Data</span>
-          <span class="product-tag">Content</span>
-        </div>
-        <div style="margin-top:20px;">
-          <a href="pages/detect.html" class="btn btn-outline" style="padding:8px 18px;font-size:13px;">Learn More &rarr;</a>
-        </div>
+        <p>Users identify AI-generated vs human-written text. Builds a labeled AI detection dataset — the most valuable data right now.</p>
+        <div><span class="product-tag">AI Detection</span><span class="product-tag">RLHF Data</span></div>
+        <div style="margin-top:16px;"><a href="pages/detect.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
 
-      <!-- Accessibility -->
       <div class="product-card" style="--card-color:#10b981;">
-        <div class="product-icon" style="background:rgba(16,185,129,0.15);">♿</div>
+        <div class="product-icon">♿</div>
         <h3>Accessibility AI</h3>
-        <p>Humans describe images, icons, and UI in natural language. Generates rich alt-text training data that teaches Lyra to see and describe the world.</p>
-        <div>
-          <span class="product-tag">Image Captioning</span>
-          <span class="product-tag">Alt Text</span>
-          <span class="product-tag">Vision</span>
-        </div>
-        <div style="margin-top:20px;">
-          <a href="pages/accessibility.html" class="btn btn-outline" style="padding:8px 18px;font-size:13px;">Learn More &rarr;</a>
-        </div>
+        <p>Humans describe images and UI in natural language. Generates rich alt-text training data that teaches Lyra to see the world.</p>
+        <div><span class="product-tag">Image Captioning</span><span class="product-tag">Alt Text</span></div>
+        <div style="margin-top:16px;"><a href="pages/accessibility.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
 
-      <!-- Physics / Spatial -->
       <div class="product-card" style="--card-color:#3b82f6;">
-        <div class="product-icon" style="background:rgba(59,130,246,0.15);">🎱</div>
+        <div class="product-icon">🎱</div>
         <h3>Physics Reasoning</h3>
-        <p>Spatial and physical reasoning challenges. Teaches Lyra how the real world works — gravity, momentum, cause and effect — through human intuition.</p>
-        <div>
-          <span class="product-tag">Spatial</span>
-          <span class="product-tag">Reasoning</span>
-          <span class="product-tag">Physics</span>
-        </div>
-        <div style="margin-top:20px;">
-          <a href="pages/physics.html" class="btn btn-outline" style="padding:8px 18px;font-size:13px;">Learn More &rarr;</a>
-        </div>
+        <p>Spatial and physical reasoning challenges. Teaches Lyra how the real world works through human intuition.</p>
+        <div><span class="product-tag">Spatial</span><span class="product-tag">Reasoning</span></div>
+        <div style="margin-top:16px;"><a href="pages/physics.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
 
-      <!-- Vibe Check -->
       <div class="product-card" style="--card-color:#f59e0b;">
-        <div class="product-icon" style="background:rgba(245,158,11,0.15);">💬</div>
+        <div class="product-icon">💬</div>
         <h3>Vibe &amp; Tone AI</h3>
-        <p>Users classify the tone, intent, and emotional register of text. Builds a human-labeled sentiment and intent dataset that makes Lyra emotionally intelligent.</p>
-        <div>
-          <span class="product-tag">Sentiment</span>
-          <span class="product-tag">Intent</span>
-          <span class="product-tag">EQ Data</span>
-        </div>
-        <div style="margin-top:20px;">
-          <a href="pages/vibe.html" class="btn btn-outline" style="padding:8px 18px;font-size:13px;">Learn More &rarr;</a>
-        </div>
+        <p>Users classify tone, intent, and emotional register of text. Builds a human-labeled sentiment dataset for emotional intelligence.</p>
+        <div><span class="product-tag">Sentiment</span><span class="product-tag">Intent</span></div>
+        <div style="margin-top:16px;"><a href="pages/vibe.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
-
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ══════════════════════════════════════════════════
-     HOW IT WORKS / FLYWHEEL
-══════════════════════════════════════════════════ -->
+<!-- ══ HOW IT WORKS ══ -->
 <section class="section" id="how-it-works">
   <div class="container">
-    <div style="text-align:center;margin-bottom:60px;">
+    <div style="text-align:center;margin-bottom:56px;">
       <span class="section-label">The Flywheel</span>
-      <h2>Every Verification Makes<br /><span class="gradient-text">Lyra Smarter</span></h2>
-      <p style="max-width:520px;margin:16px auto 0;">The same strategy Google used with reCAPTCHA to train its image AI — except you own the resulting model.</p>
+      <h2>Every Verification Makes<br /><span class="gradient-text">Your AI Smarter</span></h2>
+      <p style="max-width:500px;margin:14px auto 0;">The same strategy Google used with reCAPTCHA to train its image AI — except you own the resulting model.</p>
     </div>
 
     <div class="flywheel">
       <div class="flywheel-items">
-        <span class="flywheel-item">🌐 Website installs Lyra</span>
-        <span class="flywheel-item">👤 100 users/day solve challenges</span>
-        <span class="flywheel-item">🗂️ 100 labeled training examples/day</span>
-        <span class="flywheel-item">🧠 Lyra gets smarter</span>
-        <span class="flywheel-item">⚡ Lyra generates better challenges</span>
-        <span class="flywheel-item">📈 More websites want it</span>
-        <span class="flywheel-item" style="background:rgba(139,92,246,0.25);border-color:rgba(139,92,246,0.5);">🔁 Loop accelerates</span>
+        <span class="flywheel-item">🌐 Install on your site</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">👤 Users solve challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🗂️ Labeled training data saved</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🧠 AI gets smarter</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">⚡ Better challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.4);">🔁 Loop repeats</span>
       </div>
-      <p style="color:var(--text-muted);max-width:480px;margin:0 auto;font-size:14px;">
-        Unlike reCAPTCHA, you own every data point. At 100,000 examples you can fine-tune a 125M parameter model for ~$50. At 1,000,000 examples, you train one from scratch.
+      <p style="color:var(--muted);max-width:480px;margin:0 auto;font-size:13.5px;">
+        At 100,000 examples: fine-tune a 125M parameter model for ~$50.<br/>
+        At 1,000,000 examples: train one from scratch. Your AI, fully independent.
       </p>
     </div>
 
-    <div class="steps" style="margin-top:72px;">
+    <div class="steps" style="margin-top:64px;">
       <div class="step">
         <div class="step-num">1</div>
-        <h3>Install in Minutes</h3>
-        <p>One line of HTML. Works like reCAPTCHA — drop it into any form, any framework.</p>
+        <h3>Register Your Site</h3>
+        <p style="font-size:13.5px;">Get a site key and secret key. Takes 30 seconds. No credit card required for free tier.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
-        <h3>Users Verify &amp; Train</h3>
-        <p>Every challenge solved is a human-labeled training example saved to your pipeline.</p>
+        <h3>Add Two Lines of HTML</h3>
+        <p style="font-size:13.5px;">Drop the widget div and script tag into your form. Works with any framework.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
-        <h3>Data Accumulates</h3>
-        <p>JSONL training records in instruction, completion, and RLHF formats — ready for fine-tuning.</p>
+        <h3>Verify on Backend</h3>
+        <p style="font-size:13.5px;">One POST request to confirm the token is valid. Same pattern as reCAPTCHA.</p>
       </div>
       <div class="step">
         <div class="step-num">4</div>
-        <h3>Train Your Own Model</h3>
-        <p>At 10K examples, start LoRA fine-tuning. At 1M, train from scratch. Your AI, fully independent.</p>
+        <h3>Data Accumulates</h3>
+        <p style="font-size:13.5px;">Every solved challenge is a training record. Export JSONL anytime to fine-tune your model.</p>
       </div>
     </div>
   </div>
@@ -232,165 +194,298 @@
 
 <div class="divider"></div>
 
-<!-- ══════════════════════════════════════════════════
-     INTEGRATION SNIPPET
-══════════════════════════════════════════════════ -->
-<section class="section-sm" id="get-started">
+<!-- ══ INTEGRATE ══ -->
+<section class="section-sm" id="integrate">
   <div class="container">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">Integration</span>
+      <h2>Add to Any Site in<br /><span class="gradient-text">30 Seconds</span></h2>
+      <p style="max-width:480px;margin:14px auto 0;">Works with every framework and language. Same API surface as reCAPTCHA — drop-in replacement.</p>
+    </div>
+
+    <div class="two-col" style="gap:40px;">
       <div>
-        <span class="section-label">Integration</span>
-        <h2>Add to Any Site in<br /><span class="gradient-text">30 Seconds</span></h2>
-        <p style="margin:20px 0;">Two lines of HTML. Works with React, Vue, Django, Laravel, WordPress — any stack. Verify on your backend with a single POST.</p>
-        <a href="pages/docs.html" class="btn btn-primary">View Full Docs &rarr;</a>
-      </div>
-      <div>
+        <h3 style="margin-bottom:20px;">Step 1 — Get your keys</h3>
         <div class="code-block">
-          <div class="comment">&lt;!-- 1. Add to your form --&gt;</div>
-          <br />
-          <span class="tag">&lt;div</span>
-          <span class="attr"> class</span>=<span class="string">"lyraauth"</span><br />
-          &nbsp;&nbsp;&nbsp;&nbsp;<span class="attr">data-sitekey</span>=<span class="string">"YOUR_SITE_KEY"</span><span class="tag">&gt;&lt;/div&gt;</span>
-          <br /><br />
-          <div class="comment">&lt;!-- 2. Load the widget --&gt;</div>
-          <br />
-          <span class="tag">&lt;script</span>
-          <span class="attr"> src</span>=<span class="string">"https://lyraauth.com/widget.js"</span>
-          <span class="tag">&gt;&lt;/script&gt;</span>
-          <br /><br />
-          <div class="comment"># 3. Verify on backend</div>
-          <br />
-          <span style="color:#81d4fa;">POST</span> https://lyraauth.com/api/auth/siteverify<br />
-          &nbsp;&nbsp;<span class="attr">secret</span>: <span class="string">YOUR_SECRET_KEY</span><br />
-          &nbsp;&nbsp;<span class="attr">token</span>: &lt;<span class="string">token from form</span>&gt;
+<span class="comment">POST https://lyraauth.com/api/auth/register</span>
+
+{
+  <span class="attr">"domain"</span>: <span class="string">"yoursite.com"</span>,
+  <span class="attr">"email"</span>:  <span class="string">"you@yoursite.com"</span>
+}
+
+<span class="comment">↓ Response</span>
+
+{
+  <span class="attr">"site_key"</span>:   <span class="string">"lyra_sk_..."</span>,
+  <span class="attr">"secret_key"</span>: <span class="string">"lyra_secret_..."</span>
+}</div>
+
+        <div style="margin-top:28px;">
+          <h3 style="margin-bottom:12px;">Step 3 — Verify on your server</h3>
+          <div class="tabs-wrapper">
+            <div class="tabs">
+              <button class="tab-btn active" data-tab="verify-py">Python</button>
+              <button class="tab-btn" data-tab="verify-node">Node.js</button>
+              <button class="tab-btn" data-tab="verify-php">PHP</button>
+            </div>
+            <div id="verify-py" class="tab-pane active">
+              <div class="code-block">
+<span class="kw">import</span> requests
+
+<span class="kw">def</span> <span class="fn">verify_human</span>(token):
+    r = requests.post(
+        <span class="string">"https://lyraauth.com/api/auth/siteverify"</span>,
+        data={<span class="string">"secret"</span>: <span class="string">"YOUR_SECRET_KEY"</span>, <span class="string">"token"</span>: token}
+    )
+    <span class="kw">return</span> r.json().get(<span class="string">"success"</span>, False)</div>
+            </div>
+            <div id="verify-node" class="tab-pane">
+              <div class="code-block">
+<span class="kw">async function</span> <span class="fn">verifyHuman</span>(token) {
+  const res = <span class="kw">await</span> fetch(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, {
+    method: <span class="string">'POST'</span>,
+    body: new URLSearchParams({ secret: <span class="string">'YOUR_SECRET_KEY'</span>, token })
+  });
+  <span class="kw">return</span> (await res.json()).success;
+}</div>
+            </div>
+            <div id="verify-php" class="tab-pane">
+              <div class="code-block">
+<span class="kw">function</span> <span class="fn">verifyHuman</span>($token) {
+    $r = file_get_contents(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+        false, stream_context_create([<span class="string">'http'</span> => [
+            <span class="string">'method'</span> => <span class="string">'POST'</span>,
+            <span class="string">'content'</span> => http_build_query([
+                <span class="string">'secret'</span> => <span class="string">'YOUR_SECRET_KEY'</span>,
+                <span class="string">'token'</span>  => $token
+            ])
+        ]])
+    );
+    <span class="kw">return</span> json_decode($r)->success ?? false;
+}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:20px;">Step 2 — Add to your form</h3>
+        <div class="tabs-wrapper">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="html-tab">HTML</button>
+            <button class="tab-btn" data-tab="react-tab">React</button>
+            <button class="tab-btn" data-tab="vue-tab">Vue</button>
+            <button class="tab-btn" data-tab="django-tab">Django</button>
+            <button class="tab-btn" data-tab="wp-tab">WordPress</button>
+          </div>
+          <div id="html-tab" class="tab-pane active">
+            <div class="code-block">
+<span class="tag">&lt;form</span> <span class="attr">method</span>=<span class="string">"POST"</span><span class="tag">&gt;</span>
+  <span class="comment">&lt;!-- your form fields --&gt;</span>
+
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"lyraauth"</span>
+       <span class="attr">data-sitekey</span>=<span class="string">"YOUR_SITE_KEY"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+  <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="string">"submit"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;/form&gt;</span>
+
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="string">"https://lyraauth.com/widget.js"</span> <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></div>
+          </div>
+          <div id="react-tab" class="tab-pane">
+            <div class="code-block">
+<span class="kw">import</span> { useEffect, useRef } <span class="kw">from</span> <span class="string">'react'</span>;
+
+<span class="kw">export function</span> <span class="fn">LyraAuth</span>({ siteKey, onVerified }) {
+  const ref = useRef();
+  useEffect(() => {
+    <span class="kw">const</span> script = document.createElement(<span class="string">'script'</span>);
+    script.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+    script.onload = () => window.LyraAuth?.render(ref.current, {
+      siteKey, onSuccess: onVerified
+    });
+    document.body.appendChild(script);
+  }, []);
+  <span class="kw">return</span> &lt;div ref={ref} /&gt;;
+}</div>
+          </div>
+          <div id="vue-tab" class="tab-pane">
+            <div class="code-block">
+<span class="tag">&lt;template&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">ref</span>=<span class="string">"widget"</span><span class="tag">&gt;&lt;/div&gt;</span>
+<span class="tag">&lt;/template&gt;</span>
+
+<span class="tag">&lt;script setup&gt;</span>
+<span class="kw">import</span> { ref, onMounted } <span class="kw">from</span> <span class="string">'vue'</span>;
+<span class="kw">const</span> widget = ref();
+onMounted(() => {
+  <span class="kw">const</span> s = document.createElement(<span class="string">'script'</span>);
+  s.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+  s.onload = () => window.LyraAuth?.render(widget.value, {
+    siteKey: <span class="string">'YOUR_SITE_KEY'</span>
+  });
+  document.head.appendChild(s);
+});
+<span class="tag">&lt;/script&gt;</span></div>
+          </div>
+          <div id="django-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment"># views.py</span>
+<span class="kw">import</span> requests
+<span class="kw">from</span> django.conf <span class="kw">import</span> settings
+
+<span class="kw">def</span> <span class="fn">contact</span>(request):
+    <span class="kw">if</span> request.method == <span class="string">'POST'</span>:
+        token = request.POST.get(<span class="string">'lyraauth-token'</span>)
+        r = requests.post(
+            <span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+            data={<span class="string">'secret'</span>: settings.LYRA_SECRET, <span class="string">'token'</span>: token}
+        )
+        <span class="kw">if not</span> r.json().get(<span class="string">'success'</span>):
+            <span class="kw">return</span> HttpResponseForbidden(<span class="string">'Bot detected'</span>)
+        <span class="comment"># process form...</span></div>
+          </div>
+          <div id="wp-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment">// functions.php — add to contact form</span>
+<span class="kw">add_filter</span>(<span class="string">'wpcf7_spam'</span>, <span class="kw">function</span>($spam) {
+    $token = $_POST[<span class="string">'lyraauth-token'</span>] ?? <span class="string">''</span>;
+    <span class="kw">if</span> (!$token) <span class="kw">return true</span>;
+    $r = wp_remote_post(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, [
+        <span class="string">'body'</span> => [<span class="string">'secret'</span> => LYRA_SECRET, <span class="string">'token'</span> => $token]
+    ]);
+    $data = json_decode(wp_remote_retrieve_body($r));
+    <span class="kw">return</span> !($data->success ?? false);
+});</div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <strong>Token field:</strong> After the user completes the challenge, the widget automatically adds a hidden <code>lyraauth-token</code> field to your form. Read this on your server and verify it.
         </div>
       </div>
     </div>
+
+    <div style="text-align:center;margin-top:48px;">
+      <a href="pages/docs.html" class="btn btn-outline">Full Documentation with All Options &rarr;</a>
+    </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ══════════════════════════════════════════════════
-     PRICING
-══════════════════════════════════════════════════ -->
+<!-- ══ WHY NOT RECAPTCHA ══ -->
+<section class="section-sm">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>Privacy-First Verification That<br /><span class="gradient-text">Works for You</span></h2>
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🔒</div>
+        <h3 style="margin-bottom:6px;">No Google Tracking</h3>
+        <p style="font-size:13.5px;">reCAPTCHA fingerprints users across the entire web. Lyra never shares data with third parties.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🧠</div>
+        <h3 style="margin-bottom:6px;">You Own the AI</h3>
+        <p style="font-size:13.5px;">Google trained its image recognition on reCAPTCHA data for free. With Lyra, you own every data point and the model it creates.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">⚡</div>
+        <h3 style="margin-bottom:6px;">Drop-in Replacement</h3>
+        <p style="font-size:13.5px;">Same site key / secret key pattern as reCAPTCHA. One POST to verify. Migrate any existing integration in minutes.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🎮</div>
+        <h3 style="margin-bottom:6px;">Engaging Challenges</h3>
+        <p style="font-size:13.5px;">No more fire hydrants and crosswalks. Lyra's challenges test real cognitive ability — users find them interesting.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🏠</div>
+        <h3 style="margin-bottom:6px;">Self-Hostable</h3>
+        <p style="font-size:13.5px;">Run the entire platform on your own VPS for $6/month. Open source. GDPR-friendly by design.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">📊</div>
+        <h3 style="margin-bottom:6px;">Training Data Export</h3>
+        <p style="font-size:13.5px;">Export your accumulated training data in JSONL format — instruction/completion, preference pairs, or raw labels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ PRICING ══ -->
 <section class="section" id="pricing">
   <div class="container">
-    <div style="text-align:center;margin-bottom:60px;">
+    <div style="text-align:center;margin-bottom:56px;">
       <span class="section-label">Pricing</span>
-      <h2>Simple, Transparent<br /><span class="gradient-text">Pricing</span></h2>
-      <p style="max-width:480px;margin:16px auto 0;">Open source frontend. Free tier for small sites. Pro for growing projects. Revenue funds GPU time so Lyra can train faster.</p>
+      <h2>Simple Pricing,<br /><span class="gradient-text">No Surprises</span></h2>
+      <p style="max-width:440px;margin:14px auto 0;">Free for small sites. Pro for scale. Enterprise for full control. All tiers include the full training data pipeline.</p>
     </div>
 
     <div class="pricing-grid">
-
-      <!-- Free -->
       <div class="price-card">
-        <div style="margin-bottom:8px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim);">Free</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim);">Free</div>
         <div class="price-tag">$0<span>/mo</span></div>
-        <p style="margin:12px 0;font-size:14px;">For open-source projects and personal sites.</p>
-        <ul class="price-features">
-          <li>Up to 10,000 verifications/month</li>
+        <p style="font-size:13.5px;margin-bottom:0;">For open-source and personal projects.</p>
+        <ul class="price-features" style="margin:16px 0 24px;">
+          <li>10,000 verifications / month</li>
           <li>All 14+ challenge types</li>
           <li>Training data pipeline</li>
           <li>MIT licensed widget</li>
           <li>Community support</li>
         </ul>
-        <a href="#get-started" class="btn btn-outline" style="width:100%;justify-content:center;">Get Started Free</a>
+        <a href="#integrate" class="btn btn-outline" style="width:100%;justify-content:center;">Get Started Free</a>
       </div>
 
-      <!-- Pro -->
       <div class="price-card featured">
-        <div style="margin-bottom:8px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent3);">Pro — Most Popular</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent3);">Pro — Most Popular</div>
         <div class="price-tag">$9<span>/mo</span></div>
-        <p style="margin:12px 0;font-size:14px;">For growing sites that want unlimited scale.</p>
-        <ul class="price-features">
+        <p style="font-size:13.5px;margin-bottom:0;">For growing sites that want unlimited scale.</p>
+        <ul class="price-features" style="margin:16px 0 24px;">
           <li>Unlimited verifications</li>
           <li>All Free features</li>
           <li>Custom challenge branding</li>
           <li>Analytics dashboard</li>
-          <li>Training data export (CSV / JSONL)</li>
+          <li>Training data export (JSONL / CSV)</li>
           <li>Priority support</li>
         </ul>
-        <a href="#get-started" class="btn btn-primary" style="width:100%;justify-content:center;">Start Pro Trial</a>
+        <a href="#integrate" class="btn btn-primary" style="width:100%;justify-content:center;">Start Pro Trial</a>
       </div>
 
-      <!-- Enterprise -->
       <div class="price-card">
-        <div style="margin-bottom:8px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-dim);">Enterprise</div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim);">Enterprise</div>
         <div class="price-tag">$49<span>/mo</span></div>
-        <p style="margin:12px 0;font-size:14px;">For businesses that need full control.</p>
-        <ul class="price-features">
+        <p style="font-size:13.5px;margin-bottom:0;">For businesses that need full control.</p>
+        <ul class="price-features" style="margin:16px 0 24px;">
           <li>Self-hosted option</li>
           <li>All Pro features</li>
           <li>Custom challenge types</li>
-          <li>SLA guarantee (99.9% uptime)</li>
+          <li>SLA (99.9% uptime guarantee)</li>
           <li>GDPR DPA included</li>
-          <li>Dedicated support channel</li>
+          <li>Dedicated support</li>
         </ul>
-        <a href="#get-started" class="btn btn-outline" style="width:100%;justify-content:center;">Contact Sales</a>
+        <a href="pages/docs.html" class="btn btn-outline" style="width:100%;justify-content:center;">Contact Sales</a>
       </div>
-
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
 
-<!-- ══════════════════════════════════════════════════
-     WHY NOT RECAPTCHA
-══════════════════════════════════════════════════ -->
-<section class="section-sm">
-  <div class="container">
-    <div style="text-align:center;margin-bottom:48px;">
-      <span class="section-label">Why Switch</span>
-      <h2>Human Verification That<br /><span class="gradient-text">Doesn't Spy on Your Users</span></h2>
-    </div>
-
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;">
-
-      <div class="card">
-        <div style="font-size:24px;margin-bottom:12px;">🔒</div>
-        <h3 style="margin-bottom:8px;">No Google Surveillance</h3>
-        <p style="font-size:14px;">reCAPTCHA fingerprints users across the entire web. Lyra sees nothing it shouldn't — your users stay yours.</p>
-      </div>
-
-      <div class="card">
-        <div style="font-size:24px;margin-bottom:12px;">🧠</div>
-        <h3 style="margin-bottom:8px;">You Own the AI</h3>
-        <p style="font-size:14px;">Google used reCAPTCHA to train its image AI for free. With Lyra, the resulting model is entirely yours.</p>
-      </div>
-
-      <div class="card">
-        <div style="font-size:24px;margin-bottom:12px;">🎮</div>
-        <h3 style="margin-bottom:8px;">Actually Engaging</h3>
-        <p style="font-size:14px;">No more fire hydrants. Lyra's challenges test real cognitive ability — users find them interesting, not frustrating.</p>
-      </div>
-
-      <div class="card">
-        <div style="font-size:24px;margin-bottom:12px;">⚡</div>
-        <h3 style="margin-bottom:8px;">Drop-in Replacement</h3>
-        <p style="font-size:14px;">Same API surface as reCAPTCHA. Site key, secret key, one POST to verify. Works with every framework.</p>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- ══════════════════════════════════════════════════
-     FOOTER
-══════════════════════════════════════════════════ -->
+<!-- ══ FOOTER ══ -->
 <footer class="footer">
   <div class="container">
     <div class="footer-grid">
-
       <div>
         <div class="footer-logo">✦ Lyra AI</div>
-        <p class="footer-desc">The AI platform that gets smarter every time someone uses it. Private, self-training, fully owned by you.</p>
+        <p class="footer-desc">Human verification that trains your AI. Private, self-hostable, fully owned by you.</p>
       </div>
-
       <div class="footer-col">
         <h4>Products</h4>
         <ul>
@@ -401,17 +496,16 @@
           <li><a href="pages/vibe.html">Vibe &amp; Tone</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Developers</h4>
         <ul>
           <li><a href="pages/docs.html">Documentation</a></li>
           <li><a href="pages/docs.html#quickstart">Quick Start</a></li>
           <li><a href="pages/docs.html#api">API Reference</a></li>
-          <li><a href="pages/docs.html#deploy">Deploy Guide</a></li>
+          <li><a href="pages/docs.html#terminal">Terminal CLI</a></li>
+          <li><a href="pages/docs.html#deploy">Self-Host Guide</a></li>
         </ul>
       </div>
-
       <div class="footer-col">
         <h4>Legal</h4>
         <ul>
@@ -420,12 +514,10 @@
           <li><a href="pages/dpa.html">Data Processing Agreement</a></li>
         </ul>
       </div>
-
     </div>
-
     <div class="footer-bottom">
       <p>&copy; 2026 Lyra Labs. All rights reserved.</p>
-      <p>lyraauth.com &mdash; Human verification that trains your AI</p>
+      <p>lyraauth.com — Human verification that trains your AI</p>
     </div>
   </div>
 </footer>
