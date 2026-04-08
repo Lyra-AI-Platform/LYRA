@@ -20,7 +20,11 @@
   'use strict';
 
   const LYRAAUTH_VERSION = '1.0.0';
-  const API_BASE = window.LYRAAUTH_API || 'https://auth.lyra.ai/api/auth';
+  // Auto-detect: use same origin in production, allow override via global var
+  const API_BASE = window.LYRAAUTH_API ||
+    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+      ? 'http://' + window.location.host + '/api/auth'
+      : 'https://lyraauth.com/api/auth');
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const CSS = `
