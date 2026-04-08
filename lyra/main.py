@@ -27,6 +27,7 @@ from lyra.api.graph_api import router as graph_router
 from lyra.api.cognition_api import router as cognition_router
 from lyra.api.experiment_api import router as experiment_router
 from lyra.authenticator.api import router as auth_router
+from lyra.api.ingestion_api import router as ingestion_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -69,6 +70,7 @@ app.include_router(graph_router)
 app.include_router(cognition_router)
 app.include_router(experiment_router)
 app.include_router(auth_router)
+app.include_router(ingestion_router)
 
 
 @app.get("/", response_class=HTMLResponse)
