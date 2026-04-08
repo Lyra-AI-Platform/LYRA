@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Account — LyraAuth</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+    .auth-card {
+      width:100%; max-width:400px;
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:36px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.06);
+    }
+    .auth-logo { font-size:.9375rem; font-weight:600; color:var(--text); margin-bottom:28px; }
+    .auth-card h1 { font-size:1.375rem; margin-bottom:6px; }
+    .auth-card > p { font-size:.875rem; margin-bottom:28px; }
+    .field { margin-bottom:16px; }
+    .field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px; }
+    .field input {
+      width:100%; padding:10px 14px;
+      border:1px solid var(--border-hi); border-radius:7px;
+      font-size:.9375rem; font-family:inherit;
+      background:var(--bg); color:var(--text); outline:none;
+    }
+    .field input:focus { border-color:var(--text); }
+    .auth-btn {
+      width:100%; padding:11px; margin-top:8px;
+      background:var(--text); color:var(--bg);
+      border:none; border-radius:7px;
+      font-size:.9375rem; font-weight:600; cursor:pointer; font-family:inherit;
+    }
+    .auth-btn:disabled { opacity:.5; cursor:not-allowed; }
+    .auth-footer { margin-top:20px; text-align:center; font-size:.8125rem; color:var(--muted); }
+    .auth-footer a { color:var(--text); font-weight:500; }
+    .error-box { background:#fef2f2; border:1px solid #fca5a5; border-radius:7px; padding:10px 14px; font-size:.8125rem; color:#dc2626; margin-bottom:14px; display:none; }
+    .terms-note { font-size:.75rem; color:var(--dim); margin-top:12px; text-align:center; line-height:1.5; }
+    .terms-note a { color:var(--muted); }
+  </style>
+</head>
+<body>
+<div class="auth-card">
+  <div class="auth-logo">✦ LyraAuth</div>
+  <h1>Create account</h1>
+  <p>Free forever for small sites. No credit card required.</p>
+
+  <div class="error-box" id="error"></div>
+
+  <form id="reg-form">
+    <div class="field">
+      <label>Name</label>
+      <input type="text" id="name" autocomplete="name" placeholder="Your name" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" autocomplete="email" required placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" autocomplete="new-password" required placeholder="Min. 8 characters" minlength="8" />
+    </div>
+    <button type="submit" class="auth-btn" id="submit-btn">Create account</button>
+  </form>
+
+  <p class="terms-note">By registering you agree to our <a href="../pages/terms.html">Terms</a> and <a href="../pages/privacy.html">Privacy Policy</a>.</p>
+
+  <div class="auth-footer">
+    Already have an account? <a href="login.html">Sign in</a>
+  </div>
+</div>
+
+<script>
+  if (localStorage.getItem('lyra_token')) window.location.href = 'index.html';
+
+  document.getElementById('reg-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    const err = document.getElementById('error');
+    err.style.display = 'none';
+    btn.disabled = true;
+    btn.textContent = 'Creating account...';
+
+    try {
+      const res = await fetch('/api/users/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: document.getElementById('name').value,
+          email: document.getElementById('email').value,
+          password: document.getElementById('password').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+      localStorage.setItem('lyra_token', data.token);
+      localStorage.setItem('lyra_user', JSON.stringify(data.user));
+      window.location.href = 'index.html';
+    } catch (ex) {
+      err.style.display = 'block';
+      err.textContent = ex.message;
+      btn.disabled = false;
+      btn.textContent = 'Create account';
+    }
+  });
+</script>
+</body>
+</html>

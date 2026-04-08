@@ -1,4 +1,11 @@
 # Lyra AI Platform — Dependencies
+# SaaS layer
+sqlalchemy>=2.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+stripe>=7.0.0
+
+
 # Copyright (C) 2026 Lyra Contributors — All Rights Reserved.
 # See LICENSE for terms.
 
