@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — LyraAuth</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    body { background:var(--bg); }
+    .dash-nav {
+      position:sticky; top:0; z-index:50;
+      background:rgba(250,249,247,.9); backdrop-filter:blur(20px);
+      border-bottom:1px solid var(--border);
+      padding:0 24px; height:57px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .dash-nav-logo { font-size:.9375rem; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .dash-nav-right { display:flex; align-items:center; gap:12px; }
+    .user-pill { font-size:.8125rem; color:var(--muted); }
+    .dash-body { max-width:900px; margin:0 auto; padding:40px 24px 80px; }
+    .page-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:12px; }
+    .page-head h1 { font-size:1.5rem; }
+    /* Site cards */
+    .sites-list { display:flex; flex-direction:column; gap:16px; }
+    .site-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius); padding:24px;
+    }
+    .site-card-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+    .site-name { font-size:1rem; font-weight:600; }
+    .site-domain { font-size:.8125rem; color:var(--muted); margin-top:2px; }
+    .site-actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .site-actions button {
+      padding:6px 12px; font-size:.75rem; font-weight:500;
+      border:1px solid var(--border-hi); border-radius:6px;
+      background:transparent; color:var(--muted); cursor:pointer; font-family:inherit;
+    }
+    .site-actions button:hover { color:var(--text); border-color:var(--text); }
+    .site-actions button.danger { color:#dc2626; border-color:#fca5a5; }
+    .site-actions button.danger:hover { background:#fef2f2; }
+    /* Key rows */
+    .key-row { display:flex; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+    .key-label { font-size:.6875rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--dim); width:90px; flex-shrink:0; }
+    .key-value {
+      flex:1; min-width:0;
+      font-family:'SF Mono','Fira Code',monospace; font-size:.8125rem;
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:6px; padding:7px 10px; color:var(--muted);
+      overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    }
+    .copy-key {
+      padding:6px 10px; font-size:.75rem; font-weight:500;
+      background:transparent; border:1px solid var(--border); border-radius:6px;
+      color:var(--muted); cursor:pointer; font-family:inherit; flex-shrink:0;
+    }
+    .copy-key:hover { color:var(--text); border-color:var(--border-hi); }
+    .copy-key.copied { color:var(--green); border-color:var(--green); }
+    /* Usage bar */
+    .usage-bar-wrap { margin-top:14px; }
+    .usage-bar-label { display:flex; justify-content:space-between; font-size:.75rem; color:var(--muted); margin-bottom:6px; }
+    .usage-bar { height:4px; background:var(--surface2); border-radius:2px; overflow:hidden; }
+    .usage-bar-fill { height:100%; background:var(--text); border-radius:2px; transition:width .4s; }
+    /* Empty state */
+    .empty-state { text-align:center; padding:64px 24px; }
+    .empty-state p { max-width:320px; margin:8px auto 24px; }
+    /* Modal overlay */
+    .modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.4); z-index:200;
+      align-items:center; justify-content:center; padding:20px;
+    }
+    .modal-overlay.open { display:flex; }
+    .modal {
+      background:var(--surface); border:1px solid var(--border-hi);
+      border-radius:var(--radius); padding:32px; width:100%; max-width:420px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.15);
+    }
+    .modal h2 { font-size:1.125rem; margin-bottom:20px; }
+    .modal .field { margin-bottom:16px; }
+    .modal .field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px; }
+    .modal .field input {
+      width:100%; padding:10px 14px;
+      border:1px solid var(--border-hi); border-radius:7px;
+      font-size:.9375rem; font-family:inherit;
+      background:var(--bg); color:var(--text); outline:none;
+    }
+    .modal .field input:focus { border-color:var(--text); }
+    .modal-btns { display:flex; gap:10px; justify-content:flex-end; margin-top:24px; }
+    .toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:var(--bg); padding:10px 18px; border-radius:8px; font-size:.875rem; z-index:300; opacity:0; transform:translateY(8px); transition:all .2s; pointer-events:none; }
+    .toast.show { opacity:1; transform:translateY(0); }
+    @media(max-width:540px) { .dash-body { padding:24px 16px 60px; } }
+  </style>
+</head>
+<body>
+
+<nav class="dash-nav">
+  <div class="dash-nav-logo">✦ LyraAuth</div>
+  <div class="dash-nav-right">
+    <span class="user-pill" id="user-email"></span>
+    <a href="../pages/docs.html" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Docs</a>
+    <a href="../index.html" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">← Site</a>
+    <button onclick="signOut()" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Sign out</button>
+  </div>
+</nav>
+
+<div class="dash-body">
+  <div class="page-head">
+    <div>
+      <h1>API Keys</h1>
+      <p style="margin:4px 0 0;font-size:.875rem;">Manage sites using LyraAuth verification.</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">+ Add site</button>
+  </div>
+
+  <div id="sites-container">
+    <div class="empty-state" id="loading-state">
+      <p style="color:var(--muted);">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Billing link -->
+  <div style="margin-top:48px;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Free plan</div>
+      <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">10,000 verifications/month included</div>
+    </div>
+    <a href="billing.html" class="btn btn-outline">Manage billing</a>
+  </div>
+</div>
+
+<!-- Add site modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <h2>Add a site</h2>
+    <div class="field">
+      <label>Site name</label>
+      <input type="text" id="new-name" placeholder="My Website" />
+    </div>
+    <div class="field">
+      <label>Domain (optional)</label>
+      <input type="text" id="new-domain" placeholder="example.com" />
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="closeAddModal()">Cancel</button>
+      <button class="btn btn-primary" id="add-btn" onclick="addSite()">Create site</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = '/api';
+  let token = localStorage.getItem('lyra_token');
+  let sites = [];
+
+  if (!token) window.location.href = 'login.html';
+
+  function authHeaders() {
+    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+  }
+
+  function signOut() {
+    localStorage.removeItem('lyra_token');
+    localStorage.removeItem('lyra_user');
+    window.location.href = 'login.html';
+  }
+
+  function toast(msg, duration=2500) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), duration);
+  }
+
+  function copyText(text, btn) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  function openAddModal() { document.getElementById('add-modal').classList.add('open'); }
+  function closeAddModal() {
+    document.getElementById('add-modal').classList.remove('open');
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-domain').value = '';
+  }
+
+  async function loadMe() {
+    try {
+      const res = await fetch(`${API}/users/me`, { headers: authHeaders() });
+      if (res.status === 401) { signOut(); return; }
+      const user = await res.json();
+      document.getElementById('user-email').textContent = user.email;
+      const tierLabel = document.getElementById('tier-label');
+      if (user.tier === 'pro') {
+        tierLabel.textContent = 'Pro plan — unlimited verifications';
+      } else if (user.tier === 'enterprise') {
+        tierLabel.textContent = 'Enterprise plan';
+      }
+    } catch {}
+  }
+
+  async function loadSites() {
+    try {
+      const res = await fetch(`${API}/sites`, { headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      sites = await res.json();
+      renderSites();
+    } catch {
+      document.getElementById('sites-container').innerHTML =
+        '<p style="color:#dc2626;text-align:center;padding:32px;">Failed to load sites. Please refresh.</p>';
+    }
+  }
+
+  function renderSites() {
+    const container = document.getElementById('sites-container');
+    if (!sites.length) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div style="font-size:2rem;margin-bottom:12px;">✦</div>
+          <h3>No sites yet</h3>
+          <p>Add your first site to get API keys and start protecting your forms.</p>
+          <button class="btn btn-primary" onclick="openAddModal()">Add your first site</button>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = '<div class="sites-list">' +
+      sites.map(site => `
+        <div class="site-card" id="site-${site.id}">
+          <div class="site-card-head">
+            <div>
+              <div class="site-name">${escHtml(site.name)}</div>
+              ${site.domain ? `<div class="site-domain">${escHtml(site.domain)}</div>` : ''}
+            </div>
+            <div class="site-actions">
+              <button onclick="rotateSite(${site.id})">Rotate secret</button>
+              <button class="danger" onclick="deleteSite(${site.id})">Delete</button>
+            </div>
+          </div>
+
+          <div class="key-row">
+            <span class="key-label">Site key</span>
+            <span class="key-value" title="${escHtml(site.site_key)}">${escHtml(site.site_key)}</span>
+            <button class="copy-key" onclick="copyText('${escHtml(site.site_key)}',this)">Copy</button>
+          </div>
+          <div class="key-row">
+            <span class="key-label">Secret key</span>
+            <span class="key-value" title="${escHtml(site.secret_key)}">${escHtml(site.secret_key)}</span>
+            <button class="copy-key" onclick="copyText('${escHtml(site.secret_key)}',this)">Copy</button>
+          </div>
+
+          <div class="usage-bar-wrap" id="usage-${site.id}">
+            <div class="usage-bar-label"><span>Monthly usage</span><span id="usage-count-${site.id}">Loading...</span></div>
+            <div class="usage-bar"><div class="usage-bar-fill" id="usage-fill-${site.id}" style="width:0%"></div></div>
+          </div>
+        </div>`
+      ).join('') + '</div>';
+
+    // Load usage for each site
+    sites.forEach(s => loadUsage(s.id));
+  }
+
+  async function loadUsage(siteId) {
+    try {
+      const res = await fetch(`${API}/sites/${siteId}/usage`, { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      const label = document.getElementById(`usage-count-${siteId}`);
+      const fill  = document.getElementById(`usage-fill-${siteId}`);
+      if (!label || !fill) return;
+      const count = data.month_total || 0;
+      const limit = data.monthly_limit;
+      if (limit) {
+        label.textContent = `${count.toLocaleString()} / ${limit.toLocaleString()}`;
+        fill.style.width = Math.min(100, (count / limit) * 100) + '%';
+        if (count / limit > 0.9) fill.style.background = '#dc2626';
+      } else {
+        label.textContent = `${count.toLocaleString()} verifications (unlimited)`;
+        fill.style.width = '30%';
+      }
+    } catch {}
+  }
+
+  async function addSite() {
+    const btn = document.getElementById('add-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+    try {
+      const res = await fetch(`${API}/sites`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({
+          name: document.getElementById('new-name').value || 'My Site',
+          domain: document.getElementById('new-domain').value,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to create site');
+      closeAddModal();
+      toast('Site created!');
+      await loadSites();
+    } catch (ex) {
+      toast(ex.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create site';
+    }
+  }
+
+  async function rotateSite(siteId) {
+    if (!confirm('This will immediately invalidate the current secret key. All existing server-side integrations must be updated. Continue?')) return;
+    try {
+      const res = await fetch(`${API}/sites/${siteId}/rotate`, { method:'POST', headers:authHeaders() });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail);
+      toast('Secret key rotated. Update your server code!');
+      await loadSites();
+    } catch (ex) {
+      toast(ex.message);
+    }
+  }
+
+  async function deleteSite(siteId) {
+    if (!confirm('Delete this site? All API keys will stop working immediately.')) return;
+    try {
+      const res = await fetch(`${API}/sites/${siteId}`, { method:'DELETE', headers:authHeaders() });
+      if (!res.ok) throw new Error('Delete failed');
+      toast('Site deleted.');
+      await loadSites();
+    } catch (ex) {
+      toast(ex.message);
+    }
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Init
+  loadMe();
+  loadSites();
+</script>
+</body>
+</html>

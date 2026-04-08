@@ -28,6 +28,9 @@ from lyra.api.cognition_api import router as cognition_router
 from lyra.api.experiment_api import router as experiment_router
 from lyra.authenticator.api import router as auth_router
 from lyra.api.ingestion_api import router as ingestion_router
+from lyra.api.users_api import router as users_router
+from lyra.api.sites_api import router as sites_router
+from lyra.api.billing_api import router as billing_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -71,6 +74,9 @@ app.include_router(cognition_router)
 app.include_router(experiment_router)
 app.include_router(auth_router)
 app.include_router(ingestion_router)
+app.include_router(users_router)
+app.include_router(sites_router)
+app.include_router(billing_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -126,6 +132,11 @@ async def health():
 
 @app.on_event("startup")
 async def on_startup():
+    # Init database (creates tables on first run)
+    from lyra.db.database import init_db
+    init_db()
+    logger.info("Database: ready (SQLite)")
+
     # Integrity check
     from lyra.core.integrity import checker
     checker.startup_check()
