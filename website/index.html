@@ -21,8 +21,8 @@
       <li><a href="pages/docs.html">Docs</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="pages/docs.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Docs</a>
-      <a href="#integrate" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Get Started</a>
+      <a href="dashboard/login.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a>
+      <a href="dashboard/register.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Create account</a>
     </div>
     <button class="nav-hamburger" id="hamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -32,10 +32,10 @@
 <div class="nav-mobile" id="nav-mobile">
   <a href="#products">Products</a>
   <a href="#how-it-works">How It Works</a>
-  <a href="#integrate">Integrate</a>
   <a href="#pricing">Pricing</a>
   <a href="pages/docs.html">Docs</a>
-  <a href="#integrate" class="btn btn-primary mobile-cta" style="text-align:center;">Get Started</a>
+  <a href="dashboard/login.html">Sign in</a>
+  <a href="dashboard/register.html" class="btn btn-primary mobile-cta" style="text-align:center;">Create free account</a>
 </div>
 
 <!-- ══ HERO ══ -->
@@ -55,8 +55,8 @@
     </p>
 
     <div class="hero-actions fade-up-4">
-      <a href="#integrate" class="btn btn-primary btn-lg">Add to Your Site &rarr;</a>
-      <a href="pages/docs.html" class="btn btn-outline btn-lg">Read the Docs</a>
+      <a href="dashboard/register.html" class="btn btn-primary btn-lg">Create Free Account &rarr;</a>
+      <a href="#pricing" class="btn btn-outline btn-lg">View Pricing</a>
     </div>
 
     <div class="hero-stats fade-up-4">
@@ -424,54 +424,106 @@ onMounted(() => {
   <div class="container">
     <div style="text-align:center;margin-bottom:56px;">
       <span class="section-label">Pricing</span>
-      <h2>Simple Pricing,<br /><span class="gradient-text">No Surprises</span></h2>
-      <p style="max-width:440px;margin:14px auto 0;">Free for small sites. Pro for scale. Enterprise for full control. All tiers include the full training data pipeline.</p>
+      <h2>One plan for every size.<br /><span class="gradient-text">Start free, scale forever.</span></h2>
+      <p style="max-width:480px;margin:14px auto 0;">Every plan includes the full LyraAuth widget, all 14+ challenge types, and the training data pipeline. Upgrade or cancel anytime.</p>
     </div>
 
-    <div class="pricing-grid">
-      <div class="price-card">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim);">Free</div>
-        <div class="price-tag">$0<span>/mo</span></div>
-        <p style="font-size:13.5px;margin-bottom:0;">For open-source and personal projects.</p>
-        <ul class="price-features" style="margin:16px 0 24px;">
-          <li>10,000 verifications / month</li>
+    <div class="pricing-grid-5">
+
+      <!-- FREE -->
+      <div class="price-card5">
+        <div class="price-tier5">Free</div>
+        <div class="price-amount">$0<span>/mo</span></div>
+        <p class="price-desc5">Personal projects &amp; open source.</p>
+        <ul class="price-features">
+          <li>10,000 verifications / mo</li>
+          <li>3 sites</li>
           <li>All 14+ challenge types</li>
           <li>Training data pipeline</li>
-          <li>MIT licensed widget</li>
           <li>Community support</li>
         </ul>
-        <a href="#integrate" class="btn btn-outline" style="width:100%;justify-content:center;">Get Started Free</a>
+        <a href="dashboard/register.html" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Create free account</a>
       </div>
 
-      <div class="price-card featured">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--accent3);">Pro — Most Popular</div>
-        <div class="price-tag">$9<span>/mo</span></div>
-        <p style="font-size:13.5px;margin-bottom:0;">For growing sites that want unlimited scale.</p>
-        <ul class="price-features" style="margin:16px 0 24px;">
-          <li>Unlimited verifications</li>
+      <!-- STARTER -->
+      <div class="price-card5">
+        <div class="price-tier5">Starter</div>
+        <div class="price-amount">$9<span>/mo</span></div>
+        <p class="price-desc5">Small businesses getting started.</p>
+        <ul class="price-features">
+          <li>100,000 verifications / mo</li>
+          <li>10 sites</li>
           <li>All Free features</li>
+          <li>Email support</li>
+          <li>Training data export</li>
+        </ul>
+        <a href="dashboard/register.html?plan=starter" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Starter</a>
+      </div>
+
+      <!-- PRO — FEATURED -->
+      <div class="price-card5 price-card5-featured">
+        <div class="price-tier5" style="color:var(--text);">Pro — Most Popular</div>
+        <div class="price-amount">$29<span>/mo</span></div>
+        <p class="price-desc5">Growing sites that need real scale.</p>
+        <ul class="price-features">
+          <li>500,000 verifications / mo</li>
+          <li>Unlimited sites</li>
+          <li>All Starter features</li>
           <li>Custom challenge branding</li>
           <li>Analytics dashboard</li>
-          <li>Training data export (JSONL / CSV)</li>
           <li>Priority support</li>
         </ul>
-        <a href="#integrate" class="btn btn-primary" style="width:100%;justify-content:center;">Start Pro Trial</a>
+        <a href="dashboard/register.html?plan=pro" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:auto;">Subscribe to Pro</a>
       </div>
 
-      <div class="price-card">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--dim);">Enterprise</div>
-        <div class="price-tag">$49<span>/mo</span></div>
-        <p style="font-size:13.5px;margin-bottom:0;">For businesses that need full control.</p>
-        <ul class="price-features" style="margin:16px 0 24px;">
-          <li>Self-hosted option</li>
+      <!-- BUSINESS -->
+      <div class="price-card5">
+        <div class="price-tier5">Business</div>
+        <div class="price-amount">$79<span>/mo</span></div>
+        <p class="price-desc5">High-traffic sites &amp; teams.</p>
+        <ul class="price-features">
+          <li>2,000,000 verifications / mo</li>
+          <li>Unlimited sites</li>
           <li>All Pro features</li>
-          <li>Custom challenge types</li>
-          <li>SLA (99.9% uptime guarantee)</li>
-          <li>GDPR DPA included</li>
-          <li>Dedicated support</li>
+          <li>Team member access</li>
+          <li>SLA 99.9% uptime</li>
+          <li>White-label widget</li>
         </ul>
-        <a href="pages/docs.html" class="btn btn-outline" style="width:100%;justify-content:center;">Contact Sales</a>
+        <a href="dashboard/register.html?plan=business" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Business</a>
       </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-card5">
+        <div class="price-tier5">Enterprise</div>
+        <div class="price-amount">$249<span>/mo</span></div>
+        <p class="price-desc5">Large orgs. Full control.</p>
+        <ul class="price-features">
+          <li>Unlimited verifications</li>
+          <li>Self-hosted deployment</li>
+          <li>All Business features</li>
+          <li>Custom challenge types</li>
+          <li>GDPR DPA included</li>
+          <li>Dedicated account manager</li>
+        </ul>
+        <a href="mailto:support@lyraauth.com" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Contact Sales</a>
+      </div>
+
+    </div>
+
+    <p style="text-align:center;font-size:13px;color:var(--dim);margin-top:28px;">All plans billed monthly. No contracts. Cancel anytime. Need a custom quote? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">Email us.</a></p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ CTA STRIP ══ -->
+<section style="padding:72px 0;background:var(--text);">
+  <div class="container" style="text-align:center;">
+    <h2 style="color:#faf9f7;margin-bottom:12px;letter-spacing:-0.03em;">Ready to replace reCAPTCHA?</h2>
+    <p style="color:rgba(250,249,247,0.6);max-width:440px;margin:0 auto 32px;font-size:1rem;">Takes 2 minutes to add to any site. Free account, no credit card needed.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="dashboard/register.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:#faf9f7;color:#14120e;border-radius:8px;font-size:.9375rem;font-weight:600;text-decoration:none;">Create Free Account &rarr;</a>
+      <a href="pages/docs.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:transparent;color:rgba(250,249,247,0.7);border:1px solid rgba(250,249,247,0.2);border-radius:8px;font-size:.9375rem;font-weight:500;text-decoration:none;">Read the Docs</a>
     </div>
   </div>
 </section>
