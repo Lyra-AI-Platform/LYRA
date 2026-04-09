@@ -31,6 +31,7 @@ from lyra.api.ingestion_api import router as ingestion_router
 from lyra.api.users_api import router as users_router
 from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
+from lyra.api.intelligence_api import router as intelligence_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -77,6 +78,7 @@ app.include_router(ingestion_router)
 app.include_router(users_router)
 app.include_router(sites_router)
 app.include_router(billing_router)
+app.include_router(intelligence_router)
 
 
 @app.get("/", response_class=HTMLResponse)

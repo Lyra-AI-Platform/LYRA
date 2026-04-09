@@ -5,6 +5,15 @@ python-jose[cryptography]>=3.3.0
 passlib[bcrypt]>=1.7.4
 stripe>=7.0.0
 
+# Super-Intelligence RAG pipeline
+pinecone-text>=0.9.0          # BM25 sparse encoder for hybrid search
+anthropic>=0.30.0             # Claude API (reasoning layer)
+langchain-anthropic>=0.1.0    # LangChain Claude integration
+torch>=2.2.0                  # PyTorch (training + inference)
+trl>=0.9.0                    # Transformer Reinforcement Learning (fine-tuning)
+wandb>=0.17.0                 # Training metrics + experiment tracking
+xformers>=0.0.26              # Memory-efficient attention (optional speedup)
+
 
 # Copyright (C) 2026 Lyra Contributors — All Rights Reserved.
 # See LICENSE for terms.
