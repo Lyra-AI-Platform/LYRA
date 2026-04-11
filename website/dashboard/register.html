@@ -47,18 +47,18 @@
 
   <div class="error-box" id="error"></div>
 
-  <form id="reg-form">
+  <form id="reg-form" novalidate>
     <div class="field">
       <label>Name</label>
       <input type="text" id="name" autocomplete="name" placeholder="Your name" />
     </div>
     <div class="field">
       <label>Email</label>
-      <input type="email" id="email" autocomplete="email" required placeholder="you@example.com" />
+      <input type="text" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com" />
     </div>
     <div class="field">
       <label>Password</label>
-      <input type="password" id="password" autocomplete="new-password" required placeholder="Min. 8 characters" minlength="8" />
+      <input type="password" id="password" autocomplete="new-password" placeholder="Min. 8 characters" />
     </div>
     <button type="submit" class="auth-btn" id="submit-btn">Create account</button>
   </form>
@@ -76,8 +76,24 @@
   document.getElementById('reg-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submit-btn');
-    const err = document.getElementById('error');
-    err.style.display = 'none';
+    const errBox = document.getElementById('error');
+
+    const name     = document.getElementById('name').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+
+    // Client-side validation
+    function showErr(msg) {
+      errBox.textContent = msg;
+      errBox.style.display = 'block';
+    }
+    errBox.style.display = 'none';
+
+    if (!email) { showErr('Please enter your email address.'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
+    if (!password) { showErr('Please enter a password.'); return; }
+    if (password.length < 8) { showErr('Password must be at least 8 characters.'); return; }
+
     btn.disabled = true;
     btn.textContent = 'Creating account...';
 
@@ -85,20 +101,23 @@
       const res = await fetch('/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: document.getElementById('name').value,
-          email: document.getElementById('email').value,
-          password: document.getElementById('password').value,
-        }),
+        body: JSON.stringify({ name, email, password }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Registration failed');
+      if (!res.ok) {
+        // data.detail can be a string (our HTTPException) or an array (pydantic 422)
+        const msg = typeof data.detail === 'string'
+          ? data.detail
+          : Array.isArray(data.detail)
+            ? data.detail[0]?.msg || 'Registration failed.'
+            : 'Registration failed.';
+        throw new Error(msg);
+      }
       localStorage.setItem('lyra_token', data.token);
       localStorage.setItem('lyra_user', JSON.stringify(data.user));
       window.location.href = 'index.html';
     } catch (ex) {
-      err.style.display = 'block';
-      err.textContent = ex.message;
+      showErr(ex.message);
       btn.disabled = false;
       btn.textContent = 'Create account';
     }
