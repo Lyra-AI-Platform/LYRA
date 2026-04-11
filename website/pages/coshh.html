@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COSHH AI — Intelligent Hazard Assessment | Lyra AI</title>
+  <meta name="description" content="AI-powered COSHH assessment tool. Automatically analyse Safety Data Sheets, generate risk assessments, and ensure workplace compliance with UK health and safety regulations." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    /* ── Hero gradient accent ── */
+    .coshh-accent { color: #0d9488; }
+    .coshh-gradient {
+      background: linear-gradient(135deg, #0d9488 0%, #14120e 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Hero ── */
+    .coshh-hero {
+      padding: 96px 0 80px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .coshh-badge {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 6px 14px;
+      background: rgba(13,148,136,.08); border: 1px solid rgba(13,148,136,.25);
+      border-radius: 20px;
+      font-size: .8125rem; font-weight: 500; color: #0d9488;
+      margin-bottom: 28px;
+    }
+    .coshh-badge-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #0d9488;
+    }
+    .coshh-hero h1 { max-width: 720px; margin: 0 auto 20px; }
+    .coshh-hero p { max-width: 560px; margin: 0 auto 36px; font-size: 1.0625rem; }
+    .hero-ctas { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+    /* ── Stats row ── */
+    .coshh-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 56px 0;
+    }
+    .coshh-stat {
+      background: var(--surface); padding: 28px 20px; text-align: center;
+    }
+    .coshh-stat-num { font-size: 1.75rem; font-weight: 700; letter-spacing: -.04em; color: var(--text); margin-bottom: 4px; }
+    .coshh-stat-label { font-size: .8125rem; color: var(--muted); }
+
+    /* ── Feature grid ── */
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .feature-cell {
+      background: var(--surface); padding: 32px 28px;
+      transition: background .15s;
+    }
+    .feature-cell:hover { background: var(--surface2); }
+    .feature-icon { font-size: 1.5rem; margin-bottom: 14px; }
+    .feature-cell h3 { font-size: 1rem; margin-bottom: 8px; }
+    .feature-cell p { font-size: .875rem; }
+
+    /* ── How it works ── */
+    .hiw-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .hiw-step { text-align: center; }
+    .hiw-num {
+      width: 44px; height: 44px;
+      background: var(--text); color: var(--bg);
+      border-radius: 50%;
+      font-size: .9375rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .hiw-step h3 { font-size: .9375rem; margin-bottom: 8px; }
+    .hiw-connector {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; color: var(--dim); padding-top: 12px;
+    }
+
+    /* ── Use case chips ── */
+    .use-cases {
+      display: flex; flex-wrap: wrap; gap: 10px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+    .use-case-chip {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 18px;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: var(--radius-sm);
+      font-size: .875rem; color: var(--text); font-weight: 500;
+    }
+
+    /* ── Compliance table ── */
+    .compliance-table {
+      width: 100%; border-collapse: collapse;
+      font-size: .875rem;
+    }
+    .compliance-table th {
+      padding: 10px 16px; text-align: left;
+      font-size: .75rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--dim);
+      border-bottom: 2px solid var(--border);
+      background: var(--surface2);
+    }
+    .compliance-table td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--muted);
+    }
+    .compliance-table tr:last-child td { border-bottom: none; }
+    .compliance-table tr:hover td { background: var(--surface2); }
+    .badge-yes  { display:inline-flex;align-items:center;gap:5px;color:#16a34a;font-weight:600;font-size:.8125rem; }
+    .badge-part { display:inline-flex;align-items:center;gap:5px;color:#ca8a04;font-weight:600;font-size:.8125rem; }
+
+    /* ── Demo mockup ── */
+    .demo-mockup {
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,.06);
+    }
+    .mockup-bar {
+      background: var(--surface2); padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .mockup-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border-hi); }
+    .mockup-body { padding: 24px; }
+    .mockup-label { font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--dim); margin-bottom: 6px; }
+    .mockup-value { font-size: .9375rem; color: var(--text); padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 14px; line-height: 1.6; }
+    .mockup-risk { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid; font-size: .875rem; font-weight: 500; margin-bottom: 10px; }
+    .risk-high   { background: #fef2f2; border-color: #fca5a5; color: #dc2626; }
+    .risk-medium { background: #fffbeb; border-color: #fcd34d; color: #d97706; }
+    .risk-low    { background: #f0fdf4; border-color: #86efac; color: #16a34a; }
+
+    /* ── CTA strip ── */
+    .coshh-cta {
+      padding: 72px 0;
+      background: var(--text);
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .coshh-stats { grid-template-columns: repeat(2, 1fr); }
+      .feature-grid { grid-template-columns: 1fr; }
+      .hiw-steps { grid-template-columns: 1fr; gap: 24px; }
+    }
+    @media (max-width: 480px) {
+      .coshh-stats { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ Nav ══ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#products">Products</a></li>
+      <li><a href="../index.html#pricing">Pricing</a></li>
+      <li><a href="docs.html">Docs</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="../dashboard/login.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a>
+      <a href="../dashboard/register.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Request access &rarr;</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+
+<div style="padding-top:72px;">
+
+<!-- ══ Hero ══ -->
+<div class="coshh-hero">
+  <div class="container">
+    <div class="coshh-badge">
+      <div class="coshh-badge-dot"></div>
+      New — COSHH AI
+    </div>
+    <h1><span class="coshh-gradient">COSHH AI</span><br />Intelligent Hazard Assessment</h1>
+    <p>Upload a Safety Data Sheet and get a complete COSHH risk assessment in seconds. AI-powered substance identification, exposure limits, and compliance reporting for UK workplaces.</p>
+    <div class="hero-ctas">
+      <a href="../dashboard/register.html" class="btn btn-primary btn-lg">Request Early Access &rarr;</a>
+      <a href="docs.html#coshh" class="btn btn-outline btn-lg">View Documentation</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Stats ══ -->
+<section class="section-sm">
+  <div class="container">
+    <div class="coshh-stats">
+      <div class="coshh-stat">
+        <div class="coshh-stat-num">10,000+</div>
+        <div class="coshh-stat-label">Substances in database</div>
+      </div>
+      <div class="coshh-stat">
+        <div class="coshh-stat-num">&lt;30s</div>
+        <div class="coshh-stat-label">Assessment generation</div>
+      </div>
+      <div class="coshh-stat">
+        <div class="coshh-stat-num">COSHH 2002</div>
+        <div class="coshh-stat-label">UK regulation compliant</div>
+      </div>
+      <div class="coshh-stat">
+        <div class="coshh-stat-num">GHS/CLP</div>
+        <div class="coshh-stat-label">Hazard classification</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Features ══ -->
+<section class="section" id="features">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">Capabilities</span>
+      <h2>Everything a COSHH<br /><span class="coshh-gradient">Assessment Needs</span></h2>
+      <p style="max-width:500px;margin:14px auto 0;">Lyra reads your SDS documents and builds a complete assessment — no manual data entry required.</p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-cell">
+        <div class="feature-icon">🧪</div>
+        <h3>Substance Identification</h3>
+        <p>Automatically extract chemical names, CAS numbers, and GHS hazard classifications from uploaded SDS documents or product labels.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">⚠️</div>
+        <h3>Risk Assessment</h3>
+        <p>AI scores exposure risks across inhalation, skin contact, ingestion, and eye hazards — with justifications for each rating.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">📄</div>
+        <h3>SDS Extraction</h3>
+        <p>Parse PDF and scanned Safety Data Sheets to extract: WELs, flash points, first aid measures, storage requirements, and disposal.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">📋</div>
+        <h3>Compliance Reports</h3>
+        <p>Generate printable COSHH assessments formatted to UK HSE guidance, ready for your safety management system.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">🫁</div>
+        <h3>Exposure Monitoring</h3>
+        <p>Cross-reference workplace exposure limits (WELs) from EH40 and recommend monitoring frequencies based on usage patterns.</p>
+      </div>
+      <div class="feature-cell">
+        <div class="feature-icon">🦺</div>
+        <h3>PPE Recommendations</h3>
+        <p>AI recommends appropriate personal protective equipment for each substance with standards references (EN, ISO, BS).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ How it works ══ -->
+<section class="section-sm" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);" id="how-it-works">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:16px;">
+      <span class="section-label">Process</span>
+      <h2>From SDS to Report<br /><span class="coshh-gradient">in Three Steps</span></h2>
+    </div>
+
+    <div class="hiw-steps">
+      <div class="hiw-step">
+        <div class="hiw-num">1</div>
+        <h3>Upload SDS Documents</h3>
+        <p style="font-size:.875rem;">Drag and drop PDF Safety Data Sheets, scanned images, or paste raw text. Supports GHS Sections 1–16.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">2</div>
+        <h3>AI Analysis</h3>
+        <p style="font-size:.875rem;">Lyra extracts hazard data, cross-references EH40 WELs, classifies GHS hazard categories, and scores risk by exposure route.</p>
+      </div>
+      <div class="hiw-step">
+        <div class="hiw-num">3</div>
+        <h3>Download Report</h3>
+        <p style="font-size:.875rem;">Receive a complete COSHH assessment with control measures, PPE requirements, emergency procedures, and review dates.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Live Demo Mockup ══ -->
+<section class="section">
+  <div class="container">
+    <div class="two-col" style="gap:56px;align-items:start;">
+      <div>
+        <span class="section-label">Preview</span>
+        <h2>See an Assessment<br /><span class="coshh-gradient">in Action</span></h2>
+        <p style="margin:16px 0 24px;">Below is an example output for a common laboratory solvent. Lyra automatically identifies all hazards, sets the risk level, and prescribes controls.</p>
+        <ul style="padding-left:20px;font-size:.875rem;line-height:2;color:var(--muted);">
+          <li>GHS hazard pictograms extracted from SDS</li>
+          <li>WEL compared against estimated exposure</li>
+          <li>PPE standard references (EN 374, EN 388)</li>
+          <li>Emergency procedures for spill, fire, and ingestion</li>
+          <li>Review date auto-set to 12 months</li>
+        </ul>
+        <a href="../dashboard/register.html" class="btn btn-primary" style="margin-top:28px;">Request Early Access &rarr;</a>
+      </div>
+      <div class="demo-mockup">
+        <div class="mockup-bar">
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <div class="mockup-dot"></div>
+          <span style="font-size:.75rem;color:var(--muted);margin-left:8px;">COSHH Assessment — Acetone (67-64-1)</span>
+        </div>
+        <div class="mockup-body">
+          <div class="mockup-label">Substance</div>
+          <div class="mockup-value">Acetone (Propan-2-one) · CAS 67-64-1 · Flash point −17 °C · WEL 500 ppm (8h TWA)</div>
+
+          <div class="mockup-label">Risk Summary</div>
+          <div class="mockup-risk risk-high">🔴 &nbsp;Flammability — High · Keep away from ignition sources</div>
+          <div class="mockup-risk risk-medium">🟡 &nbsp;Inhalation — Moderate · Ensure LEV or RPE above 250 ppm</div>
+          <div class="mockup-risk risk-low">🟢 &nbsp;Skin Contact — Low · Nitrile gloves sufficient for incidental contact</div>
+
+          <div class="mockup-label" style="margin-top:16px;">Recommended PPE</div>
+          <div class="mockup-value" style="font-size:.8125rem;">Nitrile gloves (EN 374-2) · Safety glasses (EN 166) · Lab coat · LEV or half-face respirator if &gt;250 ppm exposure likely</div>
+
+          <div class="mockup-label">Control Measures</div>
+          <div class="mockup-value" style="font-size:.8125rem;">Store in flameproof cabinet · Ground containers when transferring · No smoking/naked flames within 5 m · Spill kit (vermiculite) on hand · Emergency shower within 10 s</div>
+
+          <div style="display:flex;gap:8px;margin-top:16px;">
+            <a href="#" onclick="return false;" class="btn btn-primary" style="font-size:.8125rem;padding:8px 14px;">Download PDF Report</a>
+            <a href="#" onclick="return false;" class="btn btn-outline" style="font-size:.8125rem;padding:8px 14px;">Add to Register</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Compliance table ══ -->
+<section class="section-sm" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Compliance</span>
+      <h2>Regulations COSHH AI<br /><span class="coshh-gradient">Covers</span></h2>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="compliance-table">
+        <thead>
+          <tr>
+            <th>Regulation / Standard</th>
+            <th>Description</th>
+            <th>Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>COSHH 2002</strong></td>
+            <td>Control of Substances Hazardous to Health Regulations</td>
+            <td><span class="badge-yes">✓ Full</span></td>
+          </tr>
+          <tr>
+            <td><strong>EH40 WELs</strong></td>
+            <td>HSE Workplace Exposure Limits (4th edition 2020)</td>
+            <td><span class="badge-yes">✓ Full</span></td>
+          </tr>
+          <tr>
+            <td><strong>GHS / CLP</strong></td>
+            <td>Globally Harmonised System — Classification, Labelling, Packaging</td>
+            <td><span class="badge-yes">✓ Full</span></td>
+          </tr>
+          <tr>
+            <td><strong>REACH</strong></td>
+            <td>EU Registration, Evaluation, Authorisation and Restriction of Chemicals</td>
+            <td><span class="badge-part">~ Partial</span></td>
+          </tr>
+          <tr>
+            <td><strong>DSEAR 2002</strong></td>
+            <td>Dangerous Substances and Explosive Atmospheres Regulations</td>
+            <td><span class="badge-part">~ Partial</span></td>
+          </tr>
+          <tr>
+            <td><strong>SDS Sections 1–16</strong></td>
+            <td>EC Regulation 2015/830 Safety Data Sheet format</td>
+            <td><span class="badge-yes">✓ Full</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Use cases ══ -->
+<section class="section">
+  <div class="container" style="text-align:center;">
+    <span class="section-label">Industries</span>
+    <h2>Who Uses COSHH AI</h2>
+    <p style="max-width:480px;margin:14px auto 0;">Any workplace handling hazardous substances is legally required to carry out COSHH assessments. Lyra makes it fast and accurate.</p>
+    <div class="use-cases">
+      <div class="use-case-chip">🏭 Manufacturing</div>
+      <div class="use-case-chip">🔬 Laboratories</div>
+      <div class="use-case-chip">🏥 Healthcare &amp; Cleaning</div>
+      <div class="use-case-chip">🔧 Engineering &amp; Maintenance</div>
+      <div class="use-case-chip">🏗️ Construction</div>
+      <div class="use-case-chip">💇 Hairdressing &amp; Beauty</div>
+      <div class="use-case-chip">🌾 Agriculture</div>
+      <div class="use-case-chip">🎨 Arts &amp; Printing</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CTA ══ -->
+<div class="coshh-cta">
+  <div class="container">
+    <h2 style="color:#faf9f7;margin-bottom:12px;letter-spacing:-.03em;">Ready to automate your COSHH assessments?</h2>
+    <p style="color:rgba(250,249,247,0.6);max-width:440px;margin:0 auto 32px;">Join the early access list. We'll notify you when COSHH AI is available.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="../dashboard/register.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:#faf9f7;color:#14120e;border-radius:8px;font-size:.9375rem;font-weight:600;text-decoration:none;">Request Early Access &rarr;</a>
+      <a href="docs.html#coshh" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:transparent;color:rgba(250,249,247,0.7);border:1px solid rgba(250,249,247,0.2);border-radius:8px;font-size:.9375rem;font-weight:500;text-decoration:none;">Read the Docs</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ Footer ══ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">✦ Lyra AI</div>
+        <p class="footer-desc">AI-powered safety and verification tools for the modern workplace.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="lyraauth.html">LyraAuth</a></li>
+          <li><a href="detect.html">Real or Fake</a></li>
+          <li><a href="accessibility.html">Accessibility AI</a></li>
+          <li><a href="physics.html">Physics Reasoning</a></li>
+          <li><a href="vibe.html">Vibe &amp; Tone</a></li>
+          <li><a href="coshh.html" style="color:var(--text);">COSHH AI</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Developers</h4>
+        <ul>
+          <li><a href="docs.html">Documentation</a></li>
+          <li><a href="docs.html#coshh">COSHH API</a></li>
+          <li><a href="docs.html#api">API Reference</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="dpa.html">DPA</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Lyra Labs. All rights reserved.</p>
+      <p>COSHH AI — Intelligent hazard assessment for UK workplaces</p>
+    </div>
+  </div>
+</footer>
+
+</div><!-- /padding-top -->
+<script src="../js/main.js"></script>
+</body>
+</html>

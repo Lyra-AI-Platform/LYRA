@@ -204,37 +204,58 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     # Stream response
     full_response = ""
 
-    # ── Language Backbone fallback when no LLM model is loaded ──
     if not engine.loaded_model_name:
-        try:
-            from lyra.core.language_backbone import language_backbone
-            if not language_backbone._initialized:
-                await language_backbone.initialize()
-            # Use language backbone for word-level understanding + answer
-            understanding = language_backbone.understand(user_message)
-            memory_ctx = memory.get_context_for_prompt(user_message) if use_memory else ""
-            backbone_answer = language_backbone.answer(user_message, memory_ctx)
-            # Annotate with understanding
-            entities = understanding.get("entities", [])
-            keywords = understanding.get("keywords", [])[:5]
-            full_response = backbone_answer
-            if keywords:
-                full_response += f"\n\n*[Detected keywords: {', '.join(keywords)}]*"
-            if entities:
-                full_response += f"\n*[Entities: {', '.join(f'{e[0]} ({e[1]})' for e in entities[:3])}]*"
-            full_response += (
-                "\n\n*Note: Running in Language Backbone mode (no LLM loaded). "
-                "Load a model for full conversational AI. "
-                "Word knowledge from WordNet (117,659 concepts) + spaCy NLP.*"
-            )
-            # Emit as a stream of tokens
-            for word in full_response.split():
-                await websocket.send_json({"type": "token", "content": word + " "})
-            # Feed to language backbone learning
-            language_backbone.read_and_learn(user_message)
-        except Exception as e:
-            full_response = f"No model loaded. Language backbone error: {e}"
-            await websocket.send_json({"type": "token", "content": full_response})
+        import os as _os
+        _anthropic_key = _os.getenv("ANTHROPIC_API_KEY")
+
+        if _anthropic_key:
+            # ── Claude API: primary AI when no local model is loaded ──
+            try:
+                import anthropic as _anthropic_mod
+                _client = _anthropic_mod.Anthropic(api_key=_anthropic_key)
+                _messages = [
+                    {"role": m["role"], "content": m["content"]}
+                    for m in conversations[conv_id]
+                ]
+                with _client.messages.stream(
+                    model="claude-sonnet-4-6",
+                    max_tokens=max_tokens,
+                    system=system_prompt,
+                    messages=_messages,
+                ) as _stream:
+                    for _text in _stream.text_stream:
+                        full_response += _text
+                        await websocket.send_json({"type": "token", "content": _text})
+            except Exception as e:
+                full_response = f"Claude API error: {e}"
+                await websocket.send_json({"type": "token", "content": full_response})
+        else:
+            # ── Language Backbone fallback when no LLM model is loaded ──
+            try:
+                from lyra.core.language_backbone import language_backbone
+                if not language_backbone._initialized:
+                    await language_backbone.initialize()
+                understanding = language_backbone.understand(user_message)
+                memory_ctx = memory.get_context_for_prompt(user_message) if use_memory else ""
+                backbone_answer = language_backbone.answer(user_message, memory_ctx)
+                entities = understanding.get("entities", [])
+                keywords = understanding.get("keywords", [])[:5]
+                full_response = backbone_answer
+                if keywords:
+                    full_response += f"\n\n*[Detected keywords: {', '.join(keywords)}]*"
+                if entities:
+                    full_response += f"\n*[Entities: {', '.join(f'{e[0]} ({e[1]})' for e in entities[:3])}]*"
+                full_response += (
+                    "\n\n*Note: Running in Language Backbone mode (no LLM loaded). "
+                    "Set ANTHROPIC_API_KEY for full AI capability. "
+                    "Word knowledge from WordNet (117,659 concepts) + spaCy NLP.*"
+                )
+                for word in full_response.split():
+                    await websocket.send_json({"type": "token", "content": word + " "})
+                language_backbone.read_and_learn(user_message)
+            except Exception as e:
+                full_response = f"No model loaded. Language backbone error: {e}"
+                await websocket.send_json({"type": "token", "content": full_response})
     else:
         try:
             async for token in engine.generate(

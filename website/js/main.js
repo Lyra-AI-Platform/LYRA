@@ -66,6 +66,40 @@ if (hamburger && navMobile) {
   });
 }
 
+// ── Animated stats counters ──
+function animateCounter(el) {
+  const target    = parseFloat(el.dataset.target || '0');
+  const decimals  = parseInt(el.dataset.decimals  || '0', 10);
+  const suffix    = el.dataset.suffix  || '';
+  const prefix    = el.dataset.prefix  || '';
+  const duration  = 1600;
+  const startTime = performance.now();
+
+  function tick(now) {
+    const elapsed  = now - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    const current  = target * eased;
+    el.textContent = prefix + (decimals > 0 ? current.toFixed(decimals) : Math.floor(current).toLocaleString()) + suffix;
+    if (progress < 1) requestAnimationFrame(tick);
+    else el.textContent = prefix + (decimals > 0 ? target.toFixed(decimals) : target.toLocaleString()) + suffix;
+  }
+  requestAnimationFrame(tick);
+}
+
+const counterObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      animateCounter(entry.target);
+      counterObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('.stat-counter').forEach(el => {
+  counterObserver.observe(el);
+});
+
 // ── Tabs ──
 document.querySelectorAll('.tabs').forEach(tabs => {
   const wrapper = tabs.closest('.tabs-wrapper');
