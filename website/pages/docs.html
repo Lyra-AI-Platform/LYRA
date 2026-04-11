@@ -78,6 +78,13 @@
       <li><a href="#accessibility">Accessibility AI</a></li>
       <li><a href="#physics">Physics Reasoning</a></li>
       <li><a href="#vibe">Vibe &amp; Tone</a></li>
+      <li><a href="#coshh">COSHH AI</a></li>
+    </ul>
+    <div class="section-title">Chat API</div>
+    <ul>
+      <li><a href="#chat-api">WebSocket Chat</a></li>
+      <li><a href="#chat-auth">Authentication</a></li>
+      <li><a href="#chat-protocol">Message Protocol</a></li>
     </ul>
   </aside>
 
@@ -252,6 +259,83 @@
 
     <div class="note">
       <strong>DNS:</strong> Point your domain's A record to your VPS IP address. HTTPS certificate from Let's Encrypt is free and auto-renews every 90 days.
+    </div>
+
+    <h2 id="coshh">COSHH AI</h2>
+    <p>COSHH AI is Lyra's intelligent hazard assessment tool for UK Control of Substances Hazardous to Health compliance. It extracts data from Safety Data Sheets (SDS), performs AI-driven risk assessments, and generates compliance reports.</p>
+
+    <h3>Key capabilities</h3>
+    <ul>
+      <li>Substance identification and CAS number lookup</li>
+      <li>Automated SDS extraction (PDF, image, plain text)</li>
+      <li>Exposure limit comparison against WEL/OEL databases</li>
+      <li>PPE recommendation engine</li>
+      <li>Compliance report generation (COSHH assessment form output)</li>
+      <li>Bulk processing for multi-substance environments</li>
+    </ul>
+
+    <h3>Availability</h3>
+    <p>COSHH AI is currently in private beta. Request demo access at <a href="coshh.html" style="color:var(--accent3);">lyraauth.com/pages/coshh.html</a>. API access will be available to enterprise customers on the <strong>Enterprise</strong> plan.</p>
+
+    <div class="note">
+      <strong>Sector focus:</strong> Manufacturing, laboratories, healthcare, and construction. COSHH AI is built to complement (not replace) qualified COSHH assessors.
+    </div>
+
+    <h2 id="chat-api">WebSocket Chat</h2>
+    <p>Lyra's chat API streams AI responses over a WebSocket connection. It is the same backend powering the <a href="../dashboard/chat.html" style="color:var(--accent3);">dashboard chat UI</a>.</p>
+
+    <h3 id="chat-auth">Authentication</h3>
+    <p>Pass your JWT token as a query parameter when opening the WebSocket.</p>
+    <div class="code-block">
+      <div class="comment">Connect with auth token</div><br />
+      <span style="color:#81d4fa;">const</span> token = localStorage.getItem(<span class="string">'lyra_token'</span>);<br />
+      <span style="color:#81d4fa;">const</span> convId = crypto.randomUUID();<br />
+      <span style="color:#81d4fa;">const</span> ws = <span style="color:#81d4fa;">new</span> WebSocket(<br />
+      &nbsp;&nbsp;<span class="string">`wss://lyraauth.com/ws/${convId}?token=${token}`</span><br />
+      );
+    </div>
+
+    <h3 id="chat-protocol">Message protocol</h3>
+    <p>Send a JSON message to start a response stream:</p>
+    <div class="code-block">
+      <div class="comment">Send a message</div><br />
+      ws.send(JSON.stringify({<br />
+      &nbsp;&nbsp;<span class="attr">"message"</span>: <span class="string">"What is quantum entanglement?"</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"use_memory"</span>: <span style="color:#81d4fa;">true</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"use_web_search"</span>: <span style="color:#81d4fa;">false</span><br />
+      }));
+    </div>
+
+    <p>The server streams back a sequence of typed events:</p>
+    <div class="code-block">
+      <div class="comment">Event types received</div><br />
+      { <span class="attr">"type"</span>: <span class="string">"start"</span>,  <span class="attr">"model"</span>: <span class="string">"Lyra-1"</span> }<br />
+      { <span class="attr">"type"</span>: <span class="string">"token"</span>,  <span class="attr">"content"</span>: <span class="string">"Quantum "</span> }<br />
+      { <span class="attr">"type"</span>: <span class="string">"token"</span>,  <span class="attr">"content"</span>: <span class="string">"entanglement..."</span> }<br />
+      { <span class="attr">"type"</span>: <span class="string">"done"</span>,   <span class="attr">"content"</span>: <span class="string">"&lt;full response&gt;"</span> }<br /><br />
+      <div class="comment">On error</div><br />
+      { <span class="attr">"type"</span>: <span class="string">"error"</span>,  <span class="attr">"content"</span>: <span class="string">"&lt;error message&gt;"</span> }
+    </div>
+
+    <h3>Full example (JavaScript)</h3>
+    <div class="code-block">
+      <span style="color:#81d4fa;">const</span> token  = localStorage.getItem(<span class="string">'lyra_token'</span>);<br />
+      <span style="color:#81d4fa;">const</span> convId = crypto.randomUUID();<br />
+      <span style="color:#81d4fa;">const</span> ws     = <span style="color:#81d4fa;">new</span> WebSocket(<span class="string">`wss://lyraauth.com/ws/${convId}?token=${token}`</span>);<br />
+      <span style="color:#81d4fa;">let</span> reply = <span class="string">''</span>;<br /><br />
+      ws.onopen = () =&gt; ws.send(JSON.stringify({<br />
+      &nbsp;&nbsp;message: <span class="string">'Hello, Lyra!'</span>, use_memory: <span style="color:#81d4fa;">true</span><br />
+      }));<br /><br />
+      ws.onmessage = ({ data }) =&gt; {<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">const</span> evt = JSON.parse(data);<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">if</span> (evt.type === <span class="string">'token'</span>) reply += evt.content;<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">if</span> (evt.type === <span class="string">'done'</span>)  console.log(<span class="string">'Reply:'</span>, reply);<br />
+      &nbsp;&nbsp;<span style="color:#81d4fa;">if</span> (evt.type === <span class="string">'error'</span>) console.error(evt.content);<br />
+      };
+    </div>
+
+    <div class="note">
+      <strong>Rate limits:</strong> Free tier — 100 messages/day per user. Pro — 5,000/day. Enterprise — unlimited. Memory and web search are available on all tiers.
     </div>
 
   </div>
