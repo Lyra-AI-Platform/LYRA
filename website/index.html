@@ -132,11 +132,49 @@
         <div><span class="product-tag">Sentiment</span><span class="product-tag">Intent</span></div>
         <div style="margin-top:16px;"><a href="pages/vibe.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
       </div>
+
+      <div class="product-card" style="--card-color:#0d9488;">
+        <div class="product-icon">🧪</div>
+        <h3>COSHH AI</h3>
+        <p>AI-powered COSHH risk assessments from Safety Data Sheets. Auto-extracts hazards, WELs, PPE requirements, and generates compliant reports.</p>
+        <div><span class="product-tag">COSHH 2002</span><span class="product-tag">EH40 WELs</span><span class="product-tag">GHS/CLP</span></div>
+        <div style="margin-top:16px;"><a href="pages/coshh.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
     </div>
   </div>
 </section>
 
 <div class="divider"></div>
+
+<!-- ══ ANIMATED STATS ══ -->
+<section style="padding:56px 0;background:var(--text);">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;text-align:center;">
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="10" data-suffix="M+">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Challenges served</div>
+      </div>
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="99.2" data-suffix="%" data-decimals="1">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Bot detection accuracy</div>
+      </div>
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">&lt;200<span style="font-size:1.25rem;font-weight:500;">ms</span></div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Avg. verification time</div>
+      </div>
+      <div style="padding:20px 12px;">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="14" data-suffix="+">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Challenge types</div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- ══ HOW IT WORKS ══ -->
 <section class="section" id="how-it-works">
@@ -419,6 +457,113 @@ onMounted(() => {
 
 <div class="divider"></div>
 
+<!-- ══ COMPARISON TABLE ══ -->
+<section class="section-sm" id="compare">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>LyraAuth vs the alternatives</h2>
+      <p style="max-width:460px;margin:14px auto 0;">The only verification tool that turns every human challenge into permanent AI training value — and gives it back to you.</p>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem;min-width:560px;">
+        <thead>
+          <tr>
+            <th style="padding:10px 16px;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">Feature</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);border-bottom:2px solid var(--border);background:var(--surface2);">✦ LyraAuth</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">reCAPTCHA v3</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">hCaptcha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Privacy — no third-party tracking</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Training data export (JSONL)</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Self-hostable / open source</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Cognitive challenge variety</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;font-weight:600;color:var(--text);">14 types</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Score only</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Image tasks</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">GDPR-friendly by design</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#ca8a04;font-weight:600;">~</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Free tier</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">10k / mo</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">Unlimited</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">1M / mo</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;color:var(--muted);">You own the AI it builds</td>
+            <td style="padding:13px 16px;text-align:center;color:#16a34a;font-weight:600;">✓ 100%</td>
+            <td style="padding:13px 16px;text-align:center;color:#dc2626;">✗ Google owns it</td>
+            <td style="padding:13px 16px;text-align:center;color:#dc2626;">✗ hCaptcha owns it</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ CHAT CTA ══ -->
+<section style="padding:72px 0;background:var(--surface);border-top:1px solid var(--border);">
+  <div class="container">
+    <div style="max-width:640px;margin:0 auto;display:flex;gap:40px;align-items:center;flex-wrap:wrap;">
+      <div style="flex:1;min-width:240px;">
+        <span class="section-label">AI Chat</span>
+        <h2 style="margin:10px 0 12px;">Chat with Lyra —<br /><span class="gradient-text">sign up to try it</span></h2>
+        <p>Once you have an account, unlock the full Lyra AI chat — autonomous memory, real-time web search, and continuously improving reasoning. No local GPU required.</p>
+        <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;">
+          <a href="dashboard/register.html" class="btn btn-primary">Create free account &rarr;</a>
+          <a href="dashboard/login.html" class="btn btn-outline">Sign in to chat</a>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px;">
+        <!-- Chat preview mockup -->
+        <div style="background:var(--bg);border:1px solid var(--border-hi);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <div style="background:var(--surface2);padding:10px 14px;border-bottom:1px solid var(--border);font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;"><span style="font-weight:600;color:var(--text);">✦ Lyra Chat</span></div>
+          <div style="padding:16px 14px;">
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <div style="width:26px;height:26px;background:var(--text);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6875rem;color:var(--bg);font-weight:700;">Y</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 8px 2px;padding:9px 12px;font-size:.8125rem;color:var(--text);">How does transformer attention work?</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="width:26px;height:26px;background:var(--surface2);border:1px solid var(--border-hi);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;">✦</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 2px 8px;padding:9px 12px;font-size:.8125rem;color:var(--muted);line-height:1.6;">Transformer attention computes a weighted sum of values, where weights come from the dot-product similarity of queries and keys...</div>
+            </div>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:.8125rem;color:var(--dim);">Message Lyra...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
 <!-- ══ PRICING ══ -->
 <section class="section" id="pricing">
   <div class="container">
@@ -546,6 +691,7 @@ onMounted(() => {
           <li><a href="pages/accessibility.html">Accessibility AI</a></li>
           <li><a href="pages/physics.html">Physics Reasoning</a></li>
           <li><a href="pages/vibe.html">Vibe &amp; Tone</a></li>
+          <li><a href="pages/coshh.html">COSHH AI</a></li>
         </ul>
       </div>
       <div class="footer-col">
@@ -556,6 +702,7 @@ onMounted(() => {
           <li><a href="pages/docs.html#api">API Reference</a></li>
           <li><a href="pages/docs.html#terminal">Terminal CLI</a></li>
           <li><a href="pages/docs.html#deploy">Self-Host Guide</a></li>
+          <li><a href="dashboard/chat.html">AI Chat</a></li>
         </ul>
       </div>
       <div class="footer-col">

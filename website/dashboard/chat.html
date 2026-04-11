@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat with Lyra — Lyra AI</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="../css/main.css" />
+  <style>
+    html, body { height: 100%; overflow: hidden; }
+
+    /* ── Fixed nav ── */
+    .chat-nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+      height: 57px; padding: 0 20px;
+      background: rgba(250,249,247,.92); backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .chat-nav-logo { font-size: .9375rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .chat-nav-right { display: flex; align-items: center; gap: 10px; }
+
+    /* ── Two-panel layout ── */
+    .chat-layout {
+      display: flex;
+      height: 100vh;
+      padding-top: 57px;
+    }
+
+    /* ── Sidebar ── */
+    .chat-sidebar {
+      width: 256px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .sidebar-top { padding: 14px; border-bottom: 1px solid var(--border); }
+    .new-chat-btn {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--text);
+      color: var(--bg);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .875rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: background .15s;
+    }
+    .new-chat-btn:hover { background: var(--accent-hi); }
+    .conv-list { flex: 1; overflow-y: auto; padding: 8px; }
+    .conv-section-label {
+      padding: 10px 10px 4px;
+      font-size: .6875rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--dim);
+    }
+    .conv-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: .8125rem; color: var(--muted);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      transition: all .12s;
+    }
+    .conv-item:hover { background: var(--surface2); color: var(--text); }
+    .conv-item.active { background: var(--surface2); color: var(--text); font-weight: 500; }
+
+    /* ── Main chat area ── */
+    .chat-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    /* ── Messages ── */
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 28px 0 8px;
+      scroll-behavior: smooth;
+    }
+    .msg-wrap { max-width: 700px; margin: 0 auto; padding: 0 24px; }
+
+    .msg {
+      display: flex; gap: 14px;
+      margin-bottom: 28px;
+      animation: msgFadeUp .2s ease;
+    }
+    @keyframes msgFadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .msg-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8125rem; font-weight: 700;
+    }
+    .msg-avatar.user      { background: var(--text); color: var(--bg); }
+    .msg-avatar.assistant { background: var(--surface2); border: 1px solid var(--border-hi); color: var(--text); }
+    .msg-body  { flex: 1; min-width: 0; padding-top: 2px; }
+    .msg-name  { font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin-bottom: 6px; }
+    .msg-text  { font-size: .9375rem; line-height: 1.75; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+    .msg-text.streaming::after { content: '▌'; animation: blink .75s step-start infinite; color: var(--muted); }
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .status-pill {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 5px 12px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: .8125rem; color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted);
+      animation: statusPulse 1.2s ease-in-out infinite;
+    }
+    @keyframes statusPulse { 0%,100%{opacity:.35;} 50%{opacity:1;} }
+
+    /* ── Welcome screen ── */
+    .chat-welcome {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 60vh;
+      text-align: center; padding: 40px 24px;
+    }
+    .welcome-star { font-size: 2rem; margin-bottom: 18px; }
+    .welcome-title { font-size: 1.625rem; font-weight: 600; letter-spacing: -.03em; margin-bottom: 10px; }
+    .welcome-sub { color: var(--muted); max-width: 420px; margin-bottom: 36px; font-size: .9375rem; }
+    .starter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 520px; width: 100%; }
+    .starter-btn {
+      padding: 14px 16px;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: var(--radius); text-align: left;
+      cursor: pointer; font-size: .8125rem; color: var(--muted);
+      font-family: inherit; transition: all .15s; line-height: 1.55;
+    }
+    .starter-btn:hover { border-color: var(--text); color: var(--text); background: var(--surface2); }
+    .starter-btn strong { display: block; color: var(--text); margin-bottom: 3px; font-size: .875rem; }
+
+    /* ── Input area ── */
+    .chat-input-area {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 14px 24px 18px;
+    }
+    .input-inner { max-width: 700px; margin: 0 auto; position: relative; }
+    .chat-textarea {
+      width: 100%;
+      min-height: 54px; max-height: 200px;
+      padding: 13px 50px 13px 16px;
+      border: 1px solid var(--border-hi);
+      border-radius: var(--radius);
+      font-family: inherit; font-size: .9375rem;
+      background: var(--bg); color: var(--text);
+      resize: none; outline: none; overflow-y: auto; line-height: 1.6;
+      transition: border-color .15s;
+    }
+    .chat-textarea:focus { border-color: var(--text); }
+    .chat-textarea::placeholder { color: var(--dim); }
+    .send-btn {
+      position: absolute; right: 9px; bottom: 9px;
+      width: 34px; height: 34px;
+      background: var(--text); color: var(--bg);
+      border: none; border-radius: 7px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: .875rem; transition: background .15s;
+    }
+    .send-btn:hover   { background: var(--accent-hi); }
+    .send-btn:disabled { background: var(--dim); cursor: not-allowed; }
+    .input-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 8px; font-size: .75rem; color: var(--dim);
+    }
+    .web-toggle-label { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+    .web-toggle-label input { cursor: pointer; accent-color: var(--text); }
+
+    /* ── T&C Modal ── */
+    .tc-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(250,249,247,.97);
+      z-index: 500;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .tc-overlay.active { display: flex; }
+    .tc-modal {
+      width: 100%; max-width: 540px;
+      background: var(--surface); border: 1px solid var(--border-hi);
+      border-radius: 14px; padding: 40px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.1);
+    }
+    .tc-modal-star { font-size: 1.5rem; margin-bottom: 14px; }
+    .tc-modal h2 { font-size: 1.375rem; margin-bottom: 8px; }
+    .tc-modal > p { font-size: .9375rem; color: var(--muted); margin-bottom: 24px; }
+    .tc-scroll {
+      height: 220px; overflow-y: auto;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 20px;
+      font-size: .8125rem; color: var(--muted); line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .tc-scroll h4 { color: var(--text); margin: 14px 0 5px; font-size: .875rem; }
+    .tc-scroll h4:first-child { margin-top: 0; }
+    .tc-scroll p { margin-bottom: 0; }
+    .tc-agree-btn {
+      width: 100%; padding: 13px;
+      background: var(--text); color: var(--bg);
+      border: none; border-radius: var(--radius-sm);
+      font-size: .9375rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; transition: background .15s;
+    }
+    .tc-agree-btn:hover { background: var(--accent-hi); }
+    .tc-footer-note { text-align: center; font-size: .75rem; margin-top: 12px; color: var(--dim); }
+
+    /* ── Error toast ── */
+    .msg-error {
+      padding: 10px 14px;
+      background: #fef2f2; border: 1px solid #fca5a5;
+      border-radius: var(--radius-sm); font-size: .8125rem;
+      color: #dc2626; margin-bottom: 16px;
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) { .chat-sidebar { display: none; } }
+  </style>
+</head>
+<body>
+
+<!-- ══ T&C Overlay ══ -->
+<div class="tc-overlay" id="tc-overlay">
+  <div class="tc-modal">
+    <div class="tc-modal-star">✦</div>
+    <h2>Welcome to Lyra Chat</h2>
+    <p>Before chatting, please read and accept the terms below.</p>
+    <div class="tc-scroll">
+      <h4>1. AI Limitations</h4>
+      <p>Lyra is an AI assistant and may produce incorrect, incomplete, or outdated information. Do not rely on Lyra for medical, legal, financial, or safety-critical decisions without independent professional verification.</p>
+      <h4>2. Data &amp; Privacy</h4>
+      <p>Your conversations are processed by the Lyra platform running on our servers. Conversation summaries are stored in memory to improve future responses. We do not sell your data to third parties. See our <a href="../pages/privacy.html" style="color:var(--text);">Privacy Policy</a> for full details.</p>
+      <h4>3. Acceptable Use</h4>
+      <p>You agree not to use Lyra Chat to generate harmful, illegal, deceptive, or abusive content. Lyra is designed to be helpful, honest, and harmless. Attempts to circumvent safety guidelines will result in account suspension.</p>
+      <h4>4. Memory &amp; Learning</h4>
+      <p>Lyra stores summaries of conversations to provide richer context over time. This memory is private to your account. You can request deletion of your data at any time by contacting support.</p>
+      <h4>5. No Warranties</h4>
+      <p>Lyra AI is provided as-is without warranties of any kind. We make no guarantees about the accuracy, completeness, or reliability of AI-generated responses. Always use your own judgment.</p>
+      <h4>6. Intellectual Property</h4>
+      <p>You retain ownership of content you submit. AI-generated responses are provided for your personal use. Do not represent AI output as entirely your own original work in contexts where that would be misleading.</p>
+    </div>
+    <button class="tc-agree-btn" id="tc-agree-btn">I understand &amp; agree — Start chatting &rarr;</button>
+    <p class="tc-footer-note">By continuing you agree to our <a href="../pages/terms.html" style="color:var(--muted);">Terms of Service</a> and <a href="../pages/privacy.html" style="color:var(--muted);">Privacy Policy</a></p>
+  </div>
+</div>
+
+<!-- ══ Nav ══ -->
+<nav class="chat-nav">
+  <div class="chat-nav-logo"><span>✦</span> Lyra AI</div>
+  <div class="chat-nav-right">
+    <span style="font-size:.8125rem;color:var(--muted);" id="user-email"></span>
+    <a href="index.html" class="btn btn-outline" style="padding:6px 13px;font-size:.8125rem;">Dashboard</a>
+    <button onclick="signOut()" class="btn btn-outline" style="padding:6px 13px;font-size:.8125rem;">Sign out</button>
+  </div>
+</nav>
+
+<!-- ══ Layout ══ -->
+<div class="chat-layout">
+
+  <!-- Sidebar -->
+  <aside class="chat-sidebar">
+    <div class="sidebar-top">
+      <button class="new-chat-btn" id="new-chat-btn">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v12M1 7h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        New conversation
+      </button>
+    </div>
+    <div class="conv-list" id="conv-list">
+      <div style="padding:20px 12px;font-size:.8125rem;color:var(--dim);">No conversations yet</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="chat-main">
+    <div class="chat-messages" id="messages">
+      <div class="msg-wrap" id="msg-wrap">
+        <!-- Welcome shown initially -->
+        <div class="chat-welcome" id="welcome">
+          <div class="welcome-star">✦</div>
+          <h2 class="welcome-title">Chat with Lyra</h2>
+          <p class="welcome-sub">Ask me anything — I have autonomous memory, web search, and continuously learn from our conversations.</p>
+          <div class="starter-grid">
+            <button class="starter-btn" onclick="sendStarter(this)">
+              <strong>Explain a concept</strong>
+              How does transformer attention work?
+            </button>
+            <button class="starter-btn" onclick="sendStarter(this)">
+              <strong>Write some code</strong>
+              Build a Python REST API with FastAPI
+            </button>
+            <button class="starter-btn" onclick="sendStarter(this)">
+              <strong>Research a topic</strong>
+              What are the latest AI safety advances?
+            </button>
+            <button class="starter-btn" onclick="sendStarter(this)">
+              <strong>Analyse something</strong>
+              Compare quantum vs classical computing for cryptography
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input -->
+    <div class="chat-input-area">
+      <div class="input-inner">
+        <textarea
+          class="chat-textarea"
+          id="chat-input"
+          placeholder="Message Lyra..."
+          rows="1"
+        ></textarea>
+        <button class="send-btn" id="send-btn" title="Send message (Enter)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 12V2M2 7l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="input-footer">
+        <span>Lyra may make mistakes — always verify important information.</span>
+        <label class="web-toggle-label">
+          <input type="checkbox" id="web-search-toggle" />
+          Web search
+        </label>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<script>
+/* ════════════════════════════════════════
+   Lyra Chat — Client
+   ════════════════════════════════════════ */
+
+/* ── Auth guard ── */
+const token = localStorage.getItem('lyra_token');
+if (!token) { window.location.href = 'login.html'; }
+
+/* ── T&C gate ── */
+if (!localStorage.getItem('lyra_terms_agreed')) {
+  document.getElementById('tc-overlay').classList.add('active');
+}
+document.getElementById('tc-agree-btn').addEventListener('click', () => {
+  localStorage.setItem('lyra_terms_agreed', '1');
+  document.getElementById('tc-overlay').classList.remove('active');
+  inputEl.focus();
+});
+
+/* ── Elements ── */
+const messagesEl   = document.getElementById('messages');
+const msgWrap      = document.getElementById('msg-wrap');
+const welcomeEl    = document.getElementById('welcome');
+const inputEl      = document.getElementById('chat-input');
+const sendBtn      = document.getElementById('send-btn');
+const convListEl   = document.getElementById('conv-list');
+const webToggle    = document.getElementById('web-search-toggle');
+
+/* ── State ── */
+let currentConvId  = null;
+let ws             = null;
+let isStreaming    = false;
+let _streamEl      = null;   // current streaming <div>
+let _statusEl      = null;   // status pill element
+
+/* ── Load user info ── */
+fetch('/api/users/me', { headers: { Authorization: 'Bearer ' + token } })
+  .then(r => r.ok ? r.json() : null)
+  .then(u => { if (u) document.getElementById('user-email').textContent = u.email || ''; })
+  .catch(() => {});
+
+function signOut() {
+  localStorage.removeItem('lyra_token');
+  localStorage.removeItem('lyra_user');
+  window.location.href = 'login.html';
+}
+
+/* ════ WebSocket ════ */
+function connectWS(convId) {
+  if (ws) { try { ws.close(); } catch {} }
+  const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+  ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}`);
+
+  ws.addEventListener('message', e => handleWSMsg(JSON.parse(e.data)));
+  ws.addEventListener('close',   () => { if (isStreaming) finishStream(); });
+  ws.addEventListener('error',   () => { appendError('Connection error. Please refresh.'); });
+}
+
+function handleWSMsg(msg) {
+  switch (msg.type) {
+    case 'start':
+      clearStatus();
+      if (!_streamEl) startAssistantBubble();
+      break;
+    case 'status':
+      showStatus(msg.content);
+      break;
+    case 'token':
+      if (!_streamEl) startAssistantBubble();
+      clearStatus();
+      _streamEl.textContent += msg.content;
+      scrollBottom();
+      break;
+    case 'done':
+      finishStream();
+      break;
+    case 'error':
+      appendError(msg.content || 'An error occurred.');
+      break;
+  }
+}
+
+/* ════ Message rendering ════ */
+function hideWelcome() {
+  if (welcomeEl) welcomeEl.style.display = 'none';
+}
+
+function appendUserBubble(text) {
+  hideWelcome();
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="msg-avatar user">Y</div>
+    <div class="msg-body">
+      <div class="msg-name">You</div>
+      <div class="msg-text">${escHtml(text)}</div>
+    </div>`;
+  msgWrap.appendChild(el);
+  scrollBottom();
+}
+
+function startAssistantBubble() {
+  clearStatus();
+  const el = document.createElement('div');
+  el.className = 'msg';
+  const textId = 'st-' + Date.now();
+  el.innerHTML = `
+    <div class="msg-avatar assistant">✦</div>
+    <div class="msg-body">
+      <div class="msg-name">Lyra</div>
+      <div class="msg-text streaming" id="${textId}"></div>
+    </div>`;
+  msgWrap.appendChild(el);
+  _streamEl = el.querySelector(`#${textId}`);
+  scrollBottom();
+}
+
+function showStatus(text) {
+  clearStatus();
+  _statusEl = document.createElement('div');
+  _statusEl.innerHTML = `<div class="status-pill"><div class="status-dot"></div>${escHtml(text)}</div>`;
+  msgWrap.appendChild(_statusEl);
+  scrollBottom();
+}
+
+function clearStatus() {
+  if (_statusEl) { _statusEl.remove(); _statusEl = null; }
+}
+
+function finishStream() {
+  clearStatus();
+  if (_streamEl) {
+    _streamEl.classList.remove('streaming');
+    _streamEl.removeAttribute('id');
+    _streamEl = null;
+  }
+  isStreaming = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+  loadConversations();
+}
+
+function appendError(text) {
+  clearStatus();
+  const el = document.createElement('div');
+  el.className = 'msg-error';
+  el.textContent = text;
+  msgWrap.appendChild(el);
+  scrollBottom();
+  if (_streamEl) { _streamEl.classList.remove('streaming'); _streamEl = null; }
+  isStreaming = false;
+  sendBtn.disabled = false;
+}
+
+function scrollBottom() {
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+/* ════ Send ════ */
+async function sendMessage(text) {
+  text = text.trim();
+  if (!text || isStreaming) return;
+
+  if (!currentConvId) {
+    await createConversation();
+  }
+
+  isStreaming = true;
+  sendBtn.disabled = true;
+  appendUserBubble(text);
+  inputEl.value = '';
+  inputEl.style.height = '';
+
+  if (!ws || ws.readyState !== WebSocket.OPEN) {
+    connectWS(currentConvId);
+    await new Promise(res => ws.addEventListener('open', res, { once: true }));
+  }
+
+  showStatus('Thinking...');
+
+  ws.send(JSON.stringify({
+    message: text,
+    use_memory: true,
+    use_web_search: webToggle.checked,
+    max_tokens: 2048,
+    temperature: 0.7,
+  }));
+}
+
+/* ════ Conversation management ════ */
+async function createConversation() {
+  const res = await fetch('/api/chat/conversations/new', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  const data = await res.json();
+  currentConvId = data.conversation_id;
+  connectWS(currentConvId);
+}
+
+function startNewChat() {
+  if (ws) { try { ws.close(); } catch {} ws = null; }
+  currentConvId = null;
+  isStreaming = false;
+  sendBtn.disabled = false;
+  _streamEl = null;
+  _statusEl = null;
+
+  msgWrap.innerHTML = '';
+  msgWrap.appendChild(welcomeEl);
+  welcomeEl.style.display = '';
+
+  convListEl.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+  inputEl.focus();
+}
+
+async function loadConversations() {
+  try {
+    const res = await fetch('/api/chat/conversations', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    const data = await res.json();
+    renderConvList(data.conversations || []);
+  } catch {}
+}
+
+function renderConvList(convs) {
+  convListEl.innerHTML = '';
+  if (!convs.length) {
+    convListEl.innerHTML = '<div style="padding:20px 12px;font-size:.8125rem;color:var(--dim);">No conversations yet</div>';
+    return;
+  }
+  const hdr = document.createElement('div');
+  hdr.className = 'conv-section-label';
+  hdr.textContent = 'Recent';
+  convListEl.appendChild(hdr);
+
+  convs.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'conv-item' + (c.id === currentConvId ? ' active' : '');
+    el.innerHTML = `<span style="font-size:.75rem;flex-shrink:0;">💬</span>${escHtml(c.title || 'Conversation')}`;
+    el.addEventListener('click', () => loadConversation(c.id, el));
+    convListEl.appendChild(el);
+  });
+}
+
+async function loadConversation(convId, itemEl) {
+  currentConvId = convId;
+  connectWS(convId);
+
+  // Highlight
+  convListEl.querySelectorAll('.conv-item').forEach(el => el.classList.remove('active'));
+  if (itemEl) itemEl.classList.add('active');
+
+  const res = await fetch(`/api/chat/conversations/${convId}`, {
+    headers: { Authorization: 'Bearer ' + token },
+  });
+  const data = await res.json();
+  const msgs = data.messages || [];
+
+  msgWrap.innerHTML = '';
+  welcomeEl.style.display = 'none';
+
+  msgs.forEach(m => {
+    const isUser = m.role === 'user';
+    const el = document.createElement('div');
+    el.className = 'msg';
+    el.innerHTML = `
+      <div class="msg-avatar ${isUser ? 'user' : 'assistant'}">${isUser ? 'Y' : '✦'}</div>
+      <div class="msg-body">
+        <div class="msg-name">${isUser ? 'You' : 'Lyra'}</div>
+        <div class="msg-text">${escHtml(m.content)}</div>
+      </div>`;
+    msgWrap.appendChild(el);
+  });
+
+  scrollBottom();
+  inputEl.focus();
+}
+
+/* ════ Starter prompts ════ */
+function sendStarter(btn) {
+  const strong = btn.querySelector('strong');
+  const textNode = strong.nextSibling;
+  const text = textNode ? textNode.textContent.trim() : '';
+  if (text) sendMessage(text);
+}
+
+/* ════ Input wiring ════ */
+sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage(inputEl.value);
+  }
+});
+inputEl.addEventListener('input', () => {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 200) + 'px';
+});
+document.getElementById('new-chat-btn').addEventListener('click', startNewChat);
+
+/* ════ Utility ════ */
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* ════ Init ════ */
+loadConversations();
+if (!localStorage.getItem('lyra_terms_agreed')) {
+  // Keep input disabled until agreed
+} else {
+  inputEl.focus();
+}
+</script>
+</body>
+</html>
