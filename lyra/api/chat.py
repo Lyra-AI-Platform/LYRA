@@ -111,11 +111,7 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     reasoning_result = await reasoning_engine.build_enhanced_context(user_message)
     complexity = reasoning_result.complexity
 
-    if complexity != "simple":
-        await websocket.send_json({
-            "type": "status",
-            "content": f"🧠 Reasoning ({complexity})..."
-        })
+    # complexity used internally to enrich context; not surfaced to users
 
     # ── Memory context injection ──
     if use_memory:
@@ -212,22 +208,23 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
             # ── Claude API: primary AI when no local model is loaded ──
             try:
                 import anthropic as _anthropic_mod
-                _client = _anthropic_mod.Anthropic(api_key=_anthropic_key)
+                _client = _anthropic_mod.AsyncAnthropic(api_key=_anthropic_key)
                 _messages = [
                     {"role": m["role"], "content": m["content"]}
                     for m in conversations[conv_id]
                 ]
-                with _client.messages.stream(
+                async with _client.messages.stream(
                     model="claude-sonnet-4-6",
                     max_tokens=max_tokens,
                     system=system_prompt,
                     messages=_messages,
                 ) as _stream:
-                    for _text in _stream.text_stream:
+                    async for _text in _stream.text_stream:
                         full_response += _text
                         await websocket.send_json({"type": "token", "content": _text})
             except Exception as e:
-                full_response = f"Claude API error: {e}"
+                full_response = f"Something went wrong. Please try again."
+                logger.error(f"Claude API error: {e}")
                 await websocket.send_json({"type": "token", "content": full_response})
         else:
             # ── Language Backbone fallback when no LLM model is loaded ──
@@ -241,15 +238,6 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
                 entities = understanding.get("entities", [])
                 keywords = understanding.get("keywords", [])[:5]
                 full_response = backbone_answer
-                if keywords:
-                    full_response += f"\n\n*[Detected keywords: {', '.join(keywords)}]*"
-                if entities:
-                    full_response += f"\n*[Entities: {', '.join(f'{e[0]} ({e[1]})' for e in entities[:3])}]*"
-                full_response += (
-                    "\n\n*Note: Running in Language Backbone mode (no LLM loaded). "
-                    "Set ANTHROPIC_API_KEY for full AI capability. "
-                    "Word knowledge from WordNet (117,659 concepts) + spaCy NLP.*"
-                )
                 for word in full_response.split():
                     await websocket.send_json({"type": "token", "content": word + " "})
                 language_backbone.read_and_learn(user_message)
