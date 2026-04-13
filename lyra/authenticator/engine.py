@@ -348,7 +348,7 @@ PHYSICS_CHALLENGES = [
 # (text, options, correct_index, explanation)
 VIBE_CHALLENGES = [
     (
-        '"Oh sure, because THAT'S a totally normal thing to do." 🙄',
+        '"Oh sure, because THAT\'S a totally normal thing to do." 🙄',
         ["Sincere agreement", "Sarcasm / irony", "Genuine question", "Threatening"],
         1,
         "The caps, 'totally', and eye-roll emoji are classic sarcasm markers.",
