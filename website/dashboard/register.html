@@ -106,9 +106,11 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email, password }),
       });
-      const data = await res.json();
+      let data;
+      try { data = await res.json(); } catch {
+        throw new Error('Server unavailable — please try again in a moment.');
+      }
       if (!res.ok) {
-        // data.detail can be a string (our HTTPException) or an array (pydantic 422)
         const msg = typeof data.detail === 'string'
           ? data.detail
           : Array.isArray(data.detail)

@@ -101,7 +101,10 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      const data = await res.json();
+      let data;
+      try { data = await res.json(); } catch {
+        throw new Error('Server unavailable — please try again in a moment.');
+      }
       if (!res.ok) {
         const msg = typeof data.detail === 'string'
           ? data.detail
