@@ -9,6 +9,7 @@ POST /api/billing/webhook        — Stripe webhook handler (no auth required)
 import os
 import logging
 from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from lyra.db.database import get_db
