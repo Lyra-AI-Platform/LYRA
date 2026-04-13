@@ -449,15 +449,27 @@ class LyraLanguageBackbone:
         loop = asyncio.get_event_loop()
 
         # Load spaCy
-        await loop.run_in_executor(None, self.spacy._ensure_loaded)
+        try:
+            await loop.run_in_executor(None, self.spacy._ensure_loaded)
+        except Exception as e:
+            logger.warning(f"spaCy load failed (non-fatal): {e}")
 
         # Load WordNet
-        await loop.run_in_executor(None, self.wordnet._ensure_loaded)
+        try:
+            await loop.run_in_executor(None, self.wordnet._ensure_loaded)
+        except Exception as e:
+            logger.warning(f"WordNet load failed — run: python -m nltk.downloader wordnet omw-1.4 (non-fatal): {e}")
 
         # Train Markov chain on Brown corpus
-        await loop.run_in_executor(None, self.markov.train_on_brown)
+        try:
+            await loop.run_in_executor(None, self.markov.train_on_brown)
+        except Exception as e:
+            logger.warning(f"Brown corpus load failed — run: python -m nltk.downloader brown (non-fatal): {e}")
 
-        wn_count = self.wordnet.count()
+        try:
+            wn_count = self.wordnet.count()
+        except Exception:
+            wn_count = 0
         self.concepts_linked = wn_count
         self._initialized = True
 
