@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyra Labs — Products</title>
+<meta name="description" content="Lyra Labs builds Lyra AI, AegisOS, Omni-Agent Hub and Fuelwise." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="stylesheet" href="../css/main.css" />
+<style>
+  .wrap { max-width: 880px; margin: 0 auto; padding: 96px 24px 80px; }
+  .wrap h1 { margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 32px 0; }
+  .prod { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px;
+          display: flex; flex-direction: column; gap: 8px; }
+  .prod h3 { font-size: 1.05rem; }
+  .prod .tag { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .prod a.go { margin-top: auto; font-weight: 600; font-size: 14px; text-decoration: underline; }
+  .prod .soon { margin-top: auto; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra Labs</a>
+  </div>
+</nav>
+<main class="wrap">
+  <h1>Lyra Labs</h1>
+  <p>Lyra Labs is the company behind a small family of products. Each has its own name and site, and all of them are
+    built and run by the same team under the Lyra Labs umbrella.</p>
+
+  <div class="grid">
+    <div class="prod">
+      <span class="tag">Web · AI</span>
+      <h3>Lyra AI</h3>
+      <p>Human verification that replaces reCAPTCHA, Lyra chat, and the Tremor Index market reader.</p>
+      <a class="go" href="/">lyraauth.com →</a>
+    </div>
+    <div class="prod">
+      <span class="tag">Home server</span>
+      <h3>AegisOS</h3>
+      <p>A private home and small-business server operating system with on-box AI, where nothing changes without your
+        approval.</p>
+      <span class="soon">In private development</span>
+    </div>
+    <div class="prod">
+      <span class="tag">Agent tools</span>
+      <h3>Omni-Agent Hub</h3>
+      <p>Checks whether AI agents can actually use a website, with reports in HTML, JSON and MCP.</p>
+      <a class="go" href="https://omni.lyraauth.com/">omni.lyraauth.com →</a>
+    </div>
+    <div class="prod">
+      <span class="tag">iPhone app</span>
+      <h3>Fuelwise</h3>
+      <p>Compare UK petrol and diesel prices at stations near you.</p>
+      <a class="go" href="/fuelwise/privacy">Privacy policy →</a>
+    </div>
+  </div>
+
+  <h2 style="font-size:1.25rem;margin:8px 0">Contact</h2>
+  <p><a href="mailto:hello@lyraauth.com" style="text-decoration:underline">hello@lyraauth.com</a> ·
+    legal: <a href="mailto:legal@lyraauth.com" style="text-decoration:underline">legal@lyraauth.com</a></p>
+</main>
+<footer class="footer"><div class="container"><div class="footer-bottom" style="border-top:none;padding-top:0;">
+  <p>&copy; 2026 Lyra Labs. Lyra AI, AegisOS, Omni-Agent Hub and Fuelwise are Lyra Labs products.</p>
+</div></div></footer>
+</body>
+</html>

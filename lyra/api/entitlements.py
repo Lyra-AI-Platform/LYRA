@@ -10,6 +10,7 @@ applies the same ones:
 
 Trial use is counted in the trial_usage table (lyra/db/models.py).
 """
+import math
 import os
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
@@ -42,7 +43,8 @@ def trial_days_left(user: User) -> int:
     if created.tzinfo is None:
         created = created.replace(tzinfo=timezone.utc)
     end = created + timedelta(days=TRIAL_DAYS)
-    return max(0, (end - datetime.now(timezone.utc)).days)
+    left = (end - datetime.now(timezone.utc)).total_seconds() / 86400
+    return max(0, math.ceil(left))   # a brand-new account shows the full 14 days
 
 
 def _usage(user: User, feature: str, db: Session) -> TrialUsage:
