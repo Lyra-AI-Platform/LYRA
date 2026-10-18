@@ -23,6 +23,7 @@ router = APIRouter(prefix="/api/billing", tags=["billing"])
 STRIPE_SECRET_KEY     = os.getenv("STRIPE_SECRET_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 APP_URL               = os.getenv("APP_URL", "https://lyraauth.com")
+MANAGED_PAYMENTS      = os.getenv("STRIPE_MANAGED_PAYMENTS", "1") != "0"
 
 # One Stripe Price ID per plan — set these env vars after creating products in Stripe dashboard
 PRICE_IDS = {
@@ -89,6 +90,11 @@ def create_checkout(
         customer=user.stripe_customer_id,
         line_items=[{"price": price_id, "quantity": 1}],
         mode="subscription",
+        # Stripe Managed Payments: Stripe (via its reseller) sells the subscription and handles
+        # sales tax/VAT. Needs API version 2025-03-31.basil or later (stripe-python 16 uses 2026-09-30).
+        # It rejects automatic_tax, tax_id_collection, payment_method_types and similar options,
+        # so none are set here. Turn off with STRIPE_MANAGED_PAYMENTS=0.
+        **({"managed_payments": {"enabled": True}} if MANAGED_PAYMENTS else {}),
         allow_promotion_codes=True,
         client_reference_id=str(user.id),
         success_url=f"{APP_URL}/dashboard/billing.html?success=1",
