@@ -33,6 +33,8 @@ from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
 from lyra.api.market_api import router as market_router
+from lyra.api.watch_api import router as watch_router
+from lyra.api.coshh_api import router as coshh_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -84,6 +86,8 @@ app.include_router(sites_router)
 app.include_router(billing_router)
 app.include_router(intelligence_router)
 app.include_router(market_router)
+app.include_router(watch_router)
+app.include_router(coshh_router)
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -214,6 +218,8 @@ async def on_startup():
     # Grade matured Tremor Index readings and retrain (every 6h)
     from lyra.market.expert import learning_loop
     learning_loop.start()
+    from lyra.watch.service import refresh_loop
+    refresh_loop.start()
 
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
@@ -236,6 +242,8 @@ async def on_shutdown():
     self_awareness.stop()
     from lyra.market.expert import learning_loop
     learning_loop.stop()
+    from lyra.watch.service import refresh_loop
+    refresh_loop.stop()
     await engine.unload_model()
 
 

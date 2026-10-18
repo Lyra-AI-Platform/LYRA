@@ -1,0 +1,6030 @@
+{
+ "source": "HSE EH40/2005 Workplace exposure limits, Fourth Edition 2020, Table 1 (https://www.hse.gov.uk/pubns/priced/eh40.pdf)",
+ "retrieved": "2026-10-18",
+ "note": "CAS numbers are not part of the approved list (EH40 para 16). Multi-line entries list inhalable/respirable dust fractions in order. Synonyms are EH40's own synonym list. BMGVs are EH40 Table 2.",
+ "entries": [
+  {
+   "substance": "Acetaldehyde",
+   "cas": "75-07-0",
+   "twa_ppm": "20",
+   "twa_mg_m3": "37",
+   "stel_ppm": "50",
+   "stel_mg_m3": "92",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Acetic acid",
+   "cas": "64-19-7",
+   "twa_ppm": "10",
+   "twa_mg_m3": "25",
+   "stel_ppm": "20",
+   "stel_mg_m3": "50",
+   "comments": ""
+  },
+  {
+   "substance": "Acetic anhydride",
+   "cas": "108-24-7",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "2.5",
+   "stel_ppm": "2",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Acetone",
+   "cas": "67-64-1",
+   "twa_ppm": "500",
+   "twa_mg_m3": "1210",
+   "stel_ppm": "1500",
+   "stel_mg_m3": "3620",
+   "comments": ""
+  },
+  {
+   "substance": "Acetonitrile",
+   "cas": "75-05-8",
+   "twa_ppm": "40",
+   "twa_mg_m3": "68",
+   "stel_ppm": "60",
+   "stel_mg_m3": "102",
+   "comments": ""
+  },
+  {
+   "substance": "o-Acetylsalicylic acid",
+   "cas": "50-78-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Acrylaldehyde (Acrolein)",
+   "cas": "107-02-8",
+   "twa_ppm": "0.02",
+   "twa_mg_m3": "0.05",
+   "stel_ppm": "0.05",
+   "stel_mg_m3": "0.12",
+   "comments": ""
+  },
+  {
+   "substance": "Acrylamide",
+   "cas": "79-06-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Acrylic acid",
+   "cas": "",
+   "twa_ppm": "10",
+   "twa_mg_m3": "29",
+   "stel_ppm": "20*",
+   "stel_mg_m3": "59*",
+   "comments": "*STEL in relation to a 1-minute reference period"
+  },
+  {
+   "substance": "Acrylonitrile",
+   "cas": "107-13-1",
+   "twa_ppm": "2",
+   "twa_mg_m3": "4.4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Allyl alcohol",
+   "cas": "107-18-6",
+   "twa_ppm": "2",
+   "twa_mg_m3": "4.8",
+   "stel_ppm": "4",
+   "stel_mg_m3": "9.7",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Aluminium alkyl compounds",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Aluminium metal\ninhalable dust\nrespirable dust",
+   "cas": "7429-90-5",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Aluminium oxides\ninhalable dust\nrespirable dust",
+   "cas": "1344-28-1",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Aluminium salts, soluble",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-Aminoethanol",
+   "cas": "141-43-5",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.5",
+   "stel_ppm": "3",
+   "stel_mg_m3": "7.6",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Amitrole",
+   "cas": "61-82-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ammonia, anhydrous",
+   "cas": "7664-41-7",
+   "twa_ppm": "25",
+   "twa_mg_m3": "18",
+   "stel_ppm": "35",
+   "stel_mg_m3": "25",
+   "comments": ""
+  },
+  {
+   "substance": "Ammonium chloride, fume",
+   "cas": "12125-02-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Ammonium sulphamidate",
+   "cas": "7773-06-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Aniline",
+   "cas": "62-53-3",
+   "twa_ppm": "1",
+   "twa_mg_m3": "4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Antimony and compounds except stibine (as Sb)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "r-Aramid respirable fibres",
+   "cas": "26125-61-1",
+   "twa_ppm": "0.5 fibres/ ml",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Arsenic and arsenic compounds except arsine (as As)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Arsine",
+   "cas": "7784-42-1",
+   "twa_ppm": "0.05",
+   "twa_mg_m3": "0.16",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Asphalt, petroleum fumes",
+   "cas": "8052-42-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Azodicarbonamide",
+   "cas": "123-77-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1.0",
+   "stel_ppm": "-",
+   "stel_mg_m3": "3.0",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Barium compounds, soluble (as Ba)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Barium sulphate\ninhalable dust\nrespirable dust",
+   "cas": "7727-43-7",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Benzene",
+   "cas": "71-43-2",
+   "twa_ppm": "1",
+   "twa_mg_m3": "3.25",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Benzyl butyl phthalate",
+   "cas": "85-68-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Benzyl chloride",
+   "cas": "100-44-7",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "2.6",
+   "stel_ppm": "1.5",
+   "stel_mg_m3": "7.9",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Beryllium and beryllium compounds (as Be)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.002",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Bis(2-ethylhexyl) phthalate",
+   "cas": "117-81-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Bis(chloromethyl) ether",
+   "cas": "542-88-1",
+   "twa_ppm": "0.001",
+   "twa_mg_m3": "0.005",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Bisphenol A",
+   "cas": "80-05-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Bornan-2-one",
+   "cas": "77-22-2",
+   "twa_ppm": "2",
+   "twa_mg_m3": "13",
+   "stel_ppm": "3",
+   "stel_mg_m3": "19",
+   "comments": ""
+  },
+  {
+   "substance": "Boron tribromide",
+   "cas": "10294-33-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Bromacil (ISO)",
+   "cas": "314-40-9",
+   "twa_ppm": "1",
+   "twa_mg_m3": "11",
+   "stel_ppm": "2",
+   "stel_mg_m3": "22",
+   "comments": ""
+  },
+  {
+   "substance": "Bromine",
+   "cas": "7726-95-6",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.66",
+   "stel_ppm": "0.2",
+   "stel_mg_m3": "1.3",
+   "comments": ""
+  },
+  {
+   "substance": "Bromoethylene",
+   "cas": "593-60-2",
+   "twa_ppm": "1",
+   "twa_mg_m3": "4.4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Bromomethane",
+   "cas": "74-83-9",
+   "twa_ppm": "5",
+   "twa_mg_m3": "20",
+   "stel_ppm": "15",
+   "stel_mg_m3": "59",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Butane",
+   "cas": "106-97-8",
+   "twa_ppm": "600",
+   "twa_mg_m3": "1450",
+   "stel_ppm": "750",
+   "stel_mg_m3": "1810",
+   "comments": "Carc, (only applies if Butane contains more than 0.1% of buta-1,3-diene)"
+  },
+  {
+   "substance": "But-2-yne-1,4-diol",
+   "cas": "110-65-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Buta-1,3-diene",
+   "cas": "106-99-0",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Butan-1-ol",
+   "cas": "71-36-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "50",
+   "stel_mg_m3": "154",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Butan-2-ol",
+   "cas": "78-92-2",
+   "twa_ppm": "100",
+   "twa_mg_m3": "308",
+   "stel_ppm": "150",
+   "stel_mg_m3": "462",
+   "comments": ""
+  },
+  {
+   "substance": "Butan-2-one (methyl ethyl ketone)",
+   "cas": "78-93-3",
+   "twa_ppm": "200",
+   "twa_mg_m3": "600",
+   "stel_ppm": "300",
+   "stel_mg_m3": "899",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "2-Butoxyethanol",
+   "cas": "111-76-2",
+   "twa_ppm": "25",
+   "twa_mg_m3": "123",
+   "stel_ppm": "50",
+   "stel_mg_m3": "246",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "2-(2-Butoxyethoxy) ethanol",
+   "cas": "112-34-5",
+   "twa_ppm": "10",
+   "twa_mg_m3": "67.5",
+   "stel_ppm": "15",
+   "stel_mg_m3": "101.2",
+   "comments": ""
+  },
+  {
+   "substance": "2-Butoxyethyl acetate",
+   "cas": "112-07-2",
+   "twa_ppm": "20",
+   "twa_mg_m3": "133",
+   "stel_ppm": "50",
+   "stel_mg_m3": "332",
+   "comments": "Sk"
+  },
+  {
+   "substance": "n-Butyl acrylate",
+   "cas": "141-32-2",
+   "twa_ppm": "1",
+   "twa_mg_m3": "5",
+   "stel_ppm": "5",
+   "stel_mg_m3": "26",
+   "comments": ""
+  },
+  {
+   "substance": "n-Butyl chloroformate",
+   "cas": "592-34-7",
+   "twa_ppm": "1",
+   "twa_mg_m3": "5.7",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "sec-Butyl acetate",
+   "cas": "105-46-4",
+   "twa_ppm": "200",
+   "twa_mg_m3": "966",
+   "stel_ppm": "250",
+   "stel_mg_m3": "1210",
+   "comments": ""
+  },
+  {
+   "substance": "tert-Butyl acetate",
+   "cas": "540-88-5",
+   "twa_ppm": "200",
+   "twa_mg_m3": "966",
+   "stel_ppm": "250",
+   "stel_mg_m3": "1210",
+   "comments": ""
+  },
+  {
+   "substance": "Butyl acetate",
+   "cas": "123-86-4",
+   "twa_ppm": "150",
+   "twa_mg_m3": "724",
+   "stel_ppm": "200",
+   "stel_mg_m3": "966",
+   "comments": ""
+  },
+  {
+   "substance": "Butyl lactate",
+   "cas": "138-22-7",
+   "twa_ppm": "5",
+   "twa_mg_m3": "30",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-sec-Butylphenol",
+   "cas": "89-72-5",
+   "twa_ppm": "5",
+   "twa_mg_m3": "31",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Cadmium and cadmium compounds except cadmium oxide fume, cadmium sulphide and cadmium sulphide pigments (as Cd)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.025",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc (cadmium metal, cadmium chloride, fluoride and sulphate)"
+  },
+  {
+   "substance": "Cadmium oxide fume (as Cd)",
+   "cas": "1306-19-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.025",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.05",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Cadmium sulphide and cadmium sulphide pigments (respirable dust (as Cd))",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.03",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc (cadmium sulphide)"
+  },
+  {
+   "substance": "Caesium hydroxide",
+   "cas": "21351-79-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Calcium carbonate\ninhalable dust\nrespirable",
+   "cas": "1317-65-3",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Calcium cyanamide",
+   "cas": "156-62-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "1",
+   "comments": ""
+  },
+  {
+   "substance": "Calcium hydroxide",
+   "cas": "1305-62-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5\n1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-\n4",
+   "comments": "Respirable fraction"
+  },
+  {
+   "substance": "Calcium oxide",
+   "cas": "1305-78-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2\n1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-\n4",
+   "comments": "Respirable fraction"
+  },
+  {
+   "substance": "Calcium silicate\ninhalable dust\nrespirable",
+   "cas": "1344-95-2",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Captan (ISO)",
+   "cas": "133-06-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "15",
+   "comments": ""
+  },
+  {
+   "substance": "Carbon black",
+   "cas": "1333-86-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "3.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "7",
+   "comments": ""
+  },
+  {
+   "substance": "Carbon dioxide",
+   "cas": "124-38-9",
+   "twa_ppm": "5000",
+   "twa_mg_m3": "9150",
+   "stel_ppm": "15000",
+   "stel_mg_m3": "27400",
+   "comments": ""
+  },
+  {
+   "substance": "Carbon disulphide",
+   "cas": "75-15-0",
+   "twa_ppm": "5",
+   "twa_mg_m3": "15",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Carbon monoxide",
+   "cas": "630-08-0",
+   "twa_ppm": "20\n30",
+   "twa_mg_m3": "23\n35",
+   "stel_ppm": "100\n200",
+   "stel_mg_m3": "117\n232",
+   "comments": "BMGV Limits applicable to underground mining & tunnelling industries ONLY until 21/8/23"
+  },
+  {
+   "substance": "Carbon tetrachloride",
+   "cas": "56-23-5",
+   "twa_ppm": "1",
+   "twa_mg_m3": "6.4",
+   "stel_ppm": "5",
+   "stel_mg_m3": "32",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Cellulose\ninhalable dust\nrespirable",
+   "cas": "9004-34-6",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "20\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Chlorine",
+   "cas": "7782-50-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.5",
+   "stel_mg_m3": "1.5",
+   "comments": ""
+  },
+  {
+   "substance": "Chlorine dioxide",
+   "cas": "10049-04-4",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.28",
+   "stel_ppm": "0.3",
+   "stel_mg_m3": "0.84",
+   "comments": ""
+  },
+  {
+   "substance": "Chloroacetaldehyde",
+   "cas": "107-20-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "3.3",
+   "comments": ""
+  },
+  {
+   "substance": "2-Chloroacetophenone",
+   "cas": "532-27-4",
+   "twa_ppm": "0.05",
+   "twa_mg_m3": "0.32",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chlorobenzene",
+   "cas": "108-90-7",
+   "twa_ppm": "1",
+   "twa_mg_m3": "4.7",
+   "stel_ppm": "3",
+   "stel_mg_m3": "14",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Chlorodifluoromethane",
+   "cas": "75-45-6",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "3590",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chloroethane",
+   "cas": "75-00-3",
+   "twa_ppm": "50",
+   "twa_mg_m3": "134",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-Chloroethanol",
+   "cas": "107-07-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "3.4",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1-Chloro-2,3epoxypropane (Epichlorohydrin)",
+   "cas": "106-89-8",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "1.9",
+   "stel_ppm": "1.5",
+   "stel_mg_m3": "5.8",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Chloroform",
+   "cas": "67-66-3",
+   "twa_ppm": "2",
+   "twa_mg_m3": "9.9",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Chloromethane",
+   "cas": "74-87-3",
+   "twa_ppm": "50",
+   "twa_mg_m3": "105",
+   "stel_ppm": "100",
+   "stel_mg_m3": "210",
+   "comments": ""
+  },
+  {
+   "substance": "1-Chloro-4-nitrobenzene",
+   "cas": "100-00-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Chlorosulphonic acid",
+   "cas": "7790-94-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chlorpyrifos (ISO)",
+   "cas": "2921-88-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.6",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Chromium",
+   "cas": "7440-47-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chromium (II) compounds (as Cr)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chromium (III) compounds (as Cr)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Chromium (VI) compounds (as Cr)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.01\n0.025\n(process\ngenerated)\n1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, sen, BMGV"
+  },
+  {
+   "substance": "Cobalt and Cobalt compounds (as Co)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc (cobalt dichloride and sulphate), Sen"
+  },
+  {
+   "substance": "Copper fume (as Cu)",
+   "cas": "7440-50-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Copper and compounds: dust and mists (as Cu)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Cotton dust",
+   "cas": "(see paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Cryofluorane (INN)",
+   "cas": "76-14-2",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "7110",
+   "stel_ppm": "1250",
+   "stel_mg_m3": "8890",
+   "comments": ""
+  },
+  {
+   "substance": "Cumene",
+   "cas": "98-82-8",
+   "twa_ppm": "25",
+   "twa_mg_m3": "125",
+   "stel_ppm": "50",
+   "stel_mg_m3": "250",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Cyanamide",
+   "cas": "420-04-2",
+   "twa_ppm": "0.58",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Cyanides, except HCN, cyanogen and cyanogen chloride (as Cn)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Cyanogen chloride",
+   "cas": "506-77-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.3",
+   "stel_mg_m3": "0.77",
+   "comments": ""
+  },
+  {
+   "substance": "Cyclohexane",
+   "cas": "110-82-7",
+   "twa_ppm": "100",
+   "twa_mg_m3": "350",
+   "stel_ppm": "300",
+   "stel_mg_m3": "1050",
+   "comments": ""
+  },
+  {
+   "substance": "Cyclohexanol",
+   "cas": "108-93-0",
+   "twa_ppm": "50",
+   "twa_mg_m3": "208",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Cyclohexanone",
+   "cas": "108-94-1",
+   "twa_ppm": "10",
+   "twa_mg_m3": "41",
+   "stel_ppm": "20",
+   "stel_mg_m3": "82",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "Cyclohexylamine",
+   "cas": "108-91-8",
+   "twa_ppm": "10",
+   "twa_mg_m3": "41",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2,4-D (ISO)",
+   "cas": "94-75-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Diacetyl",
+   "cas": "431-03-8",
+   "twa_ppm": "0.02",
+   "twa_mg_m3": "0.07",
+   "stel_ppm": "0.1",
+   "stel_mg_m3": "0.36",
+   "comments": ""
+  },
+  {
+   "substance": "Dialkyl 79 phthalate",
+   "cas": "83968-18-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diallyl phthalate",
+   "cas": "131-17-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diatomaceous earth, natural,\nrespirable dust",
+   "cas": "61790-53-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Dibenzoyl peroxide",
+   "cas": "94-36-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Dibismuth tritelluride",
+   "cas": "1304-82-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Diboron trioxide",
+   "cas": "1303-86-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "1,2-Dibromoethane (Ethylene dibromide)",
+   "cas": "106-93-4",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "3.9",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Dibutyl hydrogen phosphate",
+   "cas": "107-66-4",
+   "twa_ppm": "1",
+   "twa_mg_m3": "8.7",
+   "stel_ppm": "2",
+   "stel_mg_m3": "17",
+   "comments": ""
+  },
+  {
+   "substance": "Dibutyl phthalate",
+   "cas": "84-74-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Dichloroacetylene",
+   "cas": "7572-29-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.1",
+   "stel_mg_m3": "0.39",
+   "comments": ""
+  },
+  {
+   "substance": "1,2-Dichlorobenzene (ortho-dichlorobenzene)",
+   "cas": "95-50-1",
+   "twa_ppm": "25",
+   "twa_mg_m3": "153",
+   "stel_ppm": "50",
+   "stel_mg_m3": "306",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1,4 Dichlorobenzene (para-dichlorobenzene)",
+   "cas": "106-46-7",
+   "twa_ppm": "2",
+   "twa_mg_m3": "12",
+   "stel_ppm": "10",
+   "stel_mg_m3": "60",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1,3-Dichloro-5,5-dimethylhydantoin",
+   "cas": "118-52-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.4",
+   "comments": ""
+  },
+  {
+   "substance": "1,1-Dichloroethane",
+   "cas": "75-34-3",
+   "twa_ppm": "100",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1,2-Dichloroethane (Ethylene dichloride)",
+   "cas": "107-06-2",
+   "twa_ppm": "5",
+   "twa_mg_m3": "21",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "1,2-Dichloroethylene, cis:trans isomers 60:40",
+   "cas": "540-59-0",
+   "twa_ppm": "200",
+   "twa_mg_m3": "806",
+   "stel_ppm": "250",
+   "stel_mg_m3": "1010",
+   "comments": ""
+  },
+  {
+   "substance": "Dichlorofluoromethane",
+   "cas": "75-43-4",
+   "twa_ppm": "10",
+   "twa_mg_m3": "43",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Dichloromethane",
+   "cas": "75-09-2",
+   "twa_ppm": "100",
+   "twa_mg_m3": "353",
+   "stel_ppm": "200",
+   "stel_mg_m3": "706",
+   "comments": "BMGV, Sk"
+  },
+  {
+   "substance": "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)",
+   "cas": "101-14-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.005",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk, BMGV"
+  },
+  {
+   "substance": "Dicyclohexyl phthalate",
+   "cas": "84-61-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Dicyclopentadiene",
+   "cas": "77-73-6",
+   "twa_ppm": "5",
+   "twa_mg_m3": "27",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diethylamine",
+   "cas": "109-89-7",
+   "twa_ppm": "5",
+   "twa_mg_m3": "15",
+   "stel_ppm": "10",
+   "stel_mg_m3": "30",
+   "comments": ""
+  },
+  {
+   "substance": "Diethyl ether",
+   "cas": "60-29-7",
+   "twa_ppm": "100",
+   "twa_mg_m3": "310",
+   "stel_ppm": "200",
+   "stel_mg_m3": "620",
+   "comments": ""
+  },
+  {
+   "substance": "Diethyl phthalate",
+   "cas": "84-66-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Diethyl sulphate",
+   "cas": "64-67-5",
+   "twa_ppm": "0.05",
+   "twa_mg_m3": "0.32",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Dihydrogen selenide (as Se)",
+   "cas": "7783-07-5",
+   "twa_ppm": "0.02",
+   "twa_mg_m3": "0.07",
+   "stel_ppm": "0.05",
+   "stel_mg_m3": "0.17",
+   "comments": ""
+  },
+  {
+   "substance": "Diisobutyl phthalate",
+   "cas": "84-69-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diisodecyl phthalate",
+   "cas": "26761-40-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diisononyl phthalate",
+   "cas": "28553-12-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diisooctyl phthalate",
+   "cas": "27554-26-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diisopropylamine",
+   "cas": "108-18-9",
+   "twa_ppm": "5",
+   "twa_mg_m3": "21",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Diisopropyl ether",
+   "cas": "108-20-3",
+   "twa_ppm": "250",
+   "twa_mg_m3": "1060",
+   "stel_ppm": "310",
+   "stel_mg_m3": "1310",
+   "comments": ""
+  },
+  {
+   "substance": "N,N-Dimethylacetamide",
+   "cas": "127-19-5",
+   "twa_ppm": "10",
+   "twa_mg_m3": "36",
+   "stel_ppm": "20",
+   "stel_mg_m3": "72",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "N,N-Dimethylaniline",
+   "cas": "121-69-7",
+   "twa_ppm": "5",
+   "twa_mg_m3": "25",
+   "stel_ppm": "10",
+   "stel_mg_m3": "50",
+   "comments": "Sk"
+  },
+  {
+   "substance": "N,N-Dimethylethylamine",
+   "cas": "598-56-1",
+   "twa_ppm": "10",
+   "twa_mg_m3": "30",
+   "stel_ppm": "15",
+   "stel_mg_m3": "46",
+   "comments": ""
+  },
+  {
+   "substance": "Dimethoxymethane",
+   "cas": "109-87-5",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "3160",
+   "stel_ppm": "1250",
+   "stel_mg_m3": "3950",
+   "comments": ""
+  },
+  {
+   "substance": "Dimethylamine",
+   "cas": "124-40-3",
+   "twa_ppm": "2",
+   "twa_mg_m3": "3.8",
+   "stel_ppm": "6",
+   "stel_mg_m3": "11",
+   "comments": ""
+  },
+  {
+   "substance": "2-Dimethylaminoethanol",
+   "cas": "108-01-0",
+   "twa_ppm": "2",
+   "twa_mg_m3": "7.4",
+   "stel_ppm": "6",
+   "stel_mg_m3": "22",
+   "comments": ""
+  },
+  {
+   "substance": "Dimethyl ether",
+   "cas": "115-10-6",
+   "twa_ppm": "400",
+   "twa_mg_m3": "766",
+   "stel_ppm": "500",
+   "stel_mg_m3": "958",
+   "comments": ""
+  },
+  {
+   "substance": "N,N-Dimethylformamide",
+   "cas": "68-12-2",
+   "twa_ppm": "5",
+   "twa_mg_m3": "15",
+   "stel_ppm": "10",
+   "stel_mg_m3": "30",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2,6-Dimethylheptan-4-one",
+   "cas": "108-83-8",
+   "twa_ppm": "25",
+   "twa_mg_m3": "148",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Dimethyl phthalate",
+   "cas": "131-11-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Dimethyl sulphate",
+   "cas": "77-78-1",
+   "twa_ppm": "0.05",
+   "twa_mg_m3": "0.26",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Dinitrobenzene, all isomers",
+   "cas": "25154-54-5",
+   "twa_ppm": "0.15",
+   "twa_mg_m3": "1",
+   "stel_ppm": "0.5",
+   "stel_mg_m3": "3.5",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Dinonyl phthalate",
+   "cas": "84-76-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "1,4-Dioxane",
+   "cas": "123-91-1",
+   "twa_ppm": "20",
+   "twa_mg_m3": "73",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Diphenylamine",
+   "cas": "122-39-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Diphenyl ether",
+   "cas": "101-84-8",
+   "twa_ppm": "1",
+   "twa_mg_m3": "7",
+   "stel_ppm": "2",
+   "stel_mg_m3": "14",
+   "comments": ""
+  },
+  {
+   "substance": "Diphosphorus pentasulphide",
+   "cas": "1314-80-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Disphosphorus pentoxide",
+   "cas": "1314-56-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Diquat dibromide (ISO)",
+   "cas": "85-00-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "1",
+   "comments": ""
+  },
+  {
+   "substance": "Disodium disulphite",
+   "cas": "7681-57-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Disodium tetraborate, anhydrous",
+   "cas": "1330-43-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Disodium tetraborate, decahydrate",
+   "cas": "1330-96-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Disodium tetraborate, pentahydrate",
+   "cas": "11130-12-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Disulphur dichloride",
+   "cas": "10025-67-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "5.6",
+   "comments": ""
+  },
+  {
+   "substance": "2,6-Di-tert-butyl-p-cresol",
+   "cas": "128-37-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "6,6’-Di-tert-butyl-4,4’thiodi-m-cresol",
+   "cas": "96-69-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Diuron (ISO)",
+   "cas": "330-54-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Emery\ninhalable dust\nrespirable",
+   "cas": "1302-74-5",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Endosulfan (ISO)",
+   "cas": "115-29-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Enflurane",
+   "cas": "13838-16-9",
+   "twa_ppm": "50",
+   "twa_mg_m3": "383",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ethane-1,2-diol particulate vapour",
+   "cas": "107-21-1",
+   "twa_ppm": "-\n20",
+   "twa_mg_m3": "10\n52",
+   "stel_ppm": "-\n40",
+   "stel_mg_m3": "-\n104",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Ethanethiol",
+   "cas": "75-08-1",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "1.3",
+   "stel_ppm": "2",
+   "stel_mg_m3": "5.2",
+   "comments": ""
+  },
+  {
+   "substance": "Ethanol",
+   "cas": "64-17-5",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "1920",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-Ethoxyethanol",
+   "cas": "110-80-5",
+   "twa_ppm": "2",
+   "twa_mg_m3": "8",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-Ethoxyethyl acetate",
+   "cas": "111-15-9",
+   "twa_ppm": "2",
+   "twa_mg_m3": "11",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-ethylhexan-1-ol",
+   "cas": "104-76-7",
+   "twa_ppm": "1",
+   "twa_mg_m3": "5.4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-Ethylhexyl chloroformate",
+   "cas": "24468-13-1",
+   "twa_ppm": "1",
+   "twa_mg_m3": "8",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ethyl acetate",
+   "cas": "141-78-6",
+   "twa_ppm": "200",
+   "twa_mg_m3": "734",
+   "stel_ppm": "400",
+   "stel_mg_m3": "1468",
+   "comments": ""
+  },
+  {
+   "substance": "Ethyl acrylate",
+   "cas": "140-88-5",
+   "twa_ppm": "5",
+   "twa_mg_m3": "21",
+   "stel_ppm": "10",
+   "stel_mg_m3": "42",
+   "comments": ""
+  },
+  {
+   "substance": "Ethylamine",
+   "cas": "75-04-7",
+   "twa_ppm": "2",
+   "twa_mg_m3": "3.8",
+   "stel_ppm": "6",
+   "stel_mg_m3": "11",
+   "comments": ""
+  },
+  {
+   "substance": "Ethylbenzene",
+   "cas": "100-41-4",
+   "twa_ppm": "100",
+   "twa_mg_m3": "441",
+   "stel_ppm": "125",
+   "stel_mg_m3": "552",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Ethyl chloroformate",
+   "cas": "541-41-3",
+   "twa_ppm": "1",
+   "twa_mg_m3": "4.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ethyl cyanoacrylate",
+   "cas": "7085-85-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.3",
+   "stel_mg_m3": "1.5",
+   "comments": ""
+  },
+  {
+   "substance": "Ethyl formate",
+   "cas": "109-94-4",
+   "twa_ppm": "100",
+   "twa_mg_m3": "308",
+   "stel_ppm": "150",
+   "stel_mg_m3": "462",
+   "comments": ""
+  },
+  {
+   "substance": "Ethylene oxide",
+   "cas": "75-21-8",
+   "twa_ppm": "1",
+   "twa_mg_m3": "1.8",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "4-Ethylmorpholine",
+   "cas": "100-74-3",
+   "twa_ppm": "5",
+   "twa_mg_m3": "24",
+   "stel_ppm": "20",
+   "stel_mg_m3": "96",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Ferrous foundry particulate\ninhalable dust\nrespirable dust",
+   "cas": "See paras",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Flour dust",
+   "cas": "See para 23",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "30",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Fluoride (inorganic as F)",
+   "cas": "16984-48-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Fluorine",
+   "cas": "7782-41-4",
+   "twa_ppm": "1",
+   "twa_mg_m3": "1.6",
+   "stel_ppm": "1",
+   "stel_mg_m3": "1.6",
+   "comments": ""
+  },
+  {
+   "substance": "Formaldehyde",
+   "cas": "50-00-0",
+   "twa_ppm": "2",
+   "twa_mg_m3": "2.5",
+   "stel_ppm": "2",
+   "stel_mg_m3": "2.5",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Formamide",
+   "cas": "75-12-7",
+   "twa_ppm": "20",
+   "twa_mg_m3": "37",
+   "stel_ppm": "30",
+   "stel_mg_m3": "56",
+   "comments": ""
+  },
+  {
+   "substance": "Formic acid",
+   "cas": "64-18-6",
+   "twa_ppm": "5",
+   "twa_mg_m3": "9.6",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2-Furaldehyde (furfural)",
+   "cas": "98-01-1",
+   "twa_ppm": "2",
+   "twa_mg_m3": "8",
+   "stel_ppm": "5",
+   "stel_mg_m3": "20",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Germane",
+   "cas": "7782-65-2",
+   "twa_ppm": "0.2",
+   "twa_mg_m3": "0.64",
+   "stel_ppm": "0.6",
+   "stel_mg_m3": "1.9",
+   "comments": ""
+  },
+  {
+   "substance": "Glutaraldehyde",
+   "cas": "111-30-8",
+   "twa_ppm": "0.05",
+   "twa_mg_m3": "0.2",
+   "stel_ppm": "0.05",
+   "stel_mg_m3": "0.2",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Glycerol, mist",
+   "cas": "56-81-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Glycerol trinitrate",
+   "cas": "55-63-0",
+   "twa_ppm": "0.01",
+   "twa_mg_m3": "0.095",
+   "stel_ppm": "0.02",
+   "stel_mg_m3": "0.19",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Grain dust",
+   "cas": "See para 24",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Graphite\ninhalable dust\nrespirable",
+   "cas": "7440-44-0",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Gypsum\ninhalable dust\nrespirable",
+   "cas": "10101-41-4",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Halogeno-platinum compounds (complex co-ordination compounds in which the platinum atom is directly co-ordinated to halide groups) (as Pt)",
+   "cas": "See paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.002",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Halothane",
+   "cas": "151-67-7",
+   "twa_ppm": "10",
+   "twa_mg_m3": "82",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Hardwood dust (inhalable fraction)",
+   "cas": "See paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "3",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sen, If hardwood dusts are mixed with other wood dusts, the WEL shall apply to all the wood dusts present in that mixture."
+  },
+  {
+   "substance": "n-Heptane",
+   "cas": "142-82-5",
+   "twa_ppm": "500",
+   "twa_mg_m3": "2085",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Heptan-2-one",
+   "cas": "110-43-0",
+   "twa_ppm": "50",
+   "twa_mg_m3": "237",
+   "stel_ppm": "100",
+   "stel_mg_m3": "475",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Heptan-3-one",
+   "cas": "106-35-4",
+   "twa_ppm": "35",
+   "twa_mg_m3": "166",
+   "stel_ppm": "100",
+   "stel_mg_m3": "475",
+   "comments": "Sk"
+  },
+  {
+   "substance": "n-Hexane",
+   "cas": "110-54-3",
+   "twa_ppm": "20",
+   "twa_mg_m3": "72",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "1,6-Hexanolactam dust only dust and vapour",
+   "cas": "105-60-2",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "1\n10",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "3\n20",
+   "comments": ""
+  },
+  {
+   "substance": "Hexan-2-one",
+   "cas": "591-78-6",
+   "twa_ppm": "5",
+   "twa_mg_m3": "21",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Hydrazine",
+   "cas": "302-01-2",
+   "twa_ppm": "0.01",
+   "twa_mg_m3": "0.013",
+   "stel_ppm": "0.1",
+   "stel_mg_m3": "0.13",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Hydrogen bromide",
+   "cas": "10035-10-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "3",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Hydrogen chloride (gas and aerosol mists)",
+   "cas": "7647-01-0",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2",
+   "stel_ppm": "5",
+   "stel_mg_m3": "8",
+   "comments": ""
+  },
+  {
+   "substance": "Hydrogen cyanide",
+   "cas": "74-90-8",
+   "twa_ppm": "0.9",
+   "twa_mg_m3": "1",
+   "stel_ppm": "4.5",
+   "stel_mg_m3": "5",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Hydrogen fluoride (as F)",
+   "cas": "7664-39-3",
+   "twa_ppm": "1.8",
+   "twa_mg_m3": "1.5",
+   "stel_ppm": "3",
+   "stel_mg_m3": "2.5",
+   "comments": ""
+  },
+  {
+   "substance": "Hydrogen peroxide",
+   "cas": "7722-84-1",
+   "twa_ppm": "1",
+   "twa_mg_m3": "1.4",
+   "stel_ppm": "2",
+   "stel_mg_m3": "2.8",
+   "comments": ""
+  },
+  {
+   "substance": "Hydrogen sulphide",
+   "cas": "7783-06-4",
+   "twa_ppm": "5",
+   "twa_mg_m3": "7",
+   "stel_ppm": "10",
+   "stel_mg_m3": "14",
+   "comments": ""
+  },
+  {
+   "substance": "Hydroquinone",
+   "cas": "123-31-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "4-Hydroxy-4methylpentan-2-one",
+   "cas": "123-42-2",
+   "twa_ppm": "50",
+   "twa_mg_m3": "241",
+   "stel_ppm": "75",
+   "stel_mg_m3": "362",
+   "comments": ""
+  },
+  {
+   "substance": "2-Hydroxypropyl acrylate",
+   "cas": "999-61-1",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "2.7",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2,2’-Iminodi(ethylamine)",
+   "cas": "111-40-0",
+   "twa_ppm": "1",
+   "twa_mg_m3": "4.3",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Indene",
+   "cas": "95-13-6",
+   "twa_ppm": "10",
+   "twa_mg_m3": "48",
+   "stel_ppm": "15",
+   "stel_mg_m3": "72",
+   "comments": ""
+  },
+  {
+   "substance": "Indium and compounds (as In)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "0",
+   "stel_mg_m3": "0.3",
+   "comments": ""
+  },
+  {
+   "substance": "Iodine",
+   "cas": "7553-56-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.1",
+   "stel_mg_m3": "1.1",
+   "comments": ""
+  },
+  {
+   "substance": "Iodoform",
+   "cas": "75-47-8",
+   "twa_ppm": "0.6",
+   "twa_mg_m3": "9.8",
+   "stel_ppm": "1",
+   "stel_mg_m3": "16",
+   "comments": ""
+  },
+  {
+   "substance": "Iodomethane",
+   "cas": "74-88-4",
+   "twa_ppm": "2",
+   "twa_mg_m3": "12",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Iron oxide, fume (as Fe)",
+   "cas": "1309-37-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Iron salts (as Fe)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Isobutyl acetate",
+   "cas": "110-19-0",
+   "twa_ppm": "150",
+   "twa_mg_m3": "724",
+   "stel_ppm": "187",
+   "stel_mg_m3": "903",
+   "comments": ""
+  },
+  {
+   "substance": "Isocyanates, all (as –NCO) Except methyl isocyanate",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "0.02",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "0.07",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Isoflurane",
+   "cas": "26675-46-7",
+   "twa_ppm": "50",
+   "twa_mg_m3": "383",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Isoocytl alcohol (mixed isomers)",
+   "cas": "26952-21-6",
+   "twa_ppm": "50",
+   "twa_mg_m3": "271",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Isopentane",
+   "cas": "78-78-4",
+   "twa_ppm": "600",
+   "twa_mg_m3": "1800",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Isopropyl acetate",
+   "cas": "108-21-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "200",
+   "stel_mg_m3": "849",
+   "comments": ""
+  },
+  {
+   "substance": "Isopropyl chloroformate",
+   "cas": "108-23-6",
+   "twa_ppm": "1",
+   "twa_mg_m3": "5.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Kaolin, respirable dust",
+   "cas": "1332-58-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ketene",
+   "cas": "463-51-4",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "0.87",
+   "stel_ppm": "1.5",
+   "stel_mg_m3": "2.6",
+   "comments": ""
+  },
+  {
+   "substance": "Limestone\ntotal inhalable\nrespirable",
+   "cas": "1317-65-3",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Liquefied petroleum gas",
+   "cas": "68476-85-7",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "1750",
+   "stel_ppm": "1250",
+   "stel_mg_m3": "2180",
+   "comments": "Carc (only applies if LPG contains more than 0.1% of buta-1,3-diene)"
+  },
+  {
+   "substance": "Lithium hydride",
+   "cas": "7580-67-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.02",
+   "comments": ""
+  },
+  {
+   "substance": "Lithium hydroxide",
+   "cas": "1310-65-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "1",
+   "comments": ""
+  },
+  {
+   "substance": "Magnesite\ninhalable dust\nrespirable dust",
+   "cas": "546-93-0",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Magnesium oxide (as Mg)\ninhalable dust fume\nrespirable dust",
+   "cas": "1309-48-4",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Malathion (ISO)",
+   "cas": "121-75-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Maleic anhydride",
+   "cas": "108-31-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "3",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Manganese and its inorganic compounds (as Mn)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.2\n0.05",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Inhalable fraction Respirable fraction"
+  },
+  {
+   "substance": "Marble\ntotal inhalable\nrespirable",
+   "cas": "1317-65-3",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Mercaptoacetic acid",
+   "cas": "68-11-1",
+   "twa_ppm": "1",
+   "twa_mg_m3": "3.8",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Mercury and divalent inorganic compounds including mercuric oxide and mercuric chloride (measured as mercury)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.02",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Methacrylic acid",
+   "cas": "79-41-4",
+   "twa_ppm": "20",
+   "twa_mg_m3": "72",
+   "stel_ppm": "40",
+   "stel_mg_m3": "143",
+   "comments": ""
+  },
+  {
+   "substance": "Methacrylonitrile",
+   "cas": "126-98-7",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.8",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Methanethiol",
+   "cas": "74-93-1",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "1.0",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Methanol",
+   "cas": "67-56-1",
+   "twa_ppm": "200",
+   "twa_mg_m3": "266",
+   "stel_ppm": "250",
+   "stel_mg_m3": "333",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-Methoxyethanol",
+   "cas": "109-86-4",
+   "twa_ppm": "1",
+   "twa_mg_m3": "3",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-(2-Methoxyethoxy) ethanol",
+   "cas": "111-77-3",
+   "twa_ppm": "10",
+   "twa_mg_m3": "50.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-Methoxyethyl acetate",
+   "cas": "110-49-6",
+   "twa_ppm": "1",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "(2-methoxymethylethoxy) propanol",
+   "cas": "34590-94-8",
+   "twa_ppm": "50",
+   "twa_mg_m3": "308",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1-Methoxypropan-2-ol",
+   "cas": "107-98-2",
+   "twa_ppm": "100",
+   "twa_mg_m3": "375",
+   "stel_ppm": "150",
+   "stel_mg_m3": "560",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1-Methoxypropyl acetate",
+   "cas": "108-65-6",
+   "twa_ppm": "50",
+   "twa_mg_m3": "274",
+   "stel_ppm": "100",
+   "stel_mg_m3": "548",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Methyl acetate",
+   "cas": "79-20-9",
+   "twa_ppm": "200",
+   "twa_mg_m3": "616",
+   "stel_ppm": "250",
+   "stel_mg_m3": "770",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl acrylate",
+   "cas": "96-33-3",
+   "twa_ppm": "5",
+   "twa_mg_m3": "18",
+   "stel_ppm": "10",
+   "stel_mg_m3": "36",
+   "comments": ""
+  },
+  {
+   "substance": "3-Methylbutan-1-ol",
+   "cas": "123-51-3",
+   "twa_ppm": "100",
+   "twa_mg_m3": "366",
+   "stel_ppm": "125",
+   "stel_mg_m3": "458",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl cyanoacrylate",
+   "cas": "137-05-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.3",
+   "stel_mg_m3": "1.4",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl formate",
+   "cas": "107-31-3",
+   "twa_ppm": "50",
+   "twa_mg_m3": "125",
+   "stel_ppm": "100",
+   "stel_mg_m3": "250",
+   "comments": "Sk"
+  },
+  {
+   "substance": "4,4’-Methylenedianiline",
+   "cas": "101-77-9",
+   "twa_ppm": "0.01",
+   "twa_mg_m3": "0.08",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk, BMGV"
+  },
+  {
+   "substance": "Methyl ethyl ketone peroxides (MEKP)",
+   "cas": "1338-23-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.2",
+   "stel_mg_m3": "1.5",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl methacrylate",
+   "cas": "80-62-6",
+   "twa_ppm": "50",
+   "twa_mg_m3": "208",
+   "stel_ppm": "100",
+   "stel_mg_m3": "416",
+   "comments": ""
+  },
+  {
+   "substance": "2-Methylcyclohexanone",
+   "cas": "583-60-8",
+   "twa_ppm": "50",
+   "twa_mg_m3": "233",
+   "stel_ppm": "75",
+   "stel_mg_m3": "350",
+   "comments": ""
+  },
+  {
+   "substance": "Methylcyclohexanol",
+   "cas": "25639-42-3",
+   "twa_ppm": "50",
+   "twa_mg_m3": "237",
+   "stel_ppm": "75",
+   "stel_mg_m3": "356",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl isocyanate (as –NCO)",
+   "cas": "624-83-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.02",
+   "stel_mg_m3": "-",
+   "comments": "Sen"
+  },
+  {
+   "substance": "N-Methylaniline",
+   "cas": "100-61-8",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "2.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "n-Methyl-2-pyrrolidone",
+   "cas": "872-50-4",
+   "twa_ppm": "10",
+   "twa_mg_m3": "40",
+   "stel_ppm": "20",
+   "stel_mg_m3": "80",
+   "comments": "Sk"
+  },
+  {
+   "substance": "5-Methylheptan-3-one",
+   "cas": "541-85-5",
+   "twa_ppm": "10",
+   "twa_mg_m3": "53",
+   "stel_ppm": "20",
+   "stel_mg_m3": "107",
+   "comments": ""
+  },
+  {
+   "substance": "5-Methylhexan-2-one",
+   "cas": "110-12-3",
+   "twa_ppm": "20",
+   "twa_mg_m3": "95",
+   "stel_ppm": "100",
+   "stel_mg_m3": "475",
+   "comments": "Sk"
+  },
+  {
+   "substance": "2-Methylpentane-2,4-diol",
+   "cas": "107-41-5",
+   "twa_ppm": "25",
+   "twa_mg_m3": "123",
+   "stel_ppm": "25",
+   "stel_mg_m3": "123",
+   "comments": ""
+  },
+  {
+   "substance": "4-Methylpentan-2-ol",
+   "cas": "108-11-2",
+   "twa_ppm": "25",
+   "twa_mg_m3": "106",
+   "stel_ppm": "40",
+   "stel_mg_m3": "170",
+   "comments": "Sk"
+  },
+  {
+   "substance": "4-Methylpentan-2-one",
+   "cas": "108-10-1",
+   "twa_ppm": "50",
+   "twa_mg_m3": "208",
+   "stel_ppm": "100",
+   "stel_mg_m3": "416",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "2-Methylpropan-1-ol",
+   "cas": "78-83-1",
+   "twa_ppm": "50",
+   "twa_mg_m3": "154",
+   "stel_ppm": "75",
+   "stel_mg_m3": "231",
+   "comments": ""
+  },
+  {
+   "substance": "2-Methylpropan-2-ol",
+   "cas": "75-65-0",
+   "twa_ppm": "100",
+   "twa_mg_m3": "308",
+   "stel_ppm": "150",
+   "stel_mg_m3": "462",
+   "comments": ""
+  },
+  {
+   "substance": "Methyl-tert-butyl-ether",
+   "cas": "1634-04-4",
+   "twa_ppm": "50",
+   "twa_mg_m3": "183.5",
+   "stel_ppm": "100",
+   "stel_mg_m3": "367",
+   "comments": ""
+  },
+  {
+   "substance": "Mica\ntotal inhalable\nrespirable",
+   "cas": "12001-26-2",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n0.8",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "MMMF (Machine-made mineral fibre) (except for refractory ceramic fibres and special purpose fibres)",
+   "cas": "",
+   "twa_ppm": "5mg. m-3 and\n2 fibres/\nmillilitre",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Molybdenum compounds (as Mo) soluble compounds insoluble compounds",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "5\n10",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "10\n20",
+   "comments": ""
+  },
+  {
+   "substance": "Monochloroacetic acid",
+   "cas": "79-11-8",
+   "twa_ppm": "0.3",
+   "twa_mg_m3": "1.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Morpholine",
+   "cas": "110-91-8",
+   "twa_ppm": "10",
+   "twa_mg_m3": "36",
+   "stel_ppm": "20",
+   "stel_mg_m3": "72",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Neopentane",
+   "cas": "463-82-1",
+   "twa_ppm": "600",
+   "twa_mg_m3": "1800",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Nickel and its inorganic compounds (except nickel tetracarbonyl): water-soluble nickel compounds (as Ni) nickel and water-insoluble nickel compounds (as Ni)",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "0.1\n0.5",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": "Sk, Carc (nickel oxides and sulphides) Sen (nickel sulphate)"
+  },
+  {
+   "substance": "Nicotine",
+   "cas": "54-11-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "1.5",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Nitric acid",
+   "cas": "7697-37-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "2.6",
+   "comments": ""
+  },
+  {
+   "substance": "Nitrobenzene",
+   "cas": "98-95-3",
+   "twa_ppm": "0.2",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Nitroethane",
+   "cas": "79-24-3",
+   "twa_ppm": "20",
+   "twa_mg_m3": "62",
+   "stel_ppm": "100",
+   "stel_mg_m3": "312",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Nitrogen dioxide*",
+   "cas": "10102-44-0",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "0.96",
+   "stel_ppm": "1",
+   "stel_mg_m3": "1.91",
+   "comments": "Does not apply to underground mining and tunnelling industries until 21/8/23"
+  },
+  {
+   "substance": "Nitrogen monoxide*",
+   "cas": "10102-43-9",
+   "twa_ppm": "2\n25",
+   "twa_mg_m3": "2.5\n30",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": "Limit applicable to underground mining & tunnelling industries ONLY until 21/8/23"
+  },
+  {
+   "substance": "Nitromethane",
+   "cas": "75-52-5",
+   "twa_ppm": "100",
+   "twa_mg_m3": "254",
+   "stel_ppm": "150",
+   "stel_mg_m3": "381",
+   "comments": ""
+  },
+  {
+   "substance": "2-Nitropropane",
+   "cas": "79-46-9",
+   "twa_ppm": "5",
+   "twa_mg_m3": "18",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Nitrous oxide",
+   "cas": "10024-97-2",
+   "twa_ppm": "100",
+   "twa_mg_m3": "183",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Orthophosphoric acid",
+   "cas": "7664-38-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Osmium tetraoxide (as Os)",
+   "cas": "20816-12-0",
+   "twa_ppm": "0.0002",
+   "twa_mg_m3": "0.002",
+   "stel_ppm": "0.0006",
+   "stel_mg_m3": "0.006",
+   "comments": ""
+  },
+  {
+   "substance": "Oxalic acid",
+   "cas": "144-62-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "2,2’-Oxydiethanol",
+   "cas": "111-46-6",
+   "twa_ppm": "23",
+   "twa_mg_m3": "101",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Ozone",
+   "cas": "10028-15-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.2",
+   "stel_mg_m3": "0.4",
+   "comments": ""
+  },
+  {
+   "substance": "Paracetamol, inhalable dust",
+   "cas": "103-90-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Paraffin wax, fume",
+   "cas": "8002-74-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "6",
+   "comments": ""
+  },
+  {
+   "substance": "Paraquat dichloride (ISO), respirable dust",
+   "cas": "1910-42-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.08",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Pentacarbonyliron (as Fe)",
+   "cas": "13463-40-6",
+   "twa_ppm": "0.01",
+   "twa_mg_m3": "0.08",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Pentaerythritol\ninhalable dust\nrespirable dust",
+   "cas": "115-77-5",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "20\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Pentan-2-one",
+   "cas": "107-87-9",
+   "twa_ppm": "200",
+   "twa_mg_m3": "716",
+   "stel_ppm": "250",
+   "stel_mg_m3": "895",
+   "comments": ""
+  },
+  {
+   "substance": "Pentan-3-one",
+   "cas": "96-22-0",
+   "twa_ppm": "200",
+   "twa_mg_m3": "716",
+   "stel_ppm": "250",
+   "stel_mg_m3": "895",
+   "comments": ""
+  },
+  {
+   "substance": "Pentane",
+   "cas": "109-66-0",
+   "twa_ppm": "600",
+   "twa_mg_m3": "1800",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Pentyl acetates (all isomers)",
+   "cas": "",
+   "twa_ppm": "50",
+   "twa_mg_m3": "270",
+   "stel_ppm": "100",
+   "stel_mg_m3": "541",
+   "comments": ""
+  },
+  {
+   "substance": "2-Phenylpropene",
+   "cas": "98-83-9",
+   "twa_ppm": "50",
+   "twa_mg_m3": "246",
+   "stel_ppm": "100",
+   "stel_mg_m3": "491",
+   "comments": ""
+  },
+  {
+   "substance": "Phenol",
+   "cas": "108-95-2",
+   "twa_ppm": "2",
+   "twa_mg_m3": "7.8",
+   "stel_ppm": "4",
+   "stel_mg_m3": "16",
+   "comments": "Sk"
+  },
+  {
+   "substance": "p-Phenylenediamine",
+   "cas": "106-50-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Phorate (ISO)",
+   "cas": "298-02-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.05",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.2",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Phosgene",
+   "cas": "75-44-5",
+   "twa_ppm": "0.02",
+   "twa_mg_m3": "0.08",
+   "stel_ppm": "0.06",
+   "stel_mg_m3": "0.25",
+   "comments": ""
+  },
+  {
+   "substance": "Phosphine",
+   "cas": "7803-51-2",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.14",
+   "stel_ppm": "0.2",
+   "stel_mg_m3": "0.28",
+   "comments": ""
+  },
+  {
+   "substance": "Phosphorus pentachloride",
+   "cas": "10026-13-8",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.87",
+   "stel_ppm": "0.2",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Phosphorus trichloride",
+   "cas": "7719-12-2",
+   "twa_ppm": "0.2",
+   "twa_mg_m3": "1.1",
+   "stel_ppm": "0.5",
+   "stel_mg_m3": "2.9",
+   "comments": ""
+  },
+  {
+   "substance": "Phosphorus, yellow",
+   "cas": "7723-14-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": ""
+  },
+  {
+   "substance": "Phosphoryl trichloride",
+   "cas": "10025-87-3",
+   "twa_ppm": "0.2",
+   "twa_mg_m3": "1.3",
+   "stel_ppm": "0.6",
+   "stel_mg_m3": "3.8",
+   "comments": ""
+  },
+  {
+   "substance": "Phthalic anhydride",
+   "cas": "85-44-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "12",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Picloram (ISO)",
+   "cas": "1918-02-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Picric acid",
+   "cas": "88-89-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": ""
+  },
+  {
+   "substance": "Piperazine",
+   "cas": "110-85-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Piperazine dihydrochloride",
+   "cas": "142-64-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Piperidine",
+   "cas": "110-89-4",
+   "twa_ppm": "1",
+   "twa_mg_m3": "3.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Plaster of Paris\ninhalable dust\nrespirable dust",
+   "cas": "26499-65-0",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Platinum compounds, soluble (except certain halogeno-Pt compounds) (as Pt)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.002",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Platinum metal",
+   "cas": "7440-06-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Polychlorinated biphenyls (PCB)",
+   "cas": "1336-36-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Polyvinyl chlorid\ninhalable dust\nrespirable dust",
+   "cas": "9002-86-2",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Portland cement\ninhalable dust\nrespirable dust",
+   "cas": "65997-15-1",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Potassium cyanide (as cyanide)",
+   "cas": "151-50-8",
+   "twa_ppm": "",
+   "twa_mg_m3": "1",
+   "stel_ppm": "",
+   "stel_mg_m3": "5",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Potassium hydroxide",
+   "cas": "1310-58-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Propane-1,2-diol total vapour and particulates particulates",
+   "cas": "57-55-6",
+   "twa_ppm": "150\n-",
+   "twa_mg_m3": "474\n10",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Propan-1-ol",
+   "cas": "71-23-8",
+   "twa_ppm": "200",
+   "twa_mg_m3": "500",
+   "stel_ppm": "250",
+   "stel_mg_m3": "625",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Propan-2-ol",
+   "cas": "67-63-0",
+   "twa_ppm": "400",
+   "twa_mg_m3": "999",
+   "stel_ppm": "500",
+   "stel_mg_m3": "1250",
+   "comments": ""
+  },
+  {
+   "substance": "Propionic acid",
+   "cas": "79-09-4",
+   "twa_ppm": "10",
+   "twa_mg_m3": "31",
+   "stel_ppm": "15",
+   "stel_mg_m3": "46",
+   "comments": ""
+  },
+  {
+   "substance": "Propoxur (ISO)",
+   "cas": "114-26-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Propranolol",
+   "cas": "525-66-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "6",
+   "comments": ""
+  },
+  {
+   "substance": "n-Propyl acetate",
+   "cas": "109-60-4",
+   "twa_ppm": "200",
+   "twa_mg_m3": "849",
+   "stel_ppm": "250",
+   "stel_mg_m3": "1060",
+   "comments": ""
+  },
+  {
+   "substance": "Propylene oxide",
+   "cas": "75-56-9",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.4",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Prop-2-yn-1-ol",
+   "cas": "107-19-7",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.3",
+   "stel_ppm": "3",
+   "stel_mg_m3": "7",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Pulverised fuel ash\ninhalable dust\nrespirable dust",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Pyrethrum (purified of sensitising lactones)",
+   "cas": "8003-34-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Pyridine",
+   "cas": "110-86-1",
+   "twa_ppm": "5",
+   "twa_mg_m3": "16",
+   "stel_ppm": "10",
+   "stel_mg_m3": "33",
+   "comments": ""
+  },
+  {
+   "substance": "2-Pyridylamine",
+   "cas": "504-29-0",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "2",
+   "stel_ppm": "2",
+   "stel_mg_m3": "7.8",
+   "comments": ""
+  },
+  {
+   "substance": "Pyrocatechol",
+   "cas": "102-80-9",
+   "twa_ppm": "5",
+   "twa_mg_m3": "23",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Refractory ceramic fibres and special purpose fibres - total inhalable dust - respirable fraction",
+   "cas": "",
+   "twa_ppm": "5mg/m3\n0.3 fibre/millilitre",
+   "twa_mg_m3": "",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Resorcinol",
+   "cas": "108-46-3",
+   "twa_ppm": "10",
+   "twa_mg_m3": "46",
+   "stel_ppm": "20",
+   "stel_mg_m3": "92",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Rhodium (as Rh) metal fume and dust soluble salts",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "0.1\n0.001",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "0.3\n0.003",
+   "comments": ""
+  },
+  {
+   "substance": "Rosin-based solder flux fume",
+   "cas": "8050-09-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.05",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.15",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Rotenone (ISO)",
+   "cas": "83-79-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Rouge\ntotal inhalable\nrespirable",
+   "cas": "1309-37-1",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Rubber fume",
+   "cas": "See paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.6",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, limit relates to cyclohexane soluble material"
+  },
+  {
+   "substance": "Rubber process dust",
+   "cas": "See paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "6",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Selenium and compounds, except hydrogen selenide (as Se)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Silane",
+   "cas": "7803-62-5",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "0.67",
+   "stel_ppm": "1",
+   "stel_mg_m3": "1.3",
+   "comments": ""
+  },
+  {
+   "substance": "Silica, amorphous\ninhalable dust\nrespirable dust",
+   "cas": "",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "6\n2.4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Silica, respirable crystalline (respirable fraction)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc (where generated as a result of a work process)"
+  },
+  {
+   "substance": "Silica, fused respirable dust",
+   "cas": "60676-86-0",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.08",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Silicon\ninhalable dust\nrespirable dust",
+   "cas": "7440-21-3",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Silicon carbide (not whiskers) total\ninhalable\nrespirable",
+   "cas": "409-21-2",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Silver (soluble compounds as Ag)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.01",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Silver, metallic",
+   "cas": "7440-22-4",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Sodium azide (as NaN ) 3",
+   "cas": "26628-22-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Sodium 2- (2,4-dichlorophenoxy) ethyl sulphate",
+   "cas": "136-78-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Sodium cyanide (as cyanide)",
+   "cas": "143-33-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "5",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Sodium hydrogen sulphite",
+   "cas": "7631-90-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Sodium hydroxide",
+   "cas": "1310-73-2",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Softwood dust",
+   "cas": "See paras",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sen, If softwood dusts are mixed with hardwood dusts, the WEL for hardwood dusts shall apply to all the wood dusts present in that mixture."
+  },
+  {
+   "substance": "Starch\ntotal inhalable\nrespirable",
+   "cas": "9005-25-8",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Styrene",
+   "cas": "100-42-5",
+   "twa_ppm": "100",
+   "twa_mg_m3": "430",
+   "stel_ppm": "250",
+   "stel_mg_m3": "1080",
+   "comments": ""
+  },
+  {
+   "substance": "Subtilisins",
+   "cas": "1395-21-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.00004",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Sucrose",
+   "cas": "57-50-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Sulfotep (ISO)",
+   "cas": "3689-24-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Sulphur dioxide",
+   "cas": "7446-09-5",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "1.3",
+   "stel_ppm": "1",
+   "stel_mg_m3": "2.7",
+   "comments": ""
+  },
+  {
+   "substance": "Sulphur hexafluoride",
+   "cas": "2551-62-4",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "6070",
+   "stel_ppm": "1250",
+   "stel_mg_m3": "7590",
+   "comments": ""
+  },
+  {
+   "substance": "Sulphuric acid (mist)",
+   "cas": "7664-93-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.05",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "The mist is defined as the thoracic fraction"
+  },
+  {
+   "substance": "Sulphuryl difluoride",
+   "cas": "2699-79-8",
+   "twa_ppm": "5",
+   "twa_mg_m3": "21",
+   "stel_ppm": "10",
+   "stel_mg_m3": "42",
+   "comments": ""
+  },
+  {
+   "substance": "Talc, respirable dust",
+   "cas": "14807-96-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Tantalum",
+   "cas": "7440-25-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  },
+  {
+   "substance": "Tellurium and compounds, except hydrogen telluride (as Te)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Terphenyls, all isomers",
+   "cas": "26140-60-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.5",
+   "stel_mg_m3": "4.8",
+   "comments": ""
+  },
+  {
+   "substance": "Terphenyl, hydrogenated",
+   "cas": "61788-32-7",
+   "twa_ppm": "2",
+   "twa_mg_m3": "19",
+   "stel_ppm": "5",
+   "stel_mg_m3": "48",
+   "comments": ""
+  },
+  {
+   "substance": "1,1,2,2-Tetrabromoethane",
+   "cas": "79-27-6",
+   "twa_ppm": "0.5",
+   "twa_mg_m3": "7.2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Tertiary-butyl-methylether",
+   "cas": "1634-04-4",
+   "twa_ppm": "50",
+   "twa_mg_m3": "183.5",
+   "stel_ppm": "100",
+   "stel_mg_m3": "367",
+   "comments": ""
+  },
+  {
+   "substance": "Tetracarbonylnickel (as Ni)",
+   "cas": "13463-39-3",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "0.1",
+   "stel_mg_m3": "0.24",
+   "comments": ""
+  },
+  {
+   "substance": "Tetrachloroethylene",
+   "cas": "127-18-4",
+   "twa_ppm": "20",
+   "twa_mg_m3": "138",
+   "stel_ppm": "40",
+   "stel_mg_m3": "275",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Tetraethyl orthosilicate",
+   "cas": "78-10-4",
+   "twa_ppm": "5",
+   "twa_mg_m3": "44",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "1,1,1,2-Tetrafluoroethane (HFC 134a)",
+   "cas": "811-97-2",
+   "twa_ppm": "1000",
+   "twa_mg_m3": "4240",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Tetrahydrofuran",
+   "cas": "109-99-9",
+   "twa_ppm": "50",
+   "twa_mg_m3": "150",
+   "stel_ppm": "100",
+   "stel_mg_m3": "300",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Tetrasodium pyrophosphate",
+   "cas": "7722-88-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Thallium, soluble compounds (as TI)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Thionyl chloride",
+   "cas": "7719-09-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "1",
+   "stel_mg_m3": "4.9",
+   "comments": ""
+  },
+  {
+   "substance": "Tin compounds, inorganic except SnH , (as Sn) 4",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "2",
+   "stel_ppm": "-",
+   "stel_mg_m3": "4",
+   "comments": ""
+  },
+  {
+   "substance": "Tin compounds, organic, except Cyhexatin (ISO), (as Sn)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.2",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Titanium dioxide\ntotal inhalable\nrespirable",
+   "cas": "13463-67-7",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "-\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Toluene",
+   "cas": "108-88-3",
+   "twa_ppm": "50",
+   "twa_mg_m3": "191",
+   "stel_ppm": "100",
+   "stel_mg_m3": "384",
+   "comments": "Sk"
+  },
+  {
+   "substance": "p-Toluenesulphonyl chloride",
+   "cas": "98-59-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "-",
+   "stel_mg_m3": "5",
+   "comments": ""
+  },
+  {
+   "substance": "o-Toluidine",
+   "cas": "95-53-4",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Tributyl phosphate, all isomers",
+   "cas": "126-73-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "5",
+   "comments": ""
+  },
+  {
+   "substance": "1,2,4-Trichlorobenzene",
+   "cas": "120-82-1",
+   "twa_ppm": "1",
+   "twa_mg_m3": "-",
+   "stel_ppm": "5",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "1,1,1-Trichloroethane",
+   "cas": "71-55-6",
+   "twa_ppm": "100",
+   "twa_mg_m3": "555",
+   "stel_ppm": "200",
+   "stel_mg_m3": "1110",
+   "comments": ""
+  },
+  {
+   "substance": "Trichloroethylene",
+   "cas": "79-01-6",
+   "twa_ppm": "100",
+   "twa_mg_m3": "550",
+   "stel_ppm": "150",
+   "stel_mg_m3": "820",
+   "comments": "Carc, Sk"
+  },
+  {
+   "substance": "Trichloronitromethane",
+   "cas": "76-06-2",
+   "twa_ppm": "0.1",
+   "twa_mg_m3": "0.68",
+   "stel_ppm": "0.3",
+   "stel_mg_m3": "2.1",
+   "comments": ""
+  },
+  {
+   "substance": "Triethylamine",
+   "cas": "121-44-8",
+   "twa_ppm": "2",
+   "twa_mg_m3": "8",
+   "stel_ppm": "4",
+   "stel_mg_m3": "17",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Triglycidyl isocyanurate (TGIC)",
+   "cas": "2451-62-9",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Trimellitic anhydride",
+   "cas": "552-30-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.04",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.12",
+   "comments": "Sen"
+  },
+  {
+   "substance": "Trimethylbenzenes, all isomers or mixtures",
+   "cas": "25551-13-7",
+   "twa_ppm": "25",
+   "twa_mg_m3": "125",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "3,5,5-trimethylcyclohex-2enone",
+   "cas": "78-59-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "-",
+   "stel_ppm": "5",
+   "stel_mg_m3": "29",
+   "comments": ""
+  },
+  {
+   "substance": "Trimethyl phosphite",
+   "cas": "121-45-9",
+   "twa_ppm": "2",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "2,4,6-Trinitrotoluene",
+   "cas": "118-96-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Sk"
+  },
+  {
+   "substance": "Tri-o-tolyl phosphate",
+   "cas": "78-30-8",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "0.3",
+   "comments": ""
+  },
+  {
+   "substance": "Triphenyl phosphate",
+   "cas": "115-86-6",
+   "twa_ppm": "-",
+   "twa_mg_m3": "3",
+   "stel_ppm": "-",
+   "stel_mg_m3": "6",
+   "comments": ""
+  },
+  {
+   "substance": "Tungsten and compounds (as W) soluble compounds insoluble compounds and others",
+   "cas": "7440-33-7",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "1\n5",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "3\n10",
+   "comments": ""
+  },
+  {
+   "substance": "Turpentine",
+   "cas": "8006-64-2",
+   "twa_ppm": "100",
+   "twa_mg_m3": "566",
+   "stel_ppm": "150",
+   "stel_mg_m3": "850",
+   "comments": ""
+  },
+  {
+   "substance": "Vanadium pentoxide",
+   "cas": "1314-62-1",
+   "twa_ppm": "-",
+   "twa_mg_m3": "0.05",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Vinyl acetate",
+   "cas": "108-05-4",
+   "twa_ppm": "5",
+   "twa_mg_m3": "17.6",
+   "stel_ppm": "10",
+   "stel_mg_m3": "35.2",
+   "comments": ""
+  },
+  {
+   "substance": "Vinyl chloride",
+   "cas": "75-01-4",
+   "twa_ppm": "1",
+   "twa_mg_m3": "2.6",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": "Carc"
+  },
+  {
+   "substance": "Vinylidene chloride",
+   "cas": "75-35-4",
+   "twa_ppm": "2",
+   "twa_mg_m3": "8",
+   "stel_ppm": "5",
+   "stel_mg_m3": "20",
+   "comments": ""
+  },
+  {
+   "substance": "Wool process dust",
+   "cas": "See para 42",
+   "twa_ppm": "-",
+   "twa_mg_m3": "10",
+   "stel_ppm": "-",
+   "stel_mg_m3": "-",
+   "comments": ""
+  },
+  {
+   "substance": "Xylene, o-,m-,p- or mixed isomers",
+   "cas": "1330-20-7",
+   "twa_ppm": "50",
+   "twa_mg_m3": "220",
+   "stel_ppm": "100",
+   "stel_mg_m3": "441",
+   "comments": "Sk, BMGV"
+  },
+  {
+   "substance": "Yttrium",
+   "cas": "7440-65-5",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "3",
+   "comments": ""
+  },
+  {
+   "substance": "Zinc chloride, fume",
+   "cas": "7646-85-7",
+   "twa_ppm": "-",
+   "twa_mg_m3": "1",
+   "stel_ppm": "-",
+   "stel_mg_m3": "2",
+   "comments": ""
+  },
+  {
+   "substance": "Zinc distearate\ninhalable dust\nrespirable dust",
+   "cas": "557-05-1",
+   "twa_ppm": "-\n-",
+   "twa_mg_m3": "10\n4",
+   "stel_ppm": "-\n-",
+   "stel_mg_m3": "20\n-",
+   "comments": ""
+  },
+  {
+   "substance": "Zirconium compounds (as Zr)",
+   "cas": "",
+   "twa_ppm": "-",
+   "twa_mg_m3": "5",
+   "stel_ppm": "-",
+   "stel_mg_m3": "10",
+   "comments": ""
+  }
+ ],
+ "synonyms": [
+  [
+   "a-chloropropylene oxide",
+   "1-Chloro-2,3epoxypropane (Epichlorohydrin)"
+  ],
+  [
+   "(Diethylamine)ethane",
+   "Triethylamine"
+  ],
+  [
+   "(S)-3-(1-Methyl-2-pyrrolidinyl)pyridine",
+   "Nicotine"
+  ],
+  [
+   "1-(1-methylethyl)amino-3-(1-naphthalenoxy) propan-2-ol",
+   "Propranolol"
+  ],
+  [
+   "1,1,1-trifluoro-2,2-chlorobromoethane",
+   "Halothane"
+  ],
+  [
+   "1,1’-Azobiscarbamide",
+   "Azodicarbonamide"
+  ],
+  [
+   "1,1’-Azobisformamide",
+   "Azodicarbonamide"
+  ],
+  [
+   "1,1-Dichloroethylene",
+   "Vinylidene chloride"
+  ],
+  [
+   "1,1-oxybisethane",
+   "Diethyl ether"
+  ],
+  [
+   "1,2,3,4,7,7-Hexachloro-1,5,5a,6,9,9a-hexahydro-6,9-methano-2,4,3- benzodioxathiepin-3-oxide",
+   "Endosulfan (ISO)"
+  ],
+  [
+   "1,2,4-Benzenetricarboxylic anhydride",
+   "Trimellitic anhydride"
+  ],
+  [
+   "1,2,4-TCB",
+   "1,2,4-Trichlorobenzene"
+  ],
+  [
+   "1,2-Benzenedicarboxylic acid dinonyl ester",
+   "Dinonyl phthalate"
+  ],
+  [
+   "1,2-Benzenedicarboxylic acid, di-2-propenyl ester",
+   "Diallyl phthalate"
+  ],
+  [
+   "1,2-Benzenedicarboxylic anhydride",
+   "Phthalic anhydride"
+  ],
+  [
+   "1,2-Benzenediol",
+   "Pyrocatechol"
+  ],
+  [
+   "1,2-Bis(ethoxycarbonyl)ethyl O,O-dimethyl phosphorodithioate",
+   "Malathion (ISO)"
+  ],
+  [
+   "1,2-Dichloroethene",
+   "1,2-Dichloroethylene, cis:trans isomers 60:40"
+  ],
+  [
+   "1,2-Dichlorotetrafluoroethane",
+   "Cryofluorane (INN)"
+  ],
+  [
+   "1,2-Dihydroxybenzene",
+   "Pyrocatechol"
+  ],
+  [
+   "1,2-Epoxypropane",
+   "Propylene oxide"
+  ],
+  [
+   "1,3,5-Triglycidyl isocyanurate",
+   "Triglycidyl isocyanurate (TGIC)"
+  ],
+  [
+   "1,4,7-Tri-(aza)-heptane",
+   "2,2’-Iminodi(ethylamine)"
+  ],
+  [
+   "1,4-Benzenediamine",
+   "p-Phenylenediamine"
+  ],
+  [
+   "1,4-Diaminobenzene",
+   "p-Phenylenediamine"
+  ],
+  [
+   "1,4-Diazacyclohexane",
+   "Piperazine"
+  ],
+  [
+   "1,4-dichlorobenzene",
+   "1,4 Dichlorobenzene (para-dichlorobenzene)"
+  ],
+  [
+   "1,4-Dihydroxybenzene",
+   "Hydroquinone"
+  ],
+  [
+   "1,4-Epoxybutane",
+   "Tetrahydrofuran"
+  ],
+  [
+   "1,7,7-Trimethylnorcamphor",
+   "Bornan-2-one"
+  ],
+  [
+   "1-Acteoxyethylene",
+   "Vinyl acetate"
+  ],
+  [
+   "1-Amino-2-methylbenzene",
+   "o-Toluidine"
+  ],
+  [
+   "1-Aminoethane",
+   "Ethylamine"
+  ],
+  [
+   "1-Chloro-2,2,2-trifluoroethyldifluoromethyl ether",
+   "Isoflurane"
+  ],
+  [
+   "1-Isopropylamino-3-(1-naphthyloxy)propan-2-ol",
+   "Propranolol"
+  ],
+  [
+   "1-Methoxy-2-propanol acetate",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "1-Methoxypropylacetate-2-acetic acid",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "1-Methyl-2-aminobenzene",
+   "o-Toluidine"
+  ],
+  [
+   "1-Methylethylbenzene",
+   "Cumene"
+  ],
+  [
+   "1-pentyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "1-Propyl acetate",
+   "n-Propyl acetate"
+  ],
+  [
+   "2,2-Bis(hydroxymethyl)-1,3-Propanediol",
+   "Pentaerythritol"
+  ],
+  [
+   "2,4,6-Trinitrophenol",
+   "Picric acid"
+  ],
+  [
+   "2,4-DES",
+   "Sodium 2- (2,4-dichlorophenoxy) ethyl sulphate"
+  ],
+  [
+   "2,4-Dichlorophenoxyacetic acid",
+   "2,4-D (ISO)"
+  ],
+  [
+   "2,5-Furandione",
+   "Maleic anhydride"
+  ],
+  [
+   "2-Acetoxybenzoic acid",
+   "o-Acetylsalicylic acid"
+  ],
+  [
+   "2-Acetoxypropane",
+   "Isopropyl acetate"
+  ],
+  [
+   "2-Aminopyridine",
+   "2-Pyridylamine"
+  ],
+  [
+   "2-Aminotoluene",
+   "o-Toluidine"
+  ],
+  [
+   "2-Bromo-2-chloro-1,1,1-trifluroethane",
+   "Halothane"
+  ],
+  [
+   "2-Butanone",
+   "Butan-2-one (methyl ethyl ketone)"
+  ],
+  [
+   "2-Chloro-1,1,2-trifluoroethyldifluoromethyl ether",
+   "Enflurane"
+  ],
+  [
+   "2-Chloro-1-ethanal",
+   "Chloroacetaldehyde"
+  ],
+  [
+   "2-Ethylhexyl chlorocarbonate",
+   "2-Ethylhexyl chloroformate"
+  ],
+  [
+   "2-Furancarboxaldehyde",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "2-Furanaldehyde",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "2-Furancarbonal",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "2-Hexanone",
+   "Hexan-2-one"
+  ],
+  [
+   "2-Isopropoxyphenyl methylcarbamate",
+   "Propoxur (ISO)"
+  ],
+  [
+   "2-Methoxy-1-methylethylacetate",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "2-Methoxy-2-methylpropane",
+   "Methyl-tert-butyl-ether"
+  ],
+  [
+   "2-Methyl-1-propyl acetate",
+   "Isobutyl acetate"
+  ],
+  [
+   "2-Methyl-2-propenenitrile",
+   "Methacrylonitrile"
+  ],
+  [
+   "2-Methyl-2-propenoic acid",
+   "Methyl methacrylate"
+  ],
+  [
+   "2-Methylaniline",
+   "o-Toluidine"
+  ],
+  [
+   "2-NP",
+   "2-Nitropropane"
+  ],
+  [
+   "2-Pentyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "2-Phenylpropane",
+   "Cumene"
+  ],
+  [
+   "2-Propanol",
+   "Propan-2-ol"
+  ],
+  [
+   "2-Propen-1-ol",
+   "Allyl alcohol"
+  ],
+  [
+   "2-Propenamide",
+   "Acrylamide"
+  ],
+  [
+   "2-Propenenitrile",
+   "Acrylonitrile"
+  ],
+  [
+   "2-Propenoic acid methyl ester",
+   "Methyl acrylate"
+  ],
+  [
+   "2-Propenoic acid 2-cyano ethyl ester",
+   "Ethyl cyanoacrylate"
+  ],
+  [
+   "2-Propenoic acid 2-cyano methyl ester",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "2-Propenoic acid, n-butyl ester",
+   "n-Butyl acrylate"
+  ],
+  [
+   "2-Propenoic ethyl ester",
+   "Ethyl acrylate"
+  ],
+  [
+   "2-Toluidine",
+   "o-Toluidine"
+  ],
+  [
+   "3-(3,4-Dichlorophenyl)-1,1-dimethylurea",
+   "Diuron (ISO)"
+  ],
+  [
+   "3,3’-Dichloro-4,4’-diaminodiphenyl methane",
+   "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)"
+  ],
+  [
+   "3a,4,7,7a-Tetrahydro-4,7-methanoindene",
+   "Dicyclopentadiene"
+  ],
+  [
+   "3-Heptanone",
+   "Heptan-3-one"
+  ],
+  [
+   "3-Hydroxypropene",
+   "Allyl alcohol"
+  ],
+  [
+   "3-pentyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "4,4’-Diaminodiphenylmethane",
+   "4,4’-Methylenedianiline"
+  ],
+  [
+   "4,4’-Diamino-3,3’-dichlorodiphenylmethane",
+   "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)"
+  ],
+  [
+   "4,4’-Isopropylidenediphenol",
+   "Bisphenol A"
+  ],
+  [
+   "4,4-Methylene bis(2-chloroaniline)",
+   "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)"
+  ],
+  [
+   "4,4’-(propane-2,2-diyl)diphenol",
+   "Bisphenol A"
+  ],
+  [
+   "4,4’-Thiobis(6-tert-butyl-m-cresol)",
+   "6,6’-Di-tert-butyl-4,4’thiodi-m-cresol"
+  ],
+  [
+   "4-Amino-3,5,6-trichloropyridine-2-carboxylic acid",
+   "Picloram (ISO)"
+  ],
+  [
+   "5-Bromo-3-sec-butyl-6-methyluracil",
+   "Bromacil (ISO)"
+  ],
+  [
+   "Acetic acid amyl ester",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "Acetic acid anhydride",
+   "Acetic anhydride"
+  ],
+  [
+   "Acetic acid dimethylamide",
+   "N,N-Dimethylacetamide"
+  ],
+  [
+   "Acetic acid, 1,1-dimethylethyl ester",
+   "tert-Butyl acetate"
+  ],
+  [
+   "Acetic acid, ethenyl ester",
+   "Vinyl acetate"
+  ],
+  [
+   "Acetic acid vinyl ester",
+   "Vinyl acetate"
+  ],
+  [
+   "Acetic aldehyde",
+   "Acetaldehyde"
+  ],
+  [
+   "Acetic oxide",
+   "Acetic anhydride"
+  ],
+  [
+   "Acetyl ether",
+   "Acetic anhydride"
+  ],
+  [
+   "Acetyl oxide",
+   "Acetic anhydride"
+  ],
+  [
+   "Acetylene dichloride",
+   "1,2-Dichloroethylene, cis:trans isomers 60:40"
+  ],
+  [
+   "Acetylene tetrabromide",
+   "1,1,2,2-Tetrabromoethane"
+  ],
+  [
+   "Acrolein",
+   "Acrylaldehyde (Acrolein)"
+  ],
+  [
+   "Acrylic acid 2-cyano ethyl ester",
+   "Ethyl cyanoacrylate"
+  ],
+  [
+   "Acrylic acid 2-cyano methyl ester",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "Acrylic acid, n-butyl ester",
+   "n-Butyl acrylate"
+  ],
+  [
+   "ACT",
+   "Benzyl chloride"
+  ],
+  [
+   "alpha-Chlorotoluene",
+   "Benzyl chloride"
+  ],
+  [
+   "alpha-Methyl styrene",
+   "2-Phenylpropene"
+  ],
+  [
+   "Alumina",
+   "Aluminium oxides"
+  ],
+  [
+   "Alumite",
+   "Aluminium oxides"
+  ],
+  [
+   "Aminobenzene",
+   "Aniline"
+  ],
+  [
+   "Aminocyclohexane",
+   "Cyclohexylamine"
+  ],
+  [
+   "Aminoethane",
+   "Ethylamine"
+  ],
+  [
+   "Ammonium sulphamate",
+   "Ammonium sulphamidate"
+  ],
+  [
+   "Amyl acetates (all isomers)",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "Amyl ethyl ketone",
+   "5-Methylheptan-3-one"
+  ],
+  [
+   "Amylmethylketone",
+   "Heptan-2-one"
+  ],
+  [
+   "Araldite PT-810",
+   "Triglycidyl isocyanurate (TGIC)"
+  ],
+  [
+   "Arcton 22",
+   "Chlorodifluoromethane"
+  ],
+  [
+   "Aroclor",
+   "Polychlorinated biphenyls (PCB)"
+  ],
+  [
+   "Arsenic trihydride",
+   "Arsine"
+  ],
+  [
+   "Arylamine",
+   "Aniline"
+  ],
+  [
+   "Aspirin",
+   "o-Acetylsalicylic acid"
+  ],
+  [
+   "Azabenzene",
+   "Pyridine"
+  ],
+  [
+   "Azacyclohexane",
+   "Piperidine"
+  ],
+  [
+   "Barite",
+   "Barium sulphate"
+  ],
+  [
+   "Barytes",
+   "Barium sulphate"
+  ],
+  [
+   "BCME",
+   "Bis(chloromethyl) ether"
+  ],
+  [
+   "Benzenamine",
+   "Aniline"
+  ],
+  [
+   "Benzene chloride",
+   "Chlorobenzene"
+  ],
+  [
+   "Benzol",
+   "Benzene"
+  ],
+  [
+   "Benzoyl peroxide",
+   "Dibenzoyl peroxide"
+  ],
+  [
+   "Beta-propanolol",
+   "Propranolol"
+  ],
+  [
+   "Bicyclo(2,2,1)heptan-2-one",
+   "Bornan-2-one"
+  ],
+  [
+   "Bismuth telluride",
+   "Dibismuth tritelluride"
+  ],
+  [
+   "Bladafum",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "Blanc fixe",
+   "Barium sulphate"
+  ],
+  [
+   "Borates, (tetra) sodium salts",
+   "Disodium tetraborate, anhydrous"
+  ],
+  [
+   "Boron oxide",
+   "Diboron trioxide"
+  ],
+  [
+   "Butanedione",
+   "Diacetyl"
+  ],
+  [
+   "Butanone",
+   "Butan-2-one (methyl ethyl ketone)"
+  ],
+  [
+   "Butyl acrylate",
+   "n-Butyl acrylate"
+  ],
+  [
+   "Butyl benzyl phthalate",
+   "Benzyl butyl phthalate"
+  ],
+  [
+   "Butyl cellosolve",
+   "2-Butoxyethanol"
+  ],
+  [
+   "Butyl cellosolve acetate",
+   "2-Butoxyethyl acetate"
+  ],
+  [
+   "Butyl ethyl ketone",
+   "Heptan-3-one"
+  ],
+  [
+   "Butyl glycol",
+   "2-Butoxyethanol"
+  ],
+  [
+   "Butyl glycol acetate",
+   "2-Butoxyethyl acetate"
+  ],
+  [
+   "Butyl methyl ketone",
+   "Hexan-2-one"
+  ],
+  [
+   "Butyl oxitol",
+   "2-Butoxyethanol"
+  ],
+  [
+   "Butyl phosphate",
+   "Tributyl phosphate, all isomers"
+  ],
+  [
+   "Butylated hydroxytoluene",
+   "2,6-Di-tert-butyl-p-cresol"
+  ],
+  [
+   "Butylene oxide",
+   "Tetrahydrofuran"
+  ],
+  [
+   "C,C’-azodi(formamide)",
+   "Azodicarbonamide"
+  ],
+  [
+   "Calcite",
+   "Marble"
+  ],
+  [
+   "Calcium dihydroxide",
+   "Calcium hydroxide"
+  ],
+  [
+   "Calcium sulphate",
+   "Gypsum"
+  ],
+  [
+   "Camphor, synthetic",
+   "Bornan-2-one"
+  ],
+  [
+   "Carbamaldehyde",
+   "Formamide"
+  ],
+  [
+   "Carbodiimide",
+   "Cyanamide"
+  ],
+  [
+   "Carbon bisulphide",
+   "Carbon disulphide"
+  ],
+  [
+   "Carbon oxychloride",
+   "Phosgene"
+  ],
+  [
+   "Carbonic anhydride",
+   "Carbon dioxide"
+  ],
+  [
+   "Carbonic oxide",
+   "Carbon monoxide"
+  ],
+  [
+   "Carbonyl chloride",
+   "Phosgene"
+  ],
+  [
+   "Catechol",
+   "Pyrocatechol"
+  ],
+  [
+   "Cellosolve",
+   "2-Ethoxyethanol"
+  ],
+  [
+   "Cellosolve acetate",
+   "2-Ethoxyethyl acetate"
+  ],
+  [
+   "Cement dust",
+   "Portland cement"
+  ],
+  [
+   "CFC-114",
+   "Cryofluorane (INN)"
+  ],
+  [
+   "Chlorinated biphenyls",
+   "Polychlorinated biphenyls (PCB)"
+  ],
+  [
+   "Chlorine (IV) oxide",
+   "Chlorine dioxide"
+  ],
+  [
+   "Chlorine oxide",
+   "Chlorine dioxide"
+  ],
+  [
+   "Chlorine peroxide",
+   "Chlorine dioxide"
+  ],
+  [
+   "Chloroacetic acid",
+   "Monochloroacetic acid"
+  ],
+  [
+   "Chlorobenzol",
+   "Chlorobenzene"
+  ],
+  [
+   "Chlorocyanogen",
+   "Cyanogen chloride"
+  ],
+  [
+   "Chloroethylene",
+   "Vinyl chloride"
+  ],
+  [
+   "Chloromethyl ether",
+   "Bis(chloromethyl) ether"
+  ],
+  [
+   "Chloromethyloxirane",
+   "1-Chloro-2,3epoxypropane (Epichlorohydrin)"
+  ],
+  [
+   "Chlorophenylmethane",
+   "Benzyl chloride"
+  ],
+  [
+   "cis-Butenedioic anhydride",
+   "Maleic anhydride"
+  ],
+  [
+   "Colophony",
+   "Rosin-based solder flux fume"
+  ],
+  [
+   "Cyanoethylene",
+   "Acrylonitrile"
+  ],
+  [
+   "Cyanolit",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "Cyanomethane",
+   "Acetonitrile"
+  ],
+  [
+   "Dactin",
+   "1,3-Dichloro-5,5-dimethylhydantoin"
+  ],
+  [
+   "DADPM",
+   "4,4’-Methylenedianiline"
+  ],
+  [
+   "DDM",
+   "4,4’-Methylenedianiline"
+  ],
+  [
+   "DEHP",
+   "Bis(2-ethylhexyl) phthalate"
+  ],
+  [
+   "Derris, commercial",
+   "Rotenone (ISO)"
+  ],
+  [
+   "Diacetone alcohol",
+   "4-Hydroxy-4methylpentan-2-one"
+  ],
+  [
+   "Diamine",
+   "Hydrazine"
+  ],
+  [
+   "Diazenedicarboxamide",
+   "Azodicarbonamide"
+  ],
+  [
+   "Diethyl ketone",
+   "Pentan-3-one"
+  ],
+  [
+   "Diethyl oxide",
+   "Diethyl ether"
+  ],
+  [
+   "Diethylene glycol",
+   "2,2’-Oxydiethanol"
+  ],
+  [
+   "Diethylene imidoximine",
+   "Morpholine"
+  ],
+  [
+   "Diethylene oxide",
+   "Tetrahydrofuran"
+  ],
+  [
+   "Diethylene oximine",
+   "Morpholine"
+  ],
+  [
+   "Diethylene triamine",
+   "2,2’-Iminodi(ethylamine)"
+  ],
+  [
+   "Diethylenediamine",
+   "Piperazine"
+  ],
+  [
+   "Diethylenediamine dihydrochloride",
+   "Piperazine dihydrochloride"
+  ],
+  [
+   "Diethyleneimine",
+   "Piperazine"
+  ],
+  [
+   "Difluorochloromethane",
+   "Chlorodifluoromethane"
+  ],
+  [
+   "Diisobutyl ketone",
+   "2,6-Dimethylheptan-4-one"
+  ],
+  [
+   "Dimethyl ketone",
+   "Acetone"
+  ],
+  [
+   "Dimethylbenzene",
+   "Xylene, o-,m-,p- or mixed isomers"
+  ],
+  [
+   "Dimethylethylamine",
+   "N,N-Dimethylethylamine"
+  ],
+  [
+   "Dimethylnitromethane",
+   "2-Nitropropane"
+  ],
+  [
+   "Di-n-butyl phosphate",
+   "Dibutyl hydrogen phosphate"
+  ],
+  [
+   "Dinitrogen monoxide",
+   "Nitrous oxide"
+  ],
+  [
+   "Dioxan",
+   "1,4-Dioxane"
+  ],
+  [
+   "Dipropylene glycol methyl ether",
+   "(2-methoxymethylethoxy) propanol"
+  ],
+  [
+   "Dipropylene glycol monomethyl ether",
+   "(2-methoxymethylethoxy) propanol"
+  ],
+  [
+   "Dipropylmethane",
+   "n-Heptane"
+  ],
+  [
+   "Di-sec-octyl phthalate",
+   "Bis(2-ethylhexyl) phthalate"
+  ],
+  [
+   "Dithiocarbonic anhydride",
+   "Carbon disulphide"
+  ],
+  [
+   "Dithiofos",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "Dithiophosphoric acid, tetraethyl ester",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "Dithiotep",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "Divanadium pentoxide",
+   "Vanadium pentoxide"
+  ],
+  [
+   "DMA",
+   "N,N-Dimethylacetamide"
+  ],
+  [
+   "DMAc",
+   "N,N-Dimethylacetamide"
+  ],
+  [
+   "DMAE Dimethylaminoethanol DME",
+   "Dimethyl ether"
+  ],
+  [
+   "DMS",
+   "Dimethyl sulphate"
+  ],
+  [
+   "DPGME",
+   "(2-methoxymethylethoxy) propanol"
+  ],
+  [
+   "Dursban",
+   "Chlorpyrifos (ISO)"
+  ],
+  [
+   "EAK",
+   "5-Methylheptan-3-one"
+  ],
+  [
+   "EBK",
+   "Heptan-3-one"
+  ],
+  [
+   "ECA",
+   "Ethyl cyanoacrylate"
+  ],
+  [
+   "ECH",
+   "1-Chloro-2,3epoxypropane (Epichlorohydrin)"
+  ],
+  [
+   "EDB",
+   "1,2-Dibromoethane (Ethylene dibromide)"
+  ],
+  [
+   "Enthrane",
+   "Enflurane"
+  ],
+  [
+   "Epichlorohydrin",
+   "1-Chloro-2,3epoxypropane (Epichlorohydrin)"
+  ],
+  [
+   "Epoxyethane",
+   "Ethylene oxide"
+  ],
+  [
+   "Ethanal",
+   "Acetaldehyde"
+  ],
+  [
+   "Ethanamine",
+   "Ethylamine"
+  ],
+  [
+   "Ethanedioic acid",
+   "Oxalic acid"
+  ],
+  [
+   "Ethanoic anhydride",
+   "Acetic anhydride"
+  ],
+  [
+   "Ethanolamine",
+   "2-Aminoethanol"
+  ],
+  [
+   "Ethenyl acetate",
+   "Vinyl acetate"
+  ],
+  [
+   "Ether",
+   "Diethyl ether"
+  ],
+  [
+   "Ethrane",
+   "Enflurane"
+  ],
+  [
+   "Ethyl 2-propenoate",
+   "Ethyl acrylate"
+  ],
+  [
+   "Ethyl acetate ester",
+   "Ethyl acetate"
+  ],
+  [
+   "Ethyl alcohol",
+   "Ethanol"
+  ],
+  [
+   "Ethyl aldehyde",
+   "Acetaldehyde"
+  ],
+  [
+   "Ethyl amyl ketone",
+   "5-Methylheptan-3-one"
+  ],
+  [
+   "Ethyl butyl ketone",
+   "Heptan-3-one"
+  ],
+  [
+   "Ethyl chloride",
+   "Chloroethane"
+  ],
+  [
+   "Ethyl chlorocarbonate",
+   "Ethyl chloroformate"
+  ],
+  [
+   "Ethyl ethanoate",
+   "Ethyl acetate"
+  ],
+  [
+   "Ethyl ether",
+   "Diethyl ether"
+  ],
+  [
+   "Ethyl mercaptan",
+   "Ethanethiol"
+  ],
+  [
+   "Ethyl methanoate",
+   "Ethyl formate"
+  ],
+  [
+   "Ethyl oxide",
+   "Diethyl ether"
+  ],
+  [
+   "Ethyl thiopyrophosphate",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "Ethyl-2-cyano-2-propenoate",
+   "Ethyl cyanoacrylate"
+  ],
+  [
+   "Ethyl-2-cyanoacrylate",
+   "Ethyl cyanoacrylate"
+  ],
+  [
+   "Ethylene chlorohydrin",
+   "2-Chloroethanol"
+  ],
+  [
+   "Ethylene dibromide",
+   "1,2-Dibromoethane (Ethylene dibromide)"
+  ],
+  [
+   "Ethylene dichloride",
+   "1,2-Dichloroethane (Ethylene dichloride)"
+  ],
+  [
+   "Ethylene glycol dimethyl ether",
+   "Dimethoxymethane"
+  ],
+  [
+   "Ethylene glycol monobutyl ether",
+   "2-Butoxyethanol"
+  ],
+  [
+   "Ethylene glycol monobutyl ether acetate",
+   "2-Butoxyethyl acetate"
+  ],
+  [
+   "Ethylene glycol monoethyl ether",
+   "2-Ethoxyethanol"
+  ],
+  [
+   "Ethylene glycol monoethyl ether acetate",
+   "2-Ethoxyethyl acetate"
+  ],
+  [
+   "Ethylene glycol monomethyl ether",
+   "2-Methoxyethanol"
+  ],
+  [
+   "Ethylene glycol monomethyl ether acetate",
+   "2-Methoxyethyl acetate"
+  ],
+  [
+   "Ethylene tetrachloride",
+   "Tetrachloroethylene"
+  ],
+  [
+   "Ethylidene chloride",
+   "1,1-Dichloroethane"
+  ],
+  [
+   "Ethylidene dichloride",
+   "1,1-Dichloroethane"
+  ],
+  [
+   "Ferric oxide",
+   "Rouge"
+  ],
+  [
+   "Flue gas",
+   "Carbon monoxide"
+  ],
+  [
+   "Fluothane",
+   "Halothane"
+  ],
+  [
+   "Forane",
+   "Isoflurane"
+  ],
+  [
+   "Freon 123B1",
+   "Halothane"
+  ],
+  [
+   "Freon 134a",
+   "1,1,1,2-Tetrafluoroethane (HFC 134a)"
+  ],
+  [
+   "Freon 22",
+   "Chlorodifluoromethane"
+  ],
+  [
+   "Fural",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "Furfural",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "Furfuraldehyde",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "Germanium tetrahydride",
+   "Germane"
+  ],
+  [
+   "Glutaral",
+   "Glutaraldehyde"
+  ],
+  [
+   "Glutardialdehyde",
+   "Glutaraldehyde"
+  ],
+  [
+   "Glutaric dialdehyde",
+   "Glutaraldehyde"
+  ],
+  [
+   "Glycerin, mist",
+   "Glycerol, mist"
+  ],
+  [
+   "Halane",
+   "1,3-Dichloro-5,5-dimethylhydantoin"
+  ],
+  [
+   "HCFC 22",
+   "Chlorodifluoromethane"
+  ],
+  [
+   "HCFC-21",
+   "Dichlorofluoromethane"
+  ],
+  [
+   "Heavy spar",
+   "Barium sulphate"
+  ],
+  [
+   "Hexahydro-1,4-diazine",
+   "Piperazine"
+  ],
+  [
+   "Hexahydrobenzene",
+   "Cyclohexane"
+  ],
+  [
+   "Hexahydropyrazine",
+   "Piperazine"
+  ],
+  [
+   "Hexalin",
+   "Cyclohexanol"
+  ],
+  [
+   "Hexamethylene",
+   "Cyclohexane"
+  ],
+  [
+   "Hexane",
+   "n-Hexane"
+  ],
+  [
+   "Hexanon",
+   "Cyclohexanone"
+  ],
+  [
+   "Hexylene glycol",
+   "2-Methylpentane-2,4-diol"
+  ],
+  [
+   "Hydrobromic acid",
+   "Hydrogen bromide"
+  ],
+  [
+   "Hydrobromic gas",
+   "Hydrogen bromide"
+  ],
+  [
+   "Hydrochloric acid",
+   "Hydrogen chloride (gas and aerosol mists)"
+  ],
+  [
+   "Hydrocyanic acid",
+   "Hydrogen cyanide"
+  ],
+  [
+   "Hydrofluoric acid",
+   "Hydrogen fluoride (as F)"
+  ],
+  [
+   "Hydrofuran",
+   "Tetrahydrofuran"
+  ],
+  [
+   "Hydrogen phosphide",
+   "Phosphine"
+  ],
+  [
+   "Hydrogen selenide",
+   "Dihydrogen selenide (as Se)"
+  ],
+  [
+   "Hydrosulphuric acid",
+   "Hydrogen sulphide"
+  ],
+  [
+   "Hydroxybenzene",
+   "Phenol"
+  ],
+  [
+   "Indonaphthene",
+   "Indene"
+  ],
+  [
+   "Iron pentacarbonyl (as Fe)",
+   "Pentacarbonyliron (as Fe)"
+  ],
+  [
+   "Isoamyl alcohol",
+   "3-Methylbutan-1-ol"
+  ],
+  [
+   "Isoamyl methyl ketone",
+   "5-Methylhexan-2-one"
+  ],
+  [
+   "Isobutyl alcohol",
+   "2-Methylpropan-1-ol"
+  ],
+  [
+   "Isonitropropane",
+   "2-Nitropropane"
+  ],
+  [
+   "Isopentyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "Isopentyl methyl ketone",
+   "5-Methylhexan-2-one"
+  ],
+  [
+   "Isophorone",
+   "3,5,5-trimethylcyclohex-2enone"
+  ],
+  [
+   "Isopropanol",
+   "Propan-2-ol"
+  ],
+  [
+   "Isopropyl acetone",
+   "4-Methylpentan-2-one"
+  ],
+  [
+   "Isopropyl alcohol",
+   "Propan-2-ol"
+  ],
+  [
+   "Isopropyl chlorocarbonate",
+   "Isopropyl chloroformate"
+  ],
+  [
+   "Isopropyl ether",
+   "Diisopropyl ether"
+  ],
+  [
+   "Isopropylbenzene",
+   "Cumene"
+  ],
+  [
+   "Ketohexamethylene",
+   "Cyclohexanone"
+  ],
+  [
+   "Laughing gas",
+   "Nitrous oxide"
+  ],
+  [
+   "LPG",
+   "Liquefied petroleum gas"
+  ],
+  [
+   "Magnesia",
+   "Magnesium oxide (as Mg)"
+  ],
+  [
+   "Magnesium carbonate",
+   "Magnesite"
+  ],
+  [
+   "Maleic acid anhydride",
+   "Maleic anhydride"
+  ],
+  [
+   "MbOCA",
+   "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)"
+  ],
+  [
+   "MCA",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "MDA",
+   "4,4’-Methylenedianiline"
+  ],
+  [
+   "m-Dihydroxybenzene",
+   "Resorcinol"
+  ],
+  [
+   "Mecrylate",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "MEK",
+   "Butan-2-one (methyl ethyl ketone)"
+  ],
+  [
+   "MEKP",
+   "Methyl ethyl ketone peroxides (MEKP)"
+  ],
+  [
+   "Methacide",
+   "Toluene"
+  ],
+  [
+   "Methacrylic acid methyl ester",
+   "Methyl methacrylate"
+  ],
+  [
+   "Methanal",
+   "Formaldehyde"
+  ],
+  [
+   "Methanamide",
+   "Formamide"
+  ],
+  [
+   "Methane trichloride",
+   "Chloroform"
+  ],
+  [
+   "Methanoic acid",
+   "Formic acid"
+  ],
+  [
+   "Methoxycarbonylethylene",
+   "Methyl acrylate"
+  ],
+  [
+   "Methyl 2-methyl-2-propenoate",
+   "Methyl methacrylate"
+  ],
+  [
+   "Methyl alcohol",
+   "Methanol"
+  ],
+  [
+   "Methyl aldehyde",
+   "Formaldehyde"
+  ],
+  [
+   "Methyl bromide",
+   "Bromomethane"
+  ],
+  [
+   "Methyl butyl ketone",
+   "Hexan-2-one"
+  ],
+  [
+   "Methyl cellosolve",
+   "2-Methoxyethanol"
+  ],
+  [
+   "Methyl cellosolve acetate",
+   "2-Methoxyethyl acetate"
+  ],
+  [
+   "Methyl chloride",
+   "Chloromethane"
+  ],
+  [
+   "Methyl chloroform",
+   "1,1,1-Trichloroethane"
+  ],
+  [
+   "Methyl ester",
+   "Methyl methacrylate"
+  ],
+  [
+   "Methyl ether",
+   "Dimethyl ether"
+  ],
+  [
+   "Methyl ethyl ketone",
+   "Butan-2-one (methyl ethyl ketone)"
+  ],
+  [
+   "Methyl iodide",
+   "Iodomethane"
+  ],
+  [
+   "Methyl isoamyl ketone",
+   "5-Methylhexan-2-one"
+  ],
+  [
+   "Methyl isobutyl carbinol",
+   "4-Methylpentan-2-ol"
+  ],
+  [
+   "Methyl isobutyl ketone",
+   "4-Methylpentan-2-one"
+  ],
+  [
+   "Methyl ketone",
+   "Acetone"
+  ],
+  [
+   "Methyl mercaptan",
+   "Methanethiol"
+  ],
+  [
+   "Methyl n-butyl ketone",
+   "Hexan-2-one"
+  ],
+  [
+   "Methyl phosphite",
+   "Trimethyl phosphite"
+  ],
+  [
+   "Methyl propenoate",
+   "Methyl acrylate"
+  ],
+  [
+   "Methyl propyl ketone",
+   "Pentan-2-one"
+  ],
+  [
+   "Methyl-1,1-dimethethyl ether",
+   "Methyl-tert-butyl-ether"
+  ],
+  [
+   "Methyl-2-cyano-propenoate",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "Methyl-2-cyanoacrylate",
+   "Methyl cyanoacrylate"
+  ],
+  [
+   "Methylacetic acid",
+   "Propionic acid"
+  ],
+  [
+   "Methylacetone",
+   "Butan-2-one (methyl ethyl ketone)"
+  ],
+  [
+   "Methylal",
+   "Dimethoxymethane"
+  ],
+  [
+   "Methylamylketone",
+   "Heptan-2-one"
+  ],
+  [
+   "Methylaniline",
+   "N-Methylaniline"
+  ],
+  [
+   "Methylbutyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "Methyldichloromethane",
+   "1,1-Dichloroethane"
+  ],
+  [
+   "Methylene chloride",
+   "Dichloromethane"
+  ],
+  [
+   "Methylene oxide",
+   "Formaldehyde"
+  ],
+  [
+   "Methylene-bis-orthochloroaniline MbOCA",
+   "2,2’-Dichloro-4,4’methylene dianiline (MbOCA)"
+  ],
+  [
+   "Methylhexalin",
+   "Methylcyclohexanol"
+  ],
+  [
+   "Methyloxirane",
+   "Propylene oxide"
+  ],
+  [
+   "MIAK",
+   "5-Methylhexan-2-one"
+  ],
+  [
+   "MIBK",
+   "4-Methylpentan-2-one"
+  ],
+  [
+   "MMMFs",
+   "MMMF (Machine-made mineral fibre) (except for refractory ceramic fibres and special purpose fibres)"
+  ],
+  [
+   "Monochlorobenzene",
+   "Chlorobenzene"
+  ],
+  [
+   "Monochlorodifluoromethane",
+   "Chlorodifluoromethane"
+  ],
+  [
+   "Monoethylamine",
+   "Ethylamine"
+  ],
+  [
+   "MTBE",
+   "Methyl-tert-butyl-ether"
+  ],
+  [
+   "Muriatic acid",
+   "Hydrogen chloride (gas and aerosol mists)"
+  ],
+  [
+   "N,N-diethylethanamine",
+   "Triethylamine"
+  ],
+  [
+   "N,N-Diethylethanolamine",
+   "2-Dimethylaminoethanol"
+  ],
+  [
+   "N,N-Dimethylethanolamine",
+   "2-Dimethylaminoethanol"
+  ],
+  [
+   "Nadone",
+   "Cyclohexanone"
+  ],
+  [
+   "n-Butanol",
+   "Butan-1-ol"
+  ],
+  [
+   "n-Butyl acetate",
+   "Butyl acetate"
+  ],
+  [
+   "n-Butyl alcohol",
+   "Butan-1-ol"
+  ],
+  [
+   "n-Butyl chlorocarbonate",
+   "n-Butyl chloroformate"
+  ],
+  [
+   "n-Butyl lactate",
+   "Butyl lactate"
+  ],
+  [
+   "N-Diethylaminoethanol",
+   "2-Dimethylaminoethanol"
+  ],
+  [
+   "N-Ethylethanamine",
+   "Diethylamine"
+  ],
+  [
+   "N-Ethylmorpholine",
+   "4-Ethylmorpholine"
+  ],
+  [
+   "Nickel carbonyl",
+   "Tetracarbonylnickel (as Ni)"
+  ],
+  [
+   "Nitrobenzol",
+   "Nitrobenzene"
+  ],
+  [
+   "Nitroisopropane",
+   "2-Nitropropane"
+  ],
+  [
+   "N-Methylmethanamine",
+   "Dimethylamine"
+  ],
+  [
+   "n-Propanol",
+   "Propan-1-ol"
+  ],
+  [
+   "N-Trichloromethylmercapto-4-cyclohexene-1,2dicarboximide",
+   "Captan (ISO)"
+  ],
+  [
+   "O,O,O’,O’-Tetraethyldithio-pyrophosphate",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "O,O-Diethyl O-3,5,6-trichloro-2-pyridyl phosphorothioate",
+   "Chlorpyrifos (ISO)"
+  ],
+  [
+   "O,O-Diethyl S-ethylthiomethyl phosphorodithioate",
+   "Phorate (ISO)"
+  ],
+  [
+   "o-Dichlorobenzene",
+   "1,2-Dichlorobenzene (ortho-dichlorobenzene)"
+  ],
+  [
+   "omega-Chlorotoluene",
+   "Benzyl chloride"
+  ],
+  [
+   "o-Methylcyclohexanone",
+   "2-Methylcyclohexanone"
+  ],
+  [
+   "Orsin",
+   "p-Phenylenediamine"
+  ],
+  [
+   "ortho-Dichlorobenzene",
+   "1,2-Dichlorobenzene (ortho-dichlorobenzene)"
+  ],
+  [
+   "o-sec-Butylphenol",
+   "2-sec-Butylphenol"
+  ],
+  [
+   "Oxirane",
+   "Ethylene oxide"
+  ],
+  [
+   "Oxomethane",
+   "Formaldehyde"
+  ],
+  [
+   "Oxybis(chloromethane)",
+   "Bis(chloromethyl) ether"
+  ],
+  [
+   "Oxybismethane",
+   "Dimethyl ether"
+  ],
+  [
+   "Oxymethylene",
+   "Formaldehyde"
+  ],
+  [
+   "p-Aminoaniline",
+   "p-Phenylenediamine"
+  ],
+  [
+   "para-Dichlorobenzene",
+   "1,4 Dichlorobenzene (para-dichlorobenzene)"
+  ],
+  [
+   "PCBs",
+   "Polychlorinated biphenyls (PCB)"
+  ],
+  [
+   "p-Chloronitrobenzene",
+   "1-Chloro-4-nitrobenzene"
+  ],
+  [
+   "p-Dichlorobenzene",
+   "1,4 Dichlorobenzene (para-dichlorobenzene)"
+  ],
+  [
+   "Pentan-1,5-dial",
+   "Glutaraldehyde"
+  ],
+  [
+   "Perc",
+   "Tetrachloroethylene"
+  ],
+  [
+   "Perchloroethylene",
+   "Tetrachloroethylene"
+  ],
+  [
+   "Periclase",
+   "Magnesium oxide (as Mg)"
+  ],
+  [
+   "PGME",
+   "1-Methoxypropan-2-ol"
+  ],
+  [
+   "PGMEA",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "Phenacyl chloride 2-Chloroacetophenone Phenyl chloride",
+   "Chlorobenzene"
+  ],
+  [
+   "Phenyl ether",
+   "Diphenyl ether"
+  ],
+  [
+   "Phenylamine",
+   "Aniline"
+  ],
+  [
+   "Phenylethane",
+   "Ethylbenzene"
+  ],
+  [
+   "Phenylethylene",
+   "Styrene"
+  ],
+  [
+   "Phenylmethane",
+   "Toluene"
+  ],
+  [
+   "Phosphoric acid",
+   "Orthophosphoric acid"
+  ],
+  [
+   "Phosphoric chloride",
+   "Phosphorus pentachloride"
+  ],
+  [
+   "Phosphorous chloride",
+   "Phosphorus trichloride"
+  ],
+  [
+   "Phosphorus pentasulphide",
+   "Diphosphorus pentasulphide"
+  ],
+  [
+   "Phosphorus perchloride",
+   "Phosphorus pentachloride"
+  ],
+  [
+   "Phosphorus trihydride",
+   "Phosphine"
+  ],
+  [
+   "Phthalic acid anhydride",
+   "Phthalic anhydride"
+  ],
+  [
+   "Pimelic ketone",
+   "Cyclohexanone"
+  ],
+  [
+   "Piperazidine",
+   "Piperazine"
+  ],
+  [
+   "Piperazine hydrochloride",
+   "Piperazine dihydrochloride"
+  ],
+  [
+   "p-Nitrochlorobenzene 1-Chloro-4-nitrobenzene Polychlorobiphenyls",
+   "Polychlorinated biphenyls (PCB)"
+  ],
+  [
+   "Precipitator ash",
+   "Pulverised fuel ash"
+  ],
+  [
+   "Prop-2-enal",
+   "Acrylaldehyde (Acrolein)"
+  ],
+  [
+   "Prop-2-enoic acid",
+   "Acrylic acid"
+  ],
+  [
+   "Propan-2-one",
+   "Acetone"
+  ],
+  [
+   "Propanoic acid",
+   "Propionic acid"
+  ],
+  [
+   "Propanone",
+   "Acetone"
+  ],
+  [
+   "Propene oxide",
+   "Propylene oxide"
+  ],
+  [
+   "Propenol",
+   "Allyl alcohol"
+  ],
+  [
+   "Propenol alcohol",
+   "Allyl alcohol"
+  ],
+  [
+   "Propylene glycol methyl ether",
+   "1-Methoxypropan-2-ol"
+  ],
+  [
+   "Propylene glycol methyl ether acetate",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "Propylene glycol-1-monomethyl ether",
+   "1-Methoxypropan-2-ol"
+  ],
+  [
+   "Propylene glycol-1-monomethylether-2-acetate",
+   "1-Methoxypropyl acetate"
+  ],
+  [
+   "Prussic acid",
+   "Hydrogen cyanide"
+  ],
+  [
+   "Pyrazine hexahydride",
+   "Piperazine"
+  ],
+  [
+   "Pyridinecarboxylic acid",
+   "Picloram (ISO)"
+  ],
+  [
+   "Pyromucic aldehyde",
+   "2-Furaldehyde (furfural)"
+  ],
+  [
+   "Quinol",
+   "Hydroquinone"
+  ],
+  [
+   "Resorcin",
+   "Resorcinol"
+  ],
+  [
+   "sec-Butanol",
+   "Butan-2-ol"
+  ],
+  [
+   "sec-Butyl alcohol",
+   "Butan-2-ol"
+  ],
+  [
+   "Selane",
+   "Dihydrogen selenide (as Se)"
+  ],
+  [
+   "Selenium dihydride",
+   "Dihydrogen selenide (as Se)"
+  ],
+  [
+   "Selenium hydride",
+   "Dihydrogen selenide (as Se)"
+  ],
+  [
+   "Sextone",
+   "Cyclohexanone"
+  ],
+  [
+   "Soapstone",
+   "Mica"
+  ],
+  [
+   "Sodium bisulphite",
+   "Sodium hydrogen sulphite"
+  ],
+  [
+   "Sodium metabisulphite",
+   "Disodium disulphite"
+  ],
+  [
+   "Sodium pyrophosphate",
+   "Tetrasodium pyrophosphate"
+  ],
+  [
+   "Styrol",
+   "Styrene"
+  ],
+  [
+   "Sulphur monochloride",
+   "Disulphur dichloride"
+  ],
+  [
+   "Sulphur oxychloride",
+   "Thionyl chloride"
+  ],
+  [
+   "Sulphuretted hydrogen",
+   "Hydrogen sulphide"
+  ],
+  [
+   "Sulphuric acid diethyl ester",
+   "Diethyl sulphate"
+  ],
+  [
+   "Sulphuric acid, dimethyl ester",
+   "Dimethyl sulphate"
+  ],
+  [
+   "Sulphuryl fluoride",
+   "Sulphuryl difluoride"
+  ],
+  [
+   "Sulphuric oxyfluoride",
+   "Sulphuryl difluoride"
+  ],
+  [
+   "sym-Dichlorodimethyl ether",
+   "Bis(chloromethyl) ether"
+  ],
+  [
+   "sym-Dichloroethane",
+   "1,2-Dichloroethane (Ethylene dichloride)"
+  ],
+  [
+   "TEDP",
+   "Sulfotep (ISO)"
+  ],
+  [
+   "tert-amyl acetate",
+   "Pentyl acetates (all isomers)"
+  ],
+  [
+   "tert-Butyl alcohol",
+   "2-Methylpropan-2-ol"
+  ],
+  [
+   "tert-Butyl methyl ether",
+   "Methyl-tert-butyl-ether"
+  ],
+  [
+   "Tertiary-butyl-methyl-ether",
+   "Methyl-tert-butyl-ether"
+  ],
+  [
+   "Tetrachloroethene",
+   "Tetrachloroethylene"
+  ],
+  [
+   "Tetrachloromethane",
+   "Carbon tetrachloride"
+  ],
+  [
+   "Tetrahydro-1,4-oxazine",
+   "Morpholine"
+  ],
+  [
+   "TGIC",
+   "Triglycidyl isocyanurate (TGIC)"
+  ],
+  [
+   "Thioglycolic acid",
+   "Mercaptoacetic acid"
+  ],
+  [
+   "Thiosulfan",
+   "Endosulfan (ISO)"
+  ],
+  [
+   "TMA",
+   "Trimellitic anhydride"
+  ],
+  [
+   "TNT",
+   "2,4,6-Trinitrotoluene"
+  ],
+  [
+   "Toluol",
+   "Toluene"
+  ],
+  [
+   "Tolyl chloride",
+   "Benzyl chloride"
+  ],
+  [
+   "Tosyl chloride",
+   "p-Toluenesulphonyl chloride"
+  ],
+  [
+   "Toxilic anhydride",
+   "Maleic anhydride"
+  ],
+  [
+   "Triatomic oxygen",
+   "Ozone"
+  ],
+  [
+   "Trichloroethene",
+   "Trichloroethylene"
+  ],
+  [
+   "Trichloromethane",
+   "Chloroform"
+  ],
+  [
+   "Triiodomethane",
+   "Iodoform"
+  ],
+  [
+   "Trike",
+   "Trichloroethylene"
+  ],
+  [
+   "Trilene",
+   "Trichloroethylene"
+  ],
+  [
+   "Tri-o-cresyl phosphate",
+   "Tri-o-tolyl phosphate"
+  ],
+  [
+   "VCM",
+   "Vinyl chloride"
+  ],
+  [
+   "Vinyl carbinol",
+   "Allyl alcohol"
+  ],
+  [
+   "Vinyl chloride monomer",
+   "Vinyl chloride"
+  ],
+  [
+   "Vinyl cyanide",
+   "Acrylonitrile"
+  ],
+  [
+   "Vinylbenzene",
+   "Styrene"
+  ],
+  [
+   "Xylol",
+   "Xylene, o-,m-,p- or mixed isomers"
+  ],
+  [
+   "Zinc distearate",
+   "Zirconium compounds (as Zr)"
+  ],
+  [
+   "a-Chlorotoluene",
+   "Benzyl chloride"
+  ]
+ ],
+ "bmgv": [
+  {
+   "substance": "Butan-2-one",
+   "bmgv": "70 μmol butan-2-one/L in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "2-Butoxyethanol",
+   "bmgv": "240 mmol butoxyacetic acid/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Carbon monoxide",
+   "bmgv": "30 ppm carbon monoxide in end-tidal breath",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Chromium VI",
+   "bmgv": "10 μmol chromium/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Chlorobenzene",
+   "bmgv": "5 mmol 4-chlorocatechol/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Cyclohexanone",
+   "bmgv": "2 mmol cyclohexanol/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Dichloromethane",
+   "bmgv": "30 ppm carbon monoxide in end-tidal breath",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "N,N-Dimethylacetamide",
+   "bmgv": "100 mmol N-methylacetamide/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Glycerol trinitrate (Nitroglycerin)",
+   "bmgv": "15 μmol total nitroglycols/mol creatinine in urine",
+   "sampling": "At the end of the period of exposure"
+  },
+  {
+   "substance": "Isocyanates (applies to HDI, IPDI, TDI and MDI)",
+   "bmgv": "1 μmol isocyanate-derived diamine/mol creatinine in urine",
+   "sampling": "At the end of the period of exposure"
+  },
+  {
+   "substance": "Lindane (gBHC(ISO))",
+   "bmgv": "35 nmol/L (10 μg/L) of lindane in whole blood (equivalent to 70 nmol/L of lindane in plasma)",
+   "sampling": "Random"
+  },
+  {
+   "substance": "MbOCA (2,2’ dichloro-4,4’ methylene dianiline)",
+   "bmgv": "15 μmol total MbOCA/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Mercury",
+   "bmgv": "20 μmol mercury/mol creatinine in urine",
+   "sampling": "Random"
+  },
+  {
+   "substance": "4-methylpentan-2-one",
+   "bmgv": "20 μmol 4-methylpentan-2-one/L in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "4,4’-Methylenedianiline (MDA)",
+   "bmgv": "50 μmol total MDA/mol creatinine in urine",
+   "sampling": "Post shift for inhalation and pre-shift next day for dermal exposure"
+  },
+  {
+   "substance": "Polycyclic aromatic hydrocarbons (PAHs)",
+   "bmgv": "4 μmol 1-hydroxypyrene/mol creatinine in urine",
+   "sampling": "Post shift"
+  },
+  {
+   "substance": "Xylene, o-, m-, p- or mixed isomers",
+   "bmgv": "650 mmol methyl hippuric acid/mol creatinine in urine",
+   "sampling": "Post shift"
+  }
+ ]
+}

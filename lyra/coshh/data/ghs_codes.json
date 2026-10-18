@@ -1,0 +1,1195 @@
+{
+ "source": "PubChem GHS classification codes, UN GHS Rev.11 (2025), https://pubchem.ncbi.nlm.nih.gov/ghs/ghscode_11.txt",
+ "retrieved": "2026-10-18",
+ "h": {
+  "H200": {
+   "text": "(Deleted) Unstable Explosive",
+   "class": "Explosives",
+   "categories": [
+    "Unstable Explosive"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H201": {
+   "text": "(Deleted) Explosive; mass explosion hazard",
+   "class": "Explosives",
+   "categories": [],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H202": {
+   "text": "(Deleted) Explosive; severe projection hazard",
+   "class": "Explosives",
+   "categories": [],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H203": {
+   "text": "(Deleted) Explosive; fire, blast or projection hazard",
+   "class": "Explosives",
+   "categories": [],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H204": {
+   "text": "Fire or projection hazard",
+   "class": "Explosives",
+   "categories": [
+    "Category 2B",
+    "Category 2C"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Warning"
+  },
+  "H205": {
+   "text": "(Deleted) May mass explode in fire",
+   "class": "Explosives",
+   "categories": [],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H206": {
+   "text": "Fire, blast or projection hazard; increased risk of explosion if desensitizing agent is reduced",
+   "class": "Desensitized explosives",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H207": {
+   "text": "Fire or projection hazard; increased risk of explosion if desensitizing agent is reduced",
+   "class": "Desensitized explosives",
+   "categories": [
+    "Category 2",
+    "Category 3"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H208": {
+   "text": "Fire hazard; increased risk of explosion if desensitizing agent is reduced",
+   "class": "Desensitized explosives",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Warning"
+  },
+  "H209": {
+   "text": "Explosive",
+   "class": "Explosives",
+   "categories": [
+    "Category 1",
+    "Category 2A"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H210": {
+   "text": "Very sensitive",
+   "class": "Explosives",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H211": {
+   "text": "Maybe sensitive",
+   "class": "Explosives",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H220": {
+   "text": "Extremely flammable gas",
+   "class": "Flammable gases",
+   "categories": [
+    "1A: Flammable gas, Pyrophoric gas, Chemically unstable gas A,B"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H221": {
+   "text": "Flammable gas",
+   "class": "Flammable gases",
+   "categories": [
+    "1B",
+    "Category 2"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H222": {
+   "text": "Extremely flammable aerosol",
+   "class": "Aerosols",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H223": {
+   "text": "Flammable aerosol",
+   "class": "Aerosols",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Warning"
+  },
+  "H224": {
+   "text": "Extremely flammable liquid and vapor",
+   "class": "Flammable liquids",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H225": {
+   "text": "Highly Flammable liquid and vapor",
+   "class": "Flammable liquids",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H226": {
+   "text": "Flammable liquid and vapor",
+   "class": "Flammable liquids",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Warning"
+  },
+  "H227": {
+   "text": "Combustible liquid",
+   "class": "Flammable liquids",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H228": {
+   "text": "Flammable solid",
+   "class": "Flammable solids",
+   "categories": [
+    "Category 1",
+    "Category 2"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H229": {
+   "text": "Pressurized container: may burst if heated",
+   "class": "Aerosols",
+   "categories": [
+    "Category 1",
+    "Category 2",
+    "Category 3"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H230": {
+   "text": "May react explosively even in the absence of air",
+   "class": "Flammable gases",
+   "categories": [
+    "1A, Chemically unstable gas A"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H231": {
+   "text": "May react explosively even in the absence of air at elevated pressure and/or temperature",
+   "class": "Flammable gases",
+   "categories": [
+    "1A, Chemically unstable gas B"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H232": {
+   "text": "May ignite spontaneously if exposed to air",
+   "class": "Flammable gases",
+   "categories": [
+    "1A, Pyrophoric gas"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H240": {
+   "text": "Heating may cause an explosion",
+   "class": "Self-reactive substances and mixtures; Organic peroxides",
+   "categories": [
+    "Type A"
+   ],
+   "pictograms": "GHS01",
+   "signal": "Danger"
+  },
+  "H241": {
+   "text": "Heating may cause a fire or explosion",
+   "class": "Self-reactive substances and mixtures; Organic peroxides",
+   "categories": [
+    "Type B"
+   ],
+   "pictograms": "GHS01,GHS02",
+   "signal": "Danger"
+  },
+  "H242": {
+   "text": "Heating may cause a fire",
+   "class": "Self-reactive substances and mixtures; Organic peroxides",
+   "categories": [
+    "Type C, D"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H250": {
+   "text": "Catches fire spontaneously if exposed to air",
+   "class": "Pyrophoric liquids",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H251": {
+   "text": "Self-heating; may catch fire",
+   "class": "Self-heating substances and mixtures",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H252": {
+   "text": "Self-heating in large quantities; may catch fire",
+   "class": "Self-heating substances and mixtures",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Warning"
+  },
+  "H260": {
+   "text": "In contact with water releases flammable gases which may ignite spontaneously",
+   "class": "Substances and mixtures which in contact with water, emit flammable gases",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H261": {
+   "text": "In contact with water releases flammable gas",
+   "class": "Substances and mixtures which in contact with water, emit flammable gases",
+   "categories": [
+    "Category 2",
+    "Category 3"
+   ],
+   "pictograms": "GHS02",
+   "signal": "Danger"
+  },
+  "H270": {
+   "text": "May cause or intensify fire; oxidizer",
+   "class": "Oxidizing gases",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS03",
+   "signal": "Danger"
+  },
+  "H271": {
+   "text": "May cause fire or explosion; strong Oxidizer",
+   "class": "Oxidizing liquids; Oxidizing solids",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS03",
+   "signal": "Danger"
+  },
+  "H272": {
+   "text": "May intensify fire; oxidizer",
+   "class": "Oxidizing liquids; Oxidizing solids",
+   "categories": [
+    "Category 2",
+    "Category 3"
+   ],
+   "pictograms": "GHS03",
+   "signal": "Danger"
+  },
+  "H280": {
+   "text": "Contains gas under pressure; may explode if heated",
+   "class": "Gases under pressure",
+   "categories": [
+    "Compressed gas, Liquefied gas, Dissolved gas"
+   ],
+   "pictograms": "GHS04",
+   "signal": "Warning"
+  },
+  "H281": {
+   "text": "Contains refrigerated gas; may cause cryogenic burns or injury",
+   "class": "Gases under pressure",
+   "categories": [
+    "Refrigerated liquefied gas"
+   ],
+   "pictograms": "GHS04",
+   "signal": "Warning"
+  },
+  "H282": {
+   "text": "Extremely flammable chemical under pressure: may explode if heated",
+   "class": "Chemicals under pressure",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS02,GHS04",
+   "signal": "Danger"
+  },
+  "H283": {
+   "text": "Flammable chemical under pressure: may explode if heated",
+   "class": "Chemicals under pressure",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS02,GHS04",
+   "signal": "Warning"
+  },
+  "H284": {
+   "text": "Chemical under pressure: may explode if heated",
+   "class": "Chemicals under pressure",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS04",
+   "signal": "Warning"
+  },
+  "H290": {
+   "text": "May be corrosive to metals",
+   "class": "Corrosive to Metals",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS05",
+   "signal": "Warning"
+  },
+  "H300": {
+   "text": "Fatal if swallowed",
+   "class": "Acute toxicity, oral",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H301": {
+   "text": "Toxic if swallowed",
+   "class": "Acute toxicity, oral",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H302": {
+   "text": "Harmful if swallowed",
+   "class": "Acute toxicity, oral",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H303": {
+   "text": "May be harmful if swallowed",
+   "class": "Acute toxicity, oral",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H304": {
+   "text": "May be fatal if swallowed and enters airways",
+   "class": "Aspiration hazard",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H305": {
+   "text": "May be harmful if swallowed and enters airways",
+   "class": "Aspiration hazard",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H310": {
+   "text": "Fatal in contact with skin",
+   "class": "Acute toxicity, dermal",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H311": {
+   "text": "Toxic in contact with skin",
+   "class": "Acute toxicity, dermal",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H312": {
+   "text": "Harmful in contact with skin",
+   "class": "Acute toxicity, dermal",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H313": {
+   "text": "May be harmful in contact with skin",
+   "class": "Acute toxicity, dermal",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H314": {
+   "text": "Causes severe skin burns and eye damage",
+   "class": "Skin corrosion/irritation",
+   "categories": [
+    "Category 1, 1A, 1B, 1C"
+   ],
+   "pictograms": "GHS05",
+   "signal": "Danger"
+  },
+  "H315": {
+   "text": "Causes skin irritation",
+   "class": "Skin corrosion/irritation",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H316": {
+   "text": "Causes mild skin irritation",
+   "class": "Skin corrosion/irritation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H317": {
+   "text": "May cause an allergic skin reaction",
+   "class": "Sensitization, Skin",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H318": {
+   "text": "Causes serious eye damage",
+   "class": "Serious eye damage/eye irritation",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS05",
+   "signal": "Danger"
+  },
+  "H319": {
+   "text": "Causes serious eye irritation",
+   "class": "Serious eye damage/eye irritation",
+   "categories": [
+    "Category 2A"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H320": {
+   "text": "Causes eye irritation",
+   "class": "Serious eye damage/eye irritation",
+   "categories": [
+    "Category 2B"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H330": {
+   "text": "Fatal if inhaled",
+   "class": "Acute toxicity, inhalation",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H331": {
+   "text": "Toxic if inhaled",
+   "class": "Acute toxicity, inhalation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H332": {
+   "text": "Harmful if inhaled",
+   "class": "Acute toxicity, inhalation",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H333": {
+   "text": "May be harmful if inhaled",
+   "class": "Acute toxicity, inhalation",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H334": {
+   "text": "May cause allergy or asthma symptoms or breathing difficulties if inhaled",
+   "class": "Sensitization, respiratory",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H335": {
+   "text": "May cause respiratory irritation",
+   "class": "Specific target organ toxicity, single exposure; Respiratory tract irritation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H336": {
+   "text": "May cause drowsiness or dizziness",
+   "class": "Specific target organ toxicity, single exposure; Narcotic effects",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H340": {
+   "text": "May cause genetic defects",
+   "class": "Germ cell mutagenicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H341": {
+   "text": "Suspected of causing genetic defects",
+   "class": "Germ cell mutagenicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H350": {
+   "text": "May cause cancer",
+   "class": "Carcinogenicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H350i": {
+   "text": "May cause cancer by inhalation",
+   "class": "Carcinogenicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H351": {
+   "text": "Suspected of causing cancer",
+   "class": "Carcinogenicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H360": {
+   "text": "May damage fertility or the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H360F": {
+   "text": "May damage fertility",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H360D": {
+   "text": "May damage the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H360FD": {
+   "text": "May damage fertility; May damage the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H360Fd": {
+   "text": "May damage fertility; Suspected of damaging the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H360Df": {
+   "text": "May damage the unborn child; Suspected of damaging fertility",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 1, 1A, 1B"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H361": {
+   "text": "Suspected of damaging fertility or the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H361f": {
+   "text": "Suspected of damaging fertility",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H361d": {
+   "text": "Suspected of damaging the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H361fd": {
+   "text": "Suspected of damaging fertility; Suspected of damaging the unborn child",
+   "class": "Reproductive toxicity",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H362": {
+   "text": "May cause harm to breast-fed children",
+   "class": "Reproductive toxicity, effects on or via lactation",
+   "categories": [
+    "Additional category"
+   ],
+   "pictograms": "",
+   "signal": ""
+  },
+  "H370": {
+   "text": "Causes damage to organs",
+   "class": "Specific target organ toxicity, single exposure",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H371": {
+   "text": "May cause damage to organs",
+   "class": "Specific target organ toxicity, single exposure",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H372": {
+   "text": "Causes damage to organs through prolonged or repeated exposure",
+   "class": "Specific target organ toxicity, repeated exposure",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Danger"
+  },
+  "H373": {
+   "text": "May causes damage to organs through prolonged or repeated exposure",
+   "class": "Specific target organ toxicity, repeated exposure",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS08",
+   "signal": "Warning"
+  },
+  "H400": {
+   "text": "Very toxic to aquatic life",
+   "class": "Hazardous to the aquatic environment, acute hazard",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS09",
+   "signal": "Warning"
+  },
+  "H401": {
+   "text": "Toxic to aquatic life",
+   "class": "Hazardous to the aquatic environment, acute hazard",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "",
+   "signal": ""
+  },
+  "H402": {
+   "text": "Harmful to aquatic life",
+   "class": "Hazardous to the aquatic environment, acute hazard",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "",
+   "signal": ""
+  },
+  "H410": {
+   "text": "Very toxic to aquatic life with long lasting effects",
+   "class": "Hazardous to the aquatic environment, long-term hazard",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS09",
+   "signal": "Warning"
+  },
+  "H411": {
+   "text": "Toxic to aquatic life with long lasting effects",
+   "class": "Hazardous to the aquatic environment, long-term hazard",
+   "categories": [
+    "Category 2"
+   ],
+   "pictograms": "GHS09",
+   "signal": ""
+  },
+  "H412": {
+   "text": "Harmful to aquatic life with long lasting effects",
+   "class": "Hazardous to the aquatic environment, long-term hazard",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "",
+   "signal": ""
+  },
+  "H413": {
+   "text": "May cause long lasting harmful effects to aquatic life",
+   "class": "Hazardous to the aquatic environment, long-term hazard",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "",
+   "signal": ""
+  },
+  "H420": {
+   "text": "Harms public health and the environment by destroying ozone in the upper atmosphere",
+   "class": "Hazardous to the ozone layer",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H421": {
+   "text": "Harms public health and the environment by contributing to global warming",
+   "class": "Hazardous by contributing to global warming",
+   "categories": [
+    "Category 1"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H300+H310": {
+   "text": "Fatal if swallowed or in contact with skin",
+   "class": "Acute toxicity, oral; acute toxicity, dermal",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H300+H330": {
+   "text": "Fatal if swallowed or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, inhalation",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H310+H330": {
+   "text": "Fatal in contact with skin or if inhaled",
+   "class": "Acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H300+H310+H330": {
+   "text": "Fatal if swallowed, in contact with skin or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 1, 2"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H301+H311": {
+   "text": "Toxic if swallowed or in contact with skin",
+   "class": "Acute toxicity, oral; acute toxicity, dermal",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H301+H331": {
+   "text": "Toxic if swallowed or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, inhalation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H311+H331": {
+   "text": "Toxic in contact with skin or if inhaled.",
+   "class": "Acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H301+H311+H331": {
+   "text": "Toxic if swallowed, in contact with skin or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 3"
+   ],
+   "pictograms": "GHS06",
+   "signal": "Danger"
+  },
+  "H302+H312": {
+   "text": "Harmful if swallowed or in contact with skin",
+   "class": "Acute toxicity, oral; acute toxicity, dermal",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H302+H332": {
+   "text": "Harmful if swallowed or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, inhalation",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H312+H332": {
+   "text": "Harmful in contact with skin or if inhaled",
+   "class": "Acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H302+H312+H332": {
+   "text": "Harmful if swallowed, in contact with skin or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 4"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H303+H313": {
+   "text": "May be harmful if swallowed or in contact with skin",
+   "class": "Acute toxicity, oral; acute toxicity, dermal",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H303+H333": {
+   "text": "May be harmful if swallowed or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, inhalation",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H313+H333": {
+   "text": "May be harmful in contact with skin or if inhaled",
+   "class": "Acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H303+H313+H333": {
+   "text": "May be harmful if swallowed, in contact with skin or if inhaled",
+   "class": "Acute toxicity, oral; acute toxicity, dermal; acute toxicity, inhalation",
+   "categories": [
+    "Category 5"
+   ],
+   "pictograms": "",
+   "signal": "Warning"
+  },
+  "H315+319": {
+   "text": "Cause skin irritation and serious eys irritation",
+   "class": "Skin corrosion/irritation and serious eye damage/eye irritation",
+   "categories": [
+    "Category 2, 2A"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  },
+  "H315+H320": {
+   "text": "Cause skin and eye irritation",
+   "class": "Skin corrosion/irritation and serious eye damage/eye irritation",
+   "categories": [
+    "Category 2, 2B"
+   ],
+   "pictograms": "GHS07",
+   "signal": "Warning"
+  }
+ },
+ "p": {
+  "P101": "If medical advice is needed, have product container or label at hand.",
+  "P102": "Keep out of reach of children.",
+  "P103": "Read carefully and follow all instructions.",
+  "P201": "(Deleted) Obtain special instructions before use.",
+  "P202": "(Deleted) Do not handle until all safety precautions have been read and understood.",
+  "P203": "Obtain, read and follow all safety instructions before use.",
+  "P210": "Keep away from heat, hot surface, sparks, open flames and other ignition sources. No smoking.",
+  "P211": "Do not spray on an open flame or other ignition source.",
+  "P212": "Avoid heating under confinement or reduction of the desensitized agent.",
+  "P220": "Keep away from clothing and other combustible materials.",
+  "P221": "(Deleted) Take any precaution to avoid mixing with combustibles/...",
+  "P222": "Do not allow contact with air.",
+  "P223": "Do not allow contact with water.",
+  "P230": "Keep diluted with ...",
+  "P231": "Handle and store contents under inert gas/...",
+  "P232": "Protect from moisture.",
+  "P233": "Keep container tightly closed.",
+  "P234": "Keep only in original container.",
+  "P235": "Keep cool.",
+  "P236": "Keep only in original packaging; Division .. in the transport configuraion.",
+  "P240": "Ground/bond container and receiving equipment.",
+  "P241": "Use explosion-proof [electrical/ventilating/lighting/.../] equipment.",
+  "P242": "Use only non-sparking tools.",
+  "P243": "Take precautionary measures against static discharge.",
+  "P244": "Keep valves and fittings free from oil and grease.",
+  "P250": "Do not subject to grinding/shock/friction/...",
+  "P251": "Do not pierce or burn, even after use.",
+  "P260": "Do not breathe dust/fume/gas/mist/vapors/spray.",
+  "P261": "Avoid breathing dust/fume/gas/mist/vapors/spray.",
+  "P262": "Do not get in eyes, on skin, or on clothing.",
+  "P263": "Avoid contact during pregnancy/while nursing.",
+  "P264": "Wash hands [and ...] thoroughly after handling.",
+  "P265": "Do not touch eyes.",
+  "P270": "Do not eat, drink or smoke when using this product.",
+  "P271": "Use only outdoors or in a well-ventilated area.",
+  "P272": "Contaminated work clothing should not be allowed out of the workplace.",
+  "P273": "Avoid release to the environment.",
+  "P280": "Wear protective gloves/protective clothing/eye protection/face protection/hearing protection/...",
+  "P281": "(Deleted)Use personal protective equipment as required.",
+  "P282": "Wear cold insulating glovesand either face shield or eye protection.",
+  "P283": "Wear fire resistant or flame retardant clothing.",
+  "P284": "[In case of inadequate ventilation] Wear respiratory protection.",
+  "P285": "(Deleted) In case of inadequate ventilation wear respiratory protection.",
+  "P231+P232": "Handle and store contents under inert gas/... Protect from moisture.",
+  "P264+P265": "Wash hands [and ...] thoroughly after handling. Do not touch eyes.",
+  "P235+P410": "(Deleted) Keep cool. Protect from sunlight.",
+  "P301": "IF SWALLOWED:",
+  "P302": "IF ON SKIN:",
+  "P303": "IF ON SKIN (or hair):",
+  "P304": "IF INHALED:",
+  "P305": "IF IN EYES:",
+  "P306": "IF ON CLOTHING:",
+  "P307": "(Deleted) IF exposed:",
+  "P308": "IF exposed or concerned:",
+  "P309": "(Deleted) IF exposed or if you feel unwell",
+  "P310": "(Deleted) Immediately call a POISON CENTER or doctor/physician.",
+  "P311": "(Deleted) Call a POISON CENTER or doctor/...",
+  "P312": "(Deleted) Call a POISON CENTER or doctor/... if you feel unwell.",
+  "P313": "(Deleted) Get medical advice/attention.",
+  "P314": "(Deleted) Get medical advice/attention if you feel unwell.",
+  "P315": "(Deleted) Get immediate medical advice/attention.",
+  "P316": "Get emergency medical help immediately.",
+  "P317": "Get emergency medical help.",
+  "P318": "if exposed or concerned, get medical advice.",
+  "P319": "Get medical help if you feel unwell.",
+  "P320": "Specific treatment is urgent (see ... on this label).",
+  "P321": "Specific treatment (see information on this label and safety datasheet)).",
+  "P322": "Specific treatment is urgent (see information on the safety datasheet)",
+  "P323": "Specific measures (see information on the safety datasheet).",
+  "P330": "Rinse mouth.",
+  "P331": "Do NOT induce vomiting.",
+  "P332": "IF SKIN irritation occurs:",
+  "P333": "If skin irritation or rash occurs:",
+  "P334": "Immerse in cool water [or wrap in wet bandages].",
+  "P335": "Brush off loose particles from skin.",
+  "P336": "Immediately thaw frosted parts with lukewarm water. Do not rub affected area.",
+  "P337": "If eye irritation persists:",
+  "P338": "Remove contact lenses, if present and easy to do. Continue rinsing.",
+  "P340": "Remove person to fresh air and keep comfortable for breathing.",
+  "P341": "(Deleted) If breathing is difficult, remove victim to fresh air and keep at rest in a position comfortable for breathing.",
+  "P342": "If experiencing respiratory symptoms:",
+  "P350": "(Deleted) Gently wash with plenty of soap and water.",
+  "P351": "Rinse cautiously with water for several minutes.",
+  "P352": "Wash with plenty of water/...",
+  "P353": "Rinse skin with water [or shower].",
+  "P354": "Immediately rinse with water for several minutes.",
+  "P360": "Rinse immediately contaminated clothing and skin with plenty of water before removing clothes.",
+  "P361": "Take off immediately all contaminated clothing.",
+  "P362": "Take off contaminated clothing.",
+  "P363": "Wash contaminated clothing before reuse.",
+  "P364": "And wash it before reuse.",
+  "P370": "In case of fire:",
+  "P371": "In case of major fire and large quantities:",
+  "P372": "Explosion risk.",
+  "P373": "DO NOT fight fire when fire reaches explosives.",
+  "P374": "(Deleted) Fight fire with normal precautions from a reasonable distance.",
+  "P375": "Fight fire remotely due to the risk of explorsion.",
+  "P376": "Stop leak if safe to do so.",
+  "P377": "Leaking gas fire: Do not extinguish, unless leak can be stopped safely.",
+  "P378": "Use ... to extinguish.",
+  "P380": "Evacuate area.",
+  "P381": "In case of leakage, eliminate all ignition sources.",
+  "P390": "Absorb spillage to prevent material damage.",
+  "P391": "Collect spillage.",
+  "P301+P310": "(Deleted) IF SWALLOWED: Immediately call a POISON CENTER/doctor/...",
+  "P301+P312": "(Deleted) IF SWALLOWED: call a POISON CENTER/doctor/... IF you feel unwell.",
+  "P301+P316": "IF SWALLOWED: Get emergency medical help immediately.",
+  "P301+P317": "IF SWALLOWED: Get medical help.",
+  "P301+P330+P331": "IF SWALLOWED: Rinse mouth. Do NOT induce vomiting.",
+  "P302+P317": "(Deleted) IF ON SKIN: Get medical help.",
+  "P302+P334": "IF ON SKIN: Immerse in cool water or wrap in wet bandages.",
+  "P302+P335+P334": "Brush off loose particles from skin. Immerse in cool water [or wrap in wet bandages].",
+  "P302+P350": "(Deleted) IF ON SKIN: Gently wash with plenty of soap and water.",
+  "P302+P352": "IF ON SKIN: wash with plenty of water/...",
+  "P302+P361+P354": "IF ON SKIN: Take off Immediately all contaminated clothing. Immediately rinse with water for several minutes.",
+  "P303+P361+P353": "IF ON SKIN (or hair): Take off Immediately all contaminated clothing. Rinse SKIN with water [or shower].",
+  "P304+P312": "(Deleted) IF INHALED: Call a POISON CENTER/doctor/... if you feel unwell.",
+  "P304+P317": "(Deleted) IF INHALED: Get medical help.",
+  "P304+P340": "IF INHALED: Remove person to fresh air and keep comfortable for breathing.",
+  "P304+P341": "(Deleted) IF INHALED: If breathing is difficult, remove victim to fresh air and keep at rest in a position comfortable for breathing.",
+  "P305+P351+P338": "IF IN EYES: Rinse cautiously with water for several minutes. Remove contact lenses if present and easy to do - continue rinsing.",
+  "P305+P354+P338": "IF IN EYES: Immediately rinse with water for several minutes. Remove contact lenses if present and easy to do. Continue rinsing.",
+  "P306+P360": "IF ON CLOTHING: Rinse Immediately contaminated CLOTHING and SKIN with plenty of water before removing clothes.",
+  "P308+P316": "IF exposed or concerned: Get emergency medical help immediately.",
+  "P307+P311": "(Deleted) IF exposed: call a POISON CENTER or doctor/physician.",
+  "P308+P311": "(Deleted) IF exposed or concerned: Call a POISON CENTER/doctor/...",
+  "P308+P313": "(Deleted) IF exposed or concerned: Get medical advice/attention.",
+  "P309+P311": "(Deleted) IF exposed or if you feel unwell: call a POISON CENTER or doctor/physician.",
+  "P332+P313": "(Deleted) IF SKIN irritation occurs: Get medical advice/attention.",
+  "P332+P317": "If skin irritation occurs: Get medical help.",
+  "P333+P317": "If skin irritation or rash occurs: Get medical help.",
+  "P336+P317": "Immediately thaw frosted parts with lukewarm water. Do not rub affected area. Get medical help.",
+  "P337+P317": "If eye irritation persists: Get medical help.",
+  "P342+P316": "If experiencing respiratory symptoms: Get emergence medical help immediately.",
+  "P333+P313": "(Deleted) IF SKIN irritation or rash occurs: Get medical advice/attention.",
+  "P335+P334": "(Deleted) Brush off loose particles from skin. Immerse in cool water/wrap in wet bandages.",
+  "P337+P313": "(Deleted) IF eye irritation persists: Get medical advice/attention.",
+  "P342+P311": "(Deleted) IF experiencing respiratory symptoms: Call a POISON CENTER/doctor/...",
+  "P361+P364": "Take off immediately all contaminated clothing and wash it before reuse.",
+  "P362+P364": "Take off contaminated clothing and wash it before reuse.",
+  "P370+P376": "in case of fire: Stop leak if safe to do so.",
+  "P370+P378": "In case of fire: Use ... to extinguish.",
+  "P370+P380": "(Deleted) In case of fire: Evacuate area.",
+  "P370+P380+P375": "In case of fire: Evacuate area. Fight fire remotely due to the risk of explosion.",
+  "P371+P380+P375": "In case of major fire and large quantities: Evacuate area. Fight fire remotely due to the risk of explosion.",
+  "P370+P372+P380+P373": "In case of fire: Explosion risk. Evacuate area. DO NOT fight fire when fire reaches explosives.",
+  "P370+P380+P375[+P378]": "In case of fire: Evacuate area. Fight fire remotely due to the risk of explosion. [Use...to extinguish].]",
+  "P401": "Store in accordance with ...",
+  "P402": "Store in a dry place.",
+  "P403": "Store in a well-ventilated place.",
+  "P404": "Store in a closed container.",
+  "P405": "Store locked up.",
+  "P406": "Store in corrosive resistant/... container with a resistant inner liner.",
+  "P407": "Maintain air gap between stacks or pallets.",
+  "P410": "Protect from sunlight.",
+  "P411": "Store at temperatures not exceeding ... °C/...°F.",
+  "P412": "Do not expose to temperatures exceeding 50 °C/ 122 °F.",
+  "P413": "Store bulk masses greater than ... kg/...lbs at temperatures not exceeding ... °C/...°F.",
+  "P420": "Store separately.",
+  "P422": "(Deleted) Store contents under ...",
+  "P402+P404": "Store in a dry place. Store in a closed container.",
+  "P403+P233": "Store in a well-ventilated place. Keep container tightly closed.",
+  "P403+P235": "Store in a well-ventilated place. Keep cool.",
+  "P410+P403": "Protect from sunlight. Store in a well-ventilated place.",
+  "P410+P412": "Protect from sunlight. Do not expose to temperatures exceeding 50 °C/122°F.",
+  "P411+P235": "(Deleted) Store at temperatures not exceeding ... °C/...°F. Keep cool.",
+  "P501": "Dispose of contents/container to ...",
+  "P502": "Refer to manufacturer or supplier for information on recovery or recycling",
+  "P503": "Refer to manufacturer/supplier... for information on disposal/recovery/recycling."
+ }
+}
