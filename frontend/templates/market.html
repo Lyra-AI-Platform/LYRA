@@ -139,9 +139,21 @@ function renderReading(r) {
     <div class="bar"><div class="b" style="width:${r.p_boom * 100}%"></div><div class="s" style="width:${r.p_bust * 100}%"></div></div>
     <div class="muted">${esc(r.definition)}</div>
     ${sizing ? `<p><b>${esc(sizing)}</b></p>` : ""}
+    ${d.stop_loss ? `<p class="muted">Stop-loss <b style="color:var(--bust)">${d.stop_loss}</b> · take-profit <b style="color:var(--boom)">${d.take_profit}</b></p>` : ""}
+    ${riskBlock(d)}
     <h2 style="margin-top:16px">Probable causes</h2>
     <ul class="causes">${r.causes.map(c => `<li class="${c.impact >= 0 ? "pos" : "neg"}"><span style="color:var(--text)">${esc(c.reason)}</span></li>`).join("") || "<li>No strong drivers</li>"}</ul>
     <p class="muted">${esc(r.disclaimer)}</p>`;
+}
+
+function riskBlock(d) {
+  const checks = (d.risk && d.risk.checks) || [];
+  if (!checks.length) return "";
+  const icon = { pass: "✓", adjust: "↓", block: "✕" };
+  const cls = { pass: "pos", adjust: "", block: "neg" };
+  const head = d.original_action ? `<p><b class="neg">Risk guard overrode ${esc(d.original_action)} → HOLD</b></p>` : "";
+  return `<h2 style="margin-top:16px">Risk guard</h2>${head}<ul class="causes" style="list-style:none;padding-left:0">${checks.map(c =>
+    `<li><span class="${cls[c.status]}">${icon[c.status]}</span> ${esc(c.detail)}</li>`).join("")}</ul>`;
 }
 
 function tradeRows(trades) {

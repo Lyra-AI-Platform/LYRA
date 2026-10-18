@@ -82,6 +82,7 @@ def price_stats(bars: List[Dict]) -> Dict:
         "drawdown": 1 - price / high if high else 0,
         "realized_vol": _stdev(rets[-20:]) * math.sqrt(252),
         "volume_z": (recent_vol - base_mean) / base_sd if base_sd else 0,
+        "last_ts": bars[-1]["ts"],
     }
 
 

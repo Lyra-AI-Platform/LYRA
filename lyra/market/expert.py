@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Dict, List, Optional
 
-from lyra.market import learner, news, peers, smart_money
+from lyra.market import learner, news, peers, risk_guard, smart_money
 from lyra.market.config import BOOM_THRESHOLD, BUST_THRESHOLD, HORIZON_DAYS, INDEX_NAME
 from lyra.market.market_data import get_history, get_vix, price_stats
 from lyra.market.store import get_store
@@ -54,7 +54,11 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
     stats_db = get_store().prediction_stats()
     confidence = _confidence(feats["available"], peer_info, stats_db["evaluated"])
     price = stats.get("price")
-    decision = decide(p_boom, p_bust, confidence, vix.get("level"), price, portfolio_value, shares_held)
+    model_decision = decide(p_boom, p_bust, confidence, vix.get("level"), price, portfolio_value, shares_held)
+    decision = risk_guard.review(model_decision, {
+        "ticker": ticker, "price": price, "last_ts": stats.get("last_ts"),
+        "realized_vol": stats.get("realized_vol"), "p_boom": p_boom, "p_bust": p_bust,
+        "equity": portfolio_value, "shares_held": shares_held})
 
     reading = {
         "index": INDEX_NAME,
@@ -91,7 +95,7 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         reading["prediction_id"] = get_store().save_prediction({
             "ticker": ticker, "created_at": reading["created_at"], "price": price,
             "horizon_days": HORIZON_DAYS, "features": x, "p_boom": p_boom, "p_bust": p_bust,
-            "action": decision["action"]})
+            "action": model_decision["action"]})  # grade the model's call, not the guard's veto
     return reading
 
 
@@ -119,8 +123,13 @@ def ai_brief(reading: Dict) -> str:
         + (f", {d['portfolio_fraction']:.2%} of portfolio" if "portfolio_fraction" in d else "")
         + (f", sell {d['fraction_of_holding']:.0%} of holding" if "fraction_of_holding" in d else "")
         + (f", ~{d['shares']} shares" if d.get("shares") else ""),
-        "Why:",
     ]
+    if d.get("stop_loss"):
+        lines.append(f"Stop-loss {d['stop_loss']} | take-profit {d['take_profit']} — place both with the order.")
+    vetoes = [c["detail"] for c in d.get("risk", {}).get("checks", []) if c["status"] == "block"]
+    if vetoes:
+        lines.append(f"Risk guard overrode {d['original_action']} -> HOLD: " + "; ".join(vetoes))
+    lines.append("Why:")
     lines += [f"  - {c['reason']} ({c['impact']:+.3f})" for c in reading["causes"]]
     lines.append(reading["disclaimer"])
     return "\n".join(lines)

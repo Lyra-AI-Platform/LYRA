@@ -40,6 +40,42 @@ Each stock gets its own reading, labelled `TRX-<TICKER>` (e.g. `TRX-NVDA`).
    projects publish on GitHub, listed in `data/market/peers.json`. Their
    consensus is a feature; disagreement lowers confidence.
 
+## Risk guard — fixing the way AI day traders actually blow up
+
+Most AI trading bots don't fail because their predictions are bad. They fail
+because nothing stops them from acting on a bad prediction at full size, again
+and again. Every `BUY`/`SELL` passes through `risk_guard.py` before it is
+returned, and the guard can only shrink a trade or turn it into `HOLD`, never
+enlarge it. Exits (`SELL`) are never blocked.
+
+| Failure mode | What the guard does |
+|---|---|
+| No stop, one gap wipes out weeks of gains | Every BUY comes with a volatility-based stop-loss (2x typical daily move) and a 2:1 take-profit; size is capped so hitting the stop loses at most 1% of equity |
+| A bad day turns into a blown account | Daily loss limit: no new buys after -2% on the day |
+| Slow bleed becomes a disaster | Drawdown circuit breaker: sizes halve at 5% below peak, buying halts at 10% |
+| Revenge trading after losses | 3 losing trades in a row → 24h cool-off on new buys |
+| Overtrading / flip-flopping | Max 10 trades a day; no re-buying a ticker within 30 min of trading it |
+| Fees and spread eat tiny edges | Buys whose expected move doesn't clear 2x round-trip costs become HOLD |
+| Acting on stale or missing data | No buying if the latest price is more than 4 days old or missing |
+| Whole account riding on one move | Total exposure capped at 60% of equity |
+
+For the guard to know the account's state, the trader reports it:
+```http
+POST /api/market/account   {"equity": 10250, "invested": 3100}
+POST /api/market/fills     {"ticker": "NVDA", "side": "buy", "shares": 3, "price": 135.2}
+GET  /api/market/risk      -> daily P&L, drawdown, losing streak, trades today
+```
+`/api/market/decision` also records `portfolio_value` as an equity snapshot.
+Every decision carries `risk.checks` explaining what passed, what was cut and
+what was blocked; vetoed decisions keep `original_action`. All limits can be
+changed with `LYRA_RISK_PER_TRADE`, `LYRA_DAILY_LOSS_LIMIT`, `LYRA_MAX_DRAWDOWN`,
+`LYRA_MAX_EXPOSURE`, `LYRA_LOSS_STREAK`, `LYRA_COOLDOWN_HOURS`,
+`LYRA_MAX_TRADES_PER_DAY`, `LYRA_MIN_REENTRY_MINUTES`, `LYRA_ROUND_TRIP_COST`
+and `LYRA_MAX_DATA_AGE_DAYS`.
+
+The learner still grades the model's own call, not the guard's veto, so a
+blocked trade doesn't teach the model the wrong lesson.
+
 ## How it learns from mistakes
 
 Every reading is saved. After 30 days the learner checks what the price did,
@@ -71,6 +107,9 @@ and a `brief` text block to drop into the model's context.
 | `GET /api/market/news/{id}` | one article with full text |
 | `GET /api/market/signal/{ticker}` | lightweight signal for peer nodes |
 | `GET /api/market/signals.json?tickers=NVDA,AAPL` | publishable signal file |
+| `POST /api/market/account` | report equity / amount invested |
+| `POST /api/market/fills` | report an executed trade |
+| `GET /api/market/risk` | account state as the risk guard sees it |
 | `GET /api/market/learning` | hit rate, mistake log, current weights |
 | `POST /api/market/learning/evaluate` | grade matured readings now |
 

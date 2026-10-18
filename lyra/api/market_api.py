@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from lyra.market import expert, learner, news, peers
+from lyra.market import expert, learner, news, peers, risk_guard
 from lyra.market.market_data import get_vix
 from lyra.market.store import get_store
 
@@ -18,6 +18,18 @@ class DecisionRequest(BaseModel):
     ticker: str
     portfolio_value: Optional[float] = None
     shares_held: float = 0.0
+
+
+class AccountRequest(BaseModel):
+    equity: float
+    invested: Optional[float] = None
+
+
+class FillRequest(BaseModel):
+    ticker: str
+    side: str
+    shares: float
+    price: float
 
 
 class ScanRequest(BaseModel):
@@ -39,7 +51,10 @@ async def tremor_reading(ticker: str):
 
 @router.post("/decision")
 async def decision(request: DecisionRequest):
-    """Buy/sell/hold plus size, for an AI agent. Includes a text brief for LLM context."""
+    """Buy/sell/hold plus size, for an AI agent, after the risk guard has reviewed it.
+    Includes a text brief for LLM context."""
+    if request.portfolio_value:
+        get_store().record_equity(request.portfolio_value)
     reading = await expert.analyze(request.ticker, request.portfolio_value, request.shares_held)
     return {"ticker": reading["ticker"], "label": reading["label"], "decision": reading["decision"],
             "p_boom": reading["p_boom"], "p_bust": reading["p_bust"], "score": reading["score"],
@@ -105,3 +120,29 @@ async def learning_status():
 async def learning_evaluate():
     """Grade every prediction whose horizon has passed and retrain now."""
     return await learner.evaluate_due()
+
+
+@router.post("/account")
+async def account_update(request: AccountRequest):
+    """Report current equity (and amount invested) so the risk guard can track daily P&L and drawdown."""
+    if request.equity <= 0:
+        raise HTTPException(400, "equity must be positive")
+    get_store().record_equity(request.equity, request.invested)
+    return risk_guard.account_state()
+
+
+@router.post("/fills")
+async def fill(request: FillRequest):
+    """Report an executed trade so the guard can count trades and losing streaks."""
+    side = request.side.lower()
+    if side not in ("buy", "sell") or request.shares <= 0 or request.price <= 0:
+        raise HTTPException(400, "side must be buy/sell with positive shares and price")
+    return get_store().record_fill(request.ticker, side, request.shares, request.price)
+
+
+@router.get("/risk")
+async def risk_status():
+    """Account state as the risk guard sees it: daily P&L, drawdown, streaks, trade count."""
+    state = risk_guard.account_state()
+    state.pop("last_trade_ts", None)
+    return state

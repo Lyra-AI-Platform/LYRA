@@ -27,6 +27,18 @@ BUST_THRESHOLD = float(os.environ.get("LYRA_MARKET_BUST", 0.05))
 # Never suggest putting more than this fraction of a portfolio into one name.
 MAX_POSITION = float(os.environ.get("LYRA_MARKET_MAX_POSITION", 0.05))
 
+# Risk guard: hard limits the AI trader can't argue its way past.
+RISK_PER_TRADE = float(os.environ.get("LYRA_RISK_PER_TRADE", 0.01))        # lose at most 1% of equity if stopped out
+DAILY_LOSS_LIMIT = float(os.environ.get("LYRA_DAILY_LOSS_LIMIT", 0.02))    # stop buying after -2% on the day
+MAX_DRAWDOWN = float(os.environ.get("LYRA_MAX_DRAWDOWN", 0.10))            # halt buying 10% below peak equity
+MAX_GROSS_EXPOSURE = float(os.environ.get("LYRA_MAX_EXPOSURE", 0.60))      # never more than 60% invested
+LOSS_STREAK_LIMIT = int(os.environ.get("LYRA_LOSS_STREAK", 3))             # consecutive losers before cooling off
+COOLDOWN_HOURS = float(os.environ.get("LYRA_COOLDOWN_HOURS", 24))
+MAX_TRADES_PER_DAY = int(os.environ.get("LYRA_MAX_TRADES_PER_DAY", 10))
+MIN_REENTRY_MINUTES = float(os.environ.get("LYRA_MIN_REENTRY_MINUTES", 30))
+ROUND_TRIP_COST = float(os.environ.get("LYRA_ROUND_TRIP_COST", 0.002))     # spread + fees + slippage, buy and sell
+MAX_DATA_AGE_DAYS = float(os.environ.get("LYRA_MAX_DATA_AGE_DAYS", 4))     # covers weekends and a holiday
+
 LOOKBACK_DAYS_INSIDERS = 90
 LOOKBACK_DAYS_CONGRESS = 90
 

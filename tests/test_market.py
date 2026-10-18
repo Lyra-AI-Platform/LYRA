@@ -208,3 +208,88 @@ def test_end_to_end_analyze_offline(monkeypatch):
     hist = store.history("NVDA")
     assert hist[0]["outcome"] == "bust"
     assert store.load_weights("boom") is not None
+
+
+# ── Risk guard ──────────────────────────────────────────────────────────────
+
+from lyra.market import risk_guard  # noqa: E402
+from lyra.market import store as store_mod  # noqa: E402
+
+NOW = time.time()
+CLEAN = {"equity": 10000, "invested": 0, "peak_equity": 10000, "day_start_equity": 10000, "daily_pnl": 0.0,
+         "drawdown": 0.0, "trades_today": 0, "loss_streak": 0, "last_loss_ts": None, "last_trade_ts": {}}
+BUY = decide(0.7, 0.1, 1.0, 15, 100, portfolio_value=10000)
+CTX = {"ticker": "XYZ", "price": 100, "last_ts": NOW - 3600, "realized_vol": 0.3, "p_boom": 0.7,
+       "p_bust": 0.1, "equity": 10000}
+
+
+def guarded(decision=BUY, ctx=None, **state):
+    return risk_guard.review(decision, {**CTX, **(ctx or {})}, {**CLEAN, **state}, now=NOW)
+
+
+def blocked_by(d):
+    return [c["check"] for c in d["risk"]["checks"] if c["status"] == "block"]
+
+
+def test_guard_approves_clean_buy_and_attaches_stops():
+    d = guarded()
+    assert d["action"] == "BUY" and d["risk"]["approved"]
+    assert d["stop_loss"] < 100 < d["take_profit"]
+    assert (100 - d["stop_loss"]) * 2 == pytest_approx(d["take_profit"] - 100)
+    assert d["portfolio_fraction"] <= BUY["portfolio_fraction"]
+
+
+def pytest_approx(x):
+    import pytest
+    return pytest.approx(x, rel=1e-3)
+
+
+def test_guard_blocks_stale_data_but_allows_exits():
+    assert blocked_by(guarded(ctx={"last_ts": NOW - 10 * 86400})) == ["fresh_data"]
+    sell = decide(0.1, 0.6, 0.8, 20, 100, shares_held=50)
+    out = guarded(sell, ctx={"last_ts": NOW - 10 * 86400}, drawdown=0.5, daily_pnl=-0.2)
+    assert out["action"] == "SELL"  # getting out is never blocked
+
+
+def test_guard_daily_loss_drawdown_and_streak():
+    assert "daily_loss_limit" in blocked_by(guarded(daily_pnl=-0.03))
+    assert "drawdown_breaker" in blocked_by(guarded(drawdown=0.12))
+    halved = guarded(drawdown=0.06, ctx={"realized_vol": 0.1})
+    assert halved["action"] == "BUY" and halved["portfolio_fraction"] == pytest_approx(BUY["portfolio_fraction"] / 2)
+    assert "loss_streak_cooldown" in blocked_by(guarded(loss_streak=3, last_loss_ts=NOW - 3600))
+    assert guarded(loss_streak=3, last_loss_ts=NOW - 30 * 3600)["action"] == "BUY"
+
+
+def test_guard_overtrading_costs_and_exposure():
+    assert "overtrading" in blocked_by(guarded(trades_today=10))
+    assert "overtrading" in blocked_by(guarded(last_trade_ts={"XYZ": NOW - 300}))
+    weak = decide(0.30, 0.17, 1.0, 15, 100, portfolio_value=10000)
+    assert weak["action"] == "BUY" and "cost_hurdle" in blocked_by(guarded(weak, ctx={"p_boom": 0.30, "p_bust": 0.27}))
+    assert "exposure" in blocked_by(guarded(ctx={"invested": 6000}))
+    capped = guarded(ctx={"invested": 5900})
+    assert capped["portfolio_fraction"] == pytest_approx(0.01)
+
+
+def test_guard_sizes_from_stop_on_volatile_stocks():
+    calm = guarded(ctx={"realized_vol": 0.2})
+    wild = guarded(ctx={"realized_vol": 3.0})  # meme-stock volatility: stop is ~38% away
+    assert wild["portfolio_fraction"] < calm["portfolio_fraction"]
+    # If the stop is hit, the loss is at most RISK_PER_TRADE of equity.
+    loss = wild["shares"] * (100 - wild["stop_loss"])
+    assert loss <= 10000 * 0.01 + 1e-6
+
+
+def test_account_state_tracks_pnl_and_losing_streak(monkeypatch, tmp_path):
+    monkeypatch.setattr(store_mod, "_store", store_mod.MarketStore(tmp_path / "acct.db"))
+    s = store_mod.get_store()
+    s.record_equity(10000, ts=NOW - 2 * 86400)
+    s.record_equity(11000, ts=NOW - 86400 - 60)
+    s.record_equity(10500, ts=NOW)
+    for i, (buy, sell) in enumerate([(100, 90), (50, 45), (20, 19)]):
+        s.record_fill("ABC", "buy", 10, buy, ts=NOW - 600 + i * 10)
+        s.record_fill("ABC", "sell", 10, sell, ts=NOW - 595 + i * 10)
+    st = risk_guard.account_state(NOW)
+    assert st["peak_equity"] == 11000 and st["drawdown"] == pytest_approx(1 - 10500 / 11000)
+    assert st["daily_pnl"] == pytest_approx(10500 / 11000 - 1)
+    assert st["loss_streak"] == 3 and st["trades_today"] >= 1
+    assert s.fills(ticker="ABC")[1]["realized_pnl"] == -100.0
