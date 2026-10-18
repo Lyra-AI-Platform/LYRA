@@ -41,6 +41,17 @@ class User(Base):
     sites = relationship("Site", back_populates="owner", cascade="all, delete-orphan")
 
 
+class TrialUsage(Base):
+    """How much of each trial allowance an unpaid account has used (see lyra/api/entitlements.py)."""
+    __tablename__ = "trial_usage"
+
+    id        = Column(Integer, primary_key=True)
+    user_id   = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    feature   = Column(String, nullable=False)        # market | chat
+    count     = Column(Integer, default=0)
+    last_used = Column(DateTime(timezone=True), nullable=True)
+
+
 class Site(Base):
     """One row per website registered by a user."""
     __tablename__ = "sites"

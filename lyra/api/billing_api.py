@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from lyra.db.database import get_db
 from lyra.db.models import User
 from lyra.api.users_api import get_current_user
+from lyra.api import entitlements
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/billing", tags=["billing"])
@@ -44,11 +45,12 @@ def _stripe():
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @router.get("/status")
-def billing_status(user: User = Depends(get_current_user)):
+def billing_status(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     return {
-        "tier": user.tier,
+        **entitlements.status(user, db),
         "stripe_customer_id": user.stripe_customer_id,
         "has_subscription": bool(user.stripe_subscription_id),
+        "payments_configured": bool(os.getenv("STRIPE_SECRET_KEY")) and any(PRICE_IDS.values()),
     }
 
 

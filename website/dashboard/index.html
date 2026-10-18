@@ -149,8 +149,8 @@
   <!-- Billing link -->
   <div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div>
-      <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Free plan</div>
-      <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">10,000 verifications/month included</div>
+      <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Trial</div>
+      <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">Trial: 14 days, 1 site, 1,000 verifications. Then choose a plan.</div>
     </div>
     <a href="billing.html" class="btn btn-primary">Upgrade plan</a>
   </div>
@@ -223,11 +223,8 @@
       const user = await res.json();
       document.getElementById('user-email').textContent = user.email;
       const tierLabel = document.getElementById('tier-label');
-      if (user.tier === 'pro') {
-        tierLabel.textContent = 'Pro plan — unlimited verifications';
-      } else if (user.tier === 'enterprise') {
-        tierLabel.textContent = 'Enterprise plan';
-      }
+      const names = { starter: 'Starter plan', pro: 'Pro plan', business: 'Business plan', enterprise: 'Enterprise plan' };
+      tierLabel.textContent = names[user.tier] || 'Trial — 14 days, then choose a plan';
     } catch {}
   }
 

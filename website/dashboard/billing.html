@@ -103,17 +103,17 @@
   <div class="plans-grid" id="plans-grid">
 
     <div class="plan" id="plan-free">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">$0<span>/mo</span></div>
-      <div class="plan-tagline">Personal &amp; open source.</div>
+      <div class="plan-name">Trial</div>
+      <div class="plan-price">$0<span>/14 days</span></div>
+      <div class="plan-tagline">Try everything, then pick a plan.</div>
       <ul class="plan-features">
-        <li>10,000 verifications/mo</li>
-        <li>3 sites</li>
-        <li>All 14+ challenges</li>
-        <li>Training data pipeline</li>
-        <li>Community support</li>
+        <li>1,000 verifications</li>
+        <li>1 site</li>
+        <li>3 Tremor readings</li>
+        <li>20 chat messages</li>
+        <li>No card needed</li>
       </ul>
-      <button class="plan-btn current" disabled id="btn-free">Free plan</button>
+      <button class="plan-btn current" disabled id="btn-free">Trial</button>
     </div>
 
     <div class="plan" id="plan-starter">
@@ -197,11 +197,11 @@
   function authH() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }; }
 
   const TIER_LABELS = {
-    free:       { name:'Free plan',       sub:'10,000 verifications/month included' },
-    starter:    { name:'Starter plan',    sub:'100,000 verifications/month' },
-    pro:        { name:'Pro plan',        sub:'500,000 verifications/month · Unlimited sites' },
-    business:   { name:'Business plan',   sub:'2,000,000 verifications/month · Team access' },
-    enterprise: { name:'Enterprise plan', sub:'Unlimited verifications · Self-hosted option' },
+    free:       { name:'Trial',           sub:'14 days · 1 site · 1,000 verifications · 3 Tremor readings · 20 chat messages' },
+    starter:    { name:'Starter plan',    sub:'100,000 verifications/month · Tremor Index · Lyra chat' },
+    pro:        { name:'Pro plan',        sub:'500,000 verifications/month · Unlimited sites · Tremor Index · Lyra chat' },
+    business:   { name:'Business plan',   sub:'2,000,000 verifications/month · Team access · Tremor Index · Lyra chat' },
+    enterprise: { name:'Enterprise plan', sub:'Unlimited verifications · Self-hosted option · Tremor Index · Lyra chat' },
   };
 
   async function load() {
@@ -218,6 +218,16 @@
 
       document.getElementById('cur-name').textContent = info.name;
       document.getElementById('cur-sub').textContent  = info.sub;
+      if (bil.trial) {
+        const t = bil.trial, r = t.remaining || {};
+        document.getElementById('cur-sub').textContent = t.expired
+          ? 'Your trial has ended. Choose a plan to keep using Lyra.'
+          : `${t.days_left} day${t.days_left === 1 ? '' : 's'} left · ${r.market ?? 0} Tremor readings and ${r.chat ?? 0} chat messages remaining`;
+      }
+      if (bil.payments_configured === false) {
+        document.querySelectorAll('.plan-btn[id^=btn-]:not(#btn-free):not(#btn-enterprise)').forEach(b => {
+          b.disabled = true; b.textContent = 'Payments opening soon'; });
+      }
 
       // Highlight current plan card
       ['free','starter','pro','business','enterprise'].forEach(t => {

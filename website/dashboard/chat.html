@@ -395,7 +395,7 @@ function signOut() {
 function connectWS(convId) {
   if (ws) { try { ws.close(); } catch {} }
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}`);
+  ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}?token=${encodeURIComponent(token)}`);
 
   ws.addEventListener('message', e => handleWSMsg(JSON.parse(e.data)));
   ws.addEventListener('close',   () => { if (isStreaming) finishStream(); });
@@ -422,6 +422,13 @@ function handleWSMsg(msg) {
       break;
     case 'error':
       appendError(msg.content || 'An error occurred.');
+      break;
+    case 'payment_required':
+      clearStatus();
+      appendError((msg.message || 'Your trial has ended.') + ' ');
+      { const a = document.createElement('a'); a.href = msg.upgrade_url || 'billing.html'; a.textContent = 'See plans →';
+        a.style.cssText = 'color:var(--text);font-weight:600;text-decoration:underline';
+        msgWrap.lastElementChild?.querySelector('.msg-text, .error, div:last-child')?.appendChild(a); }
       break;
   }
 }
@@ -539,6 +546,7 @@ async function createConversation() {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + token },
   });
+  if (res.status === 401) { localStorage.removeItem('lyra_token'); window.location.href = 'login.html'; return; }
   const data = await res.json();
   currentConvId = data.conversation_id;
   connectWS(currentConvId);

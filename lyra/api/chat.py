@@ -9,10 +9,12 @@ import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, UploadFile, File, Form, HTTPException
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect, UploadFile, File, Form, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from lyra.api.users_api import get_current_user
+from lyra.db.models import User
 from lyra.core.engine import engine
 from lyra.core.file_processor import file_processor
 from lyra.memory.vector_memory import memory
@@ -27,8 +29,14 @@ from lyra.core.quantum_sim import quantum_sim
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-# In-memory conversation store (persists during session)
+# In-memory conversation store (persists during session), one dict per user so
+# nobody can list or read another account's chats.
 conversations: Dict[str, List[Dict]] = {}
+_owner_of: Dict[str, int] = {}
+
+
+def _mine(user_id: int, conv_id: str) -> bool:
+    return _owner_of.get(conv_id) == user_id
 
 
 class ChatMessage(BaseModel):
@@ -50,15 +58,31 @@ class ChatRequest(BaseModel):
 
 @router.websocket("/ws/{conversation_id}")
 async def chat_websocket(websocket: WebSocket, conversation_id: str):
-    """WebSocket endpoint for real-time streaming chat."""
-    await websocket.accept()
-    logger.info(f"WebSocket connected: {conversation_id}")
-
+    """WebSocket endpoint for real-time streaming chat. Needs ?token=<jwt>; every message
+    spends one trial allowance for unpaid accounts (see lyra/api/entitlements.py)."""
+    from lyra.api import entitlements
+    from lyra.db.database import SessionLocal
+    db = SessionLocal()
     try:
+        user = entitlements.user_from_token(websocket.query_params.get("token"), db)
+        if not user:
+            await websocket.close(code=4401)
+            return
+        if conversation_id in _owner_of and not _mine(user.id, conversation_id):
+            await websocket.close(code=4403)
+            return
+        _owner_of.setdefault(conversation_id, user.id)
+        await websocket.accept()
+        logger.info(f"WebSocket connected: {conversation_id} (user {user.id})")
+
         while True:
             data = await websocket.receive_text()
             request = json.loads(data)
-
+            try:
+                entitlements.check(user, "chat", db, consume=1)
+            except HTTPException as exc:
+                await websocket.send_json({"type": "payment_required", **exc.detail})
+                continue
             await handle_chat_ws(websocket, conversation_id, request)
 
     except WebSocketDisconnect:
@@ -69,6 +93,8 @@ async def chat_websocket(websocket: WebSocket, conversation_id: str):
             await websocket.send_json({"type": "error", "content": str(e)})
         except Exception:
             pass
+    finally:
+        db.close()
 
 
 async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
@@ -322,6 +348,7 @@ def _needs_search(message: str) -> bool:
 async def upload_file(
     file: UploadFile = File(...),
     conversation_id: str = Form(default=""),
+    user: User = Depends(get_current_user),
 ):
     """Upload and process a file for AI analysis."""
     import aiofiles
@@ -367,11 +394,11 @@ async def upload_file(
 
 
 @router.get("/conversations")
-async def get_conversations():
-    """List all active conversations."""
+async def get_conversations(user: User = Depends(get_current_user)):
+    """List the signed-in user's conversations."""
     result = []
     for conv_id, messages in conversations.items():
-        if messages:
+        if messages and _mine(user.id, conv_id):
             first_user = next((m["content"] for m in messages if m["role"] == "user"), "")
             result.append({
                 "id": conv_id,
@@ -383,23 +410,26 @@ async def get_conversations():
 
 
 @router.get("/conversations/{conv_id}")
-async def get_conversation(conv_id: str):
+async def get_conversation(conv_id: str, user: User = Depends(get_current_user)):
     """Get full conversation history."""
-    if conv_id not in conversations:
+    if conv_id not in conversations or not _mine(user.id, conv_id):
         return {"messages": []}
     return {"messages": conversations[conv_id]}
 
 
 @router.delete("/conversations/{conv_id}")
-async def delete_conversation(conv_id: str):
+async def delete_conversation(conv_id: str, user: User = Depends(get_current_user)):
     """Delete a conversation."""
-    conversations.pop(conv_id, None)
+    if _mine(user.id, conv_id):
+        conversations.pop(conv_id, None)
+        _owner_of.pop(conv_id, None)
     return {"success": True}
 
 
 @router.post("/conversations/new")
-async def new_conversation():
+async def new_conversation(user: User = Depends(get_current_user)):
     """Create a new conversation ID."""
     conv_id = f"{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6]}"
     conversations[conv_id] = []
+    _owner_of[conv_id] = user.id
     return {"conversation_id": conv_id}

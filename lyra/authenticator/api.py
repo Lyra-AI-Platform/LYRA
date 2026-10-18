@@ -162,6 +162,15 @@ async def server_verify(req: ServerVerifyRequest, db: Session = Depends(get_db))
 
     # Consume the token (one-use only)
     vt.used = True
+    # Trial accounts: a fixed number of verifications, and only while the trial is open.
+    owner = site.owner
+    if owner is not None and (owner.tier or "free") not in ("starter", "pro", "business", "enterprise"):
+        from lyra.api.entitlements import trial_days_left
+        from lyra.api.sites_api import FREE_TIER_MONTHLY_LIMIT, _monthly_usage
+        if trial_days_left(owner) == 0 or _monthly_usage(site.id, db) >= FREE_TIER_MONTHLY_LIMIT:
+            raise HTTPException(402, {"error": "payment_required", "feature": "verifications",
+                                      "message": "This site's LyraAuth trial has ended. The owner needs to choose a plan.",
+                                      "upgrade_url": "/dashboard/billing.html"})
     _bump_usage(site.id, db)
 
     return {

@@ -22,7 +22,8 @@ from lyra.api.users_api import get_current_user
 
 router = APIRouter(prefix="/api/sites", tags=["sites"])
 
-FREE_TIER_MONTHLY_LIMIT = 10_000
+FREE_TIER_MONTHLY_LIMIT = 1_000   # trial accounts; paid plans have no limit here
+FREE_TIER_MAX_SITES = 1
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -79,11 +80,13 @@ def create_site(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Free tier: max 3 sites
+    # Trial accounts: one site
     if user.tier == "free":
-        count = db.query(Site).filter(Site.user_id == user.id, Site.is_active == True).count()
-        if count >= 3:
-            raise HTTPException(403, "Free tier allows up to 3 sites. Upgrade to Pro for unlimited.")
+        count = db.query(Site).filter(Site.user_id == user.id, Site.is_active == True).count()  # noqa: E712
+        if count >= FREE_TIER_MAX_SITES:
+            raise HTTPException(402, {"error": "payment_required", "feature": "sites",
+                                      "message": "The trial includes one site. Choose a plan to add more.",
+                                      "upgrade_url": "/dashboard/billing.html"})
 
     site = Site(
         user_id=user.id,

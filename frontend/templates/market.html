@@ -63,6 +63,7 @@
   .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin: 2px 4px 2px 0;
          background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); }
   .tag.ok { color: var(--boom); } .tag.failed, .tag.stale { color: var(--bust); } .tag.partial { color: var(--hold); }
+  .gate[hidden] { display: none; }
   .gate { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center;
           justify-content: center; z-index: 100; padding: 16px; }
   .gate > div { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
@@ -152,6 +153,11 @@ async function api(path, opts = {}) {
   const r = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + token } });
   if (r.status === 401) { toLogin(); throw new Error("Please sign in"); }
   if (r.status === 429) throw new Error("You've hit the hourly limit — try again a bit later.");
+  if (r.status === 402) {
+    let d = {}; try { d = (await r.json()).detail || {}; } catch {}
+    const err = new Error(d.message || "Your trial has ended. Choose a plan to continue.");
+    err.upgrade = d.upgrade_url || "/dashboard/billing.html"; throw err;
+  }
   if (!r.ok) throw new Error((await r.text()) || r.statusText);
   return r.json();
 }
@@ -292,7 +298,10 @@ $("lookup").onsubmit = async (e) => {
     loadArticles({ ticker: currentTicker });
     loadLearning();
   } catch (err) {
-    $("reading").innerHTML = `<p class="empty">Couldn't read ${esc(currentTicker)}: ${esc(err.message)}</p>`;
+    $("reading").innerHTML = err.upgrade
+      ? `<div class="partial" style="border-color:var(--accent)"><b>${esc(err.message)}</b><br>
+         <a href="${esc(err.upgrade)}" class="pill" style="display:inline-block;margin-top:8px;background:var(--accent);color:#fff">See plans</a></div>`
+      : `<p class="empty">Couldn't read ${esc(currentTicker)}: ${esc(err.message)}</p>`;
   }
 };
 $("newsform").onsubmit = (e) => {

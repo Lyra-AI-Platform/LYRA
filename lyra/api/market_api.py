@@ -16,7 +16,10 @@ from typing import Deque, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel
 
+from lyra.api import entitlements
 from lyra.api.users_api import get_current_user
+from lyra.db.database import get_db
+from sqlalchemy.orm import Session
 from lyra.db.models import User
 from lyra.market import backtest, expert, learner, news, peers, risk_guard
 from lyra.market.market_data import get_vix
@@ -46,14 +49,16 @@ def _private(response: Response):
     response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
 
 
-def reader(response: Response, user: User = Depends(get_current_user)) -> User:
+def reader(response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
     _private(response)
+    entitlements.check(user, "market", db)            # paid, or trial still open
     _limit("read", str(user.id))
     return user
 
 
-def analyst(response: Response, user: User = Depends(get_current_user)) -> User:
+def analyst(response: Response, user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
     _private(response)
+    entitlements.check(user, "market", db, consume=1)  # each reading spends one trial reading
     _limit("analyze", str(user.id))
     return user
 
@@ -165,10 +170,12 @@ async def decision(request: DecisionRequest, user: User = Depends(analyst)):
 
 
 @router.post("/scan")
-async def scan(request: ScanRequest, response: Response, user: User = Depends(get_current_user)):
+async def scan(request: ScanRequest, response: Response, user: User = Depends(get_current_user),
+               db: Session = Depends(get_db)):
     if len(request.tickers) > 10:
         raise HTTPException(400, "Scan at most 10 tickers at a time")
     _private(response)
+    entitlements.check(user, "market", db, consume=len(request.tickers))
     for _ in request.tickers:  # each ticker counts as one analysis
         _limit("analyze", str(user.id))
     readings = await expert.scan(request.tickers, request.portfolio_value, owner=_owner(user))
