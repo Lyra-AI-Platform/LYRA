@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lyra — Tremor Index</title>
+<style>
+  :root {
+    --bg: #0d0f14; --panel: #151922; --panel-2: #1c2130; --border: #262c3d;
+    --text: #e6e8ee; --muted: #8b93a7; --accent: #8b5cf6;
+    --boom: #22c55e; --bust: #ef4444; --hold: #eab308;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; align-items: center; gap: 16px; padding: 14px 20px;
+           border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  header h1 { font-size: 18px; margin: 0; }
+  header a { color: var(--muted); text-decoration: none; font-size: 13px; }
+  .vix { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .vix b { color: var(--text); font-size: 16px; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; padding: 16px 20px; }
+  @media (max-width: 900px) { main { grid-template-columns: 1fr; padding: 16px; } }
+  section { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+  h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 12px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; }
+  input { background: var(--panel-2); border: 1px solid var(--border); color: var(--text);
+          border-radius: 8px; padding: 9px 12px; font-size: 15px; min-width: 0; flex: 1; }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 8px; padding: 9px 16px;
+           font-size: 14px; cursor: pointer; }
+  button.ghost { background: var(--panel-2); border: 1px solid var(--border); }
+  .big { display: flex; gap: 20px; align-items: center; margin: 16px 0; flex-wrap: wrap; }
+  .score { font-size: 44px; font-weight: 700; line-height: 1; }
+  .label { color: var(--muted); font-size: 13px; }
+  .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 14px; }
+  .BUY { background: rgba(34,197,94,.15); color: var(--boom); }
+  .SELL { background: rgba(239,68,68,.15); color: var(--bust); }
+  .HOLD { background: rgba(234,179,8,.15); color: var(--hold); }
+  .bar { height: 10px; border-radius: 5px; background: var(--panel-2); overflow: hidden; display: flex; margin: 6px 0 2px; }
+  .bar .b { background: var(--boom); } .bar .s { background: var(--bust); margin-left: auto; }
+  ul.causes { padding-left: 18px; margin: 8px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  .table-wrap { overflow-x: auto; }
+  .pos { color: var(--boom); } .neg { color: var(--bust); }
+  .articles { max-height: 420px; overflow-y: auto; }
+  .article { padding: 10px 4px; border-bottom: 1px solid var(--border); cursor: pointer; }
+  .article:hover { background: var(--panel-2); }
+  .article .meta { color: var(--muted); font-size: 12px; }
+  .reader p { white-space: pre-wrap; }
+  .reader { line-height: 1.7; font-size: 15px; max-height: 70vh; overflow-y: auto; }
+  .reader h3 { margin-top: 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .full { grid-column: 1 / -1; }
+  .empty { color: var(--muted); padding: 20px 0; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>✦ Tremor Index</h1>
+  <a href="/">← Back to Lyra</a>
+  <div class="vix" id="vix">VIX loading…</div>
+</header>
+
+<main>
+  <section>
+    <h2>Stock reading</h2>
+    <form id="lookup">
+      <input id="ticker" placeholder="Ticker, e.g. NVDA" autocomplete="off" required>
+      <input id="portfolio" type="number" min="0" step="any" placeholder="Portfolio £/$ (optional)">
+      <button type="submit">Analyse</button>
+    </form>
+    <div id="reading"><p class="empty">Enter a ticker to get its Tremor reading.</p></div>
+  </section>
+
+  <section>
+    <h2>News reader</h2>
+    <form id="newsform">
+      <input id="newsq" placeholder="Ticker in CAPS (e.g. AAPL) or any words">
+      <button type="submit" class="ghost">Search</button>
+      <button type="button" class="ghost" id="marketnews">Market news</button>
+    </form>
+    <div class="articles" id="articles"><p class="empty">Analyse a ticker and its news will appear here.</p></div>
+  </section>
+
+  <section class="full" id="readerbox" hidden>
+    <h2>Article <button class="ghost" id="closereader" style="float:right;padding:2px 10px">Close</button></h2>
+    <div class="reader" id="reader"></div>
+  </section>
+
+  <section class="full">
+    <h2>Smart money</h2>
+    <div id="money"><p class="empty">Insider, fund and politician trades appear after an analysis.</p></div>
+  </section>
+
+  <section class="full">
+    <h2>Learning from mistakes</h2>
+    <div id="learning"></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = (x) => (x * 100).toFixed(0) + "%";
+const when = (ts) => ts ? new Date(ts * 1000).toLocaleString() : "";
+const money = (v) => v ? "$" + Number(v).toLocaleString(undefined, {maximumFractionDigits: 0}) : "—";
+let currentTicker = "";
+
+async function api(path, opts) {
+  const r = await fetch(path, opts);
+  if (!r.ok) throw new Error((await r.text()) || r.statusText);
+  return r.json();
+}
+
+async function loadVix() {
+  try {
+    const v = await api("/api/market/vix");
+    $("vix").innerHTML = v.available
+      ? `VIX <b>${v.level}</b> · ${esc(v.regime)} · 5d ${(v.change_5d * 100).toFixed(1)}%`
+      : "VIX unavailable";
+  } catch { $("vix").textContent = "VIX unavailable"; }
+}
+
+function renderReading(r) {
+  const d = r.decision;
+  let sizing = "";
+  if (d.portfolio_fraction) sizing = `Put ${(d.portfolio_fraction * 100).toFixed(2)}% of portfolio in` + (d.amount ? ` (${money(d.amount)}, ~${d.shares} shares)` : "");
+  if (d.fraction_of_holding) sizing = `Sell ${pct(d.fraction_of_holding)} of your holding`;
+  $("reading").innerHTML = `
+    <div class="big">
+      <div><div class="score">${r.score}</div><div class="label">${esc(r.label)} / 100</div></div>
+      <div><span class="pill ${d.action}">${d.action}</span>
+        <div class="label">confidence ${pct(d.confidence)} · edge ${d.edge >= 0 ? "+" : ""}${d.edge}</div></div>
+      <div><div style="font-size:20px">${r.price ?? "—"}</div><div class="label">${esc(r.company || r.ticker)}</div></div>
+    </div>
+    <div class="label">Boom ${pct(r.p_boom)} · Bust ${pct(r.p_bust)} · big-move chance ${pct(r.tremor)}</div>
+    <div class="bar"><div class="b" style="width:${r.p_boom * 100}%"></div><div class="s" style="width:${r.p_bust * 100}%"></div></div>
+    <div class="muted">${esc(r.definition)}</div>
+    ${sizing ? `<p><b>${esc(sizing)}</b></p>` : ""}
+    <h2 style="margin-top:16px">Probable causes</h2>
+    <ul class="causes">${r.causes.map(c => `<li class="${c.impact >= 0 ? "pos" : "neg"}"><span style="color:var(--text)">${esc(c.reason)}</span></li>`).join("") || "<li>No strong drivers</li>"}</ul>
+    <p class="muted">${esc(r.disclaimer)}</p>`;
+}
+
+function tradeRows(trades) {
+  if (!trades.length) return `<tr><td colspan="5" class="muted">None in the last 90 days</td></tr>`;
+  return trades.map(t => `<tr><td>${esc(t.date)}</td><td>${esc(t.person)}</td><td>${esc(t.role)}</td>
+    <td class="${t.side === "buy" ? "pos" : "neg"}">${esc(t.side)}</td><td>${money(t.value)}</td></tr>`).join("");
+}
+
+function renderMoney(sm) {
+  const head = `<tr><th>Date</th><th>Who</th><th>Role</th><th>Side</th><th>Value</th></tr>`;
+  const funds = sm.funds.length ? sm.funds.map(f => `<tr><td>${esc(f.fund)}</td><td>${Number(f.shares).toLocaleString()}</td>
+      <td class="${f.change >= 0 ? "pos" : "neg"}">${(f.change * 100).toFixed(1)}%</td><td>${esc(f.as_of)}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="muted">No tracked fund holds it</td></tr>`;
+  $("money").innerHTML = `
+    <p class="muted">Insider flow ${sm.insider_flow.score.toFixed(2)}${sm.insider_flow.cluster_buying ? " · cluster buying!" : ""}
+      · Politician flow ${sm.congress_flow.score.toFixed(2)} · Fund flow ${sm.fund_score.toFixed(2)}</p>
+    <h2>Company insiders</h2><div class="table-wrap"><table>${head}${tradeRows(sm.insiders)}</table></div>
+    <h2 style="margin-top:16px">Politicians</h2><div class="table-wrap"><table>${head}${tradeRows(sm.congress)}</table></div>
+    <h2 style="margin-top:16px">Famous funds (13F)</h2><div class="table-wrap"><table>
+      <tr><th>Fund</th><th>Shares</th><th>Change vs prior quarter</th><th>Filed</th></tr>${funds}</table></div>`;
+}
+
+async function loadArticles(params) {
+  const { articles } = await api("/api/market/news?" + new URLSearchParams(params));
+  $("articles").innerHTML = articles.length ? articles.map(a => `
+    <div class="article" data-id="${esc(a.id)}">
+      <div>${esc(a.title)}</div>
+      <div class="meta">${esc(a.source)} · ${when(a.published)} · <span class="${a.sentiment >= 0 ? "pos" : "neg"}">sentiment ${a.sentiment}</span>
+        ${a.text_length ? " · full text" : " · summary only"}</div>
+    </div>`).join("") : `<p class="empty">No articles found.</p>`;
+}
+
+async function openArticle(id) {
+  const a = await api("/api/market/news/" + encodeURIComponent(id));
+  $("readerbox").hidden = false;
+  $("reader").innerHTML = `<h3>${esc(a.title)}</h3>
+    <div class="muted">${esc(a.source)} · ${when(a.published)} · <a href="${esc(a.url)}" target="_blank" rel="noopener" style="color:var(--accent)">original</a></div>
+    <p>${esc(a.full_text || a.summary || "This site doesn't allow the full text to be fetched; only the summary is available.")}</p>`;
+  $("readerbox").scrollIntoView({ behavior: "smooth" });
+}
+
+async function loadLearning() {
+  const l = await api("/api/market/learning");
+  const s = l.stats;
+  const acc = s.evaluated ? pct(s.correct / s.evaluated) : "—";
+  $("learning").innerHTML = `
+    <p>${s.total} readings made · ${s.evaluated} graded · hit rate ${acc}
+      <button class="ghost" id="grade" style="margin-left:8px;padding:4px 10px">Grade now</button></p>
+    <div class="table-wrap"><table><tr><th>Ticker</th><th>Called</th><th>Actual</th><th>Return</th><th>What misled it</th></tr>
+    ${l.mistakes.map(m => `<tr><td>${esc(m.ticker)}</td><td>${esc(m.predicted)}</td><td>${esc(m.actual)}</td>
+      <td class="${m.outcome_return >= 0 ? "pos" : "neg"}">${(m.outcome_return * 100).toFixed(1)}%</td>
+      <td>${m.blamed_factors.map(b => esc(b.factor)).join(", ")}</td></tr>`).join("") ||
+      `<tr><td colspan="5" class="muted">No mistakes logged yet — readings are graded after their horizon passes.</td></tr>`}
+    </table></div>`;
+  $("grade").onclick = async () => { await api("/api/market/learning/evaluate", { method: "POST" }); loadLearning(); };
+}
+
+$("lookup").onsubmit = async (e) => {
+  e.preventDefault();
+  currentTicker = $("ticker").value.trim().toUpperCase();
+  $("reading").innerHTML = `<p class="empty">Reading ${esc(currentTicker)}: prices, news, insiders, funds, politicians…</p>`;
+  try {
+    const r = await api("/api/market/index/" + encodeURIComponent(currentTicker));
+    const pv = parseFloat($("portfolio").value);
+    if (pv > 0 && r.decision.portfolio_fraction && r.price) {
+      r.decision.amount = pv * r.decision.portfolio_fraction;
+      r.decision.shares = Math.floor(r.decision.amount / r.price);
+    }
+    renderReading(r);
+    renderMoney(r.smart_money);
+    loadArticles({ ticker: currentTicker });
+    loadLearning();
+  } catch (err) {
+    $("reading").innerHTML = `<p class="empty">Couldn't read ${esc(currentTicker)}: ${esc(err.message)}</p>`;
+  }
+};
+$("newsform").onsubmit = (e) => {
+  e.preventDefault();
+  const q = $("newsq").value.trim();
+  loadArticles(/^[A-Z.]{1,6}$/.test(q) ? { ticker: q, refresh: true } : { q });
+};
+$("marketnews").onclick = () => loadArticles({ ticker: "MARKET", refresh: true });
+$("articles").onclick = (e) => { const el = e.target.closest(".article"); if (el) openArticle(el.dataset.id); };
+$("closereader").onclick = () => { $("readerbox").hidden = true; };
+
+loadVix();
+loadLearning();
+</script>
+</body>
+</html>

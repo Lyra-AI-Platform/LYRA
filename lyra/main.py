@@ -23,6 +23,7 @@ from lyra.api.telemetry_api import router as telemetry_router
 from lyra.api.graph_api import router as graph_router
 from lyra.api.cognition_api import router as cognition_router
 from lyra.api.experiment_api import router as experiment_router
+from lyra.api.market_api import router as market_router
 from lyra.authenticator.api import router as auth_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -57,6 +58,7 @@ app.include_router(telemetry_router)
 app.include_router(graph_router)
 app.include_router(cognition_router)
 app.include_router(experiment_router)
+app.include_router(market_router)
 app.include_router(auth_router)
 
 
@@ -66,6 +68,14 @@ async def serve_ui():
     if index_path.exists():
         return FileResponse(str(index_path))
     return HTMLResponse("<h1>Lyra starting up...</h1>")
+
+
+@app.get("/market", response_class=HTMLResponse)
+async def serve_market():
+    market_path = FRONTEND_DIR / "templates" / "market.html"
+    if market_path.exists():
+        return FileResponse(str(market_path))
+    return HTMLResponse("<h1>Market Expert UI not found</h1>")
 
 
 @app.get("/api/health")
@@ -101,6 +111,8 @@ async def on_startup():
     experiment_engine.start()
     from lyra.core.self_awareness import self_awareness
     self_awareness.start()
+    from lyra.market.expert import learning_loop
+    learning_loop.start()
     from lyra.core.language_backbone import language_backbone
     await language_backbone.initialize()
     logger.info("Lyra AI Platform started — http://0.0.0.0:8080")
@@ -113,11 +125,13 @@ async def on_shutdown():
     from lyra.core.cognition_engine import cognition_engine
     from lyra.core.experiment_engine import experiment_engine
     from lyra.core.self_awareness import self_awareness
+    from lyra.market.expert import learning_loop
     auto_learner.stop()
     synthesizer.stop()
     cognition_engine.stop()
     experiment_engine.stop()
     self_awareness.stop()
+    learning_loop.stop()
 
 
 def main():
