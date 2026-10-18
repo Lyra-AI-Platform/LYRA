@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LyraAuth — Human Verification That Trains Your AI</title>
+  <meta name="description" content="Drop-in reCAPTCHA replacement. Every challenge solved is a human-labeled training example for your AI." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="../css/main.css" />
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <ul class="nav-links">
+      <li><a href="../index.html#products">Products</a></li>
+      <li><a href="../index.html#pricing">Pricing</a></li>
+      <li><a href="docs.html">Docs</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="docs.html" class="btn btn-outline" style="padding:8px 18px;font-size:14px;">Docs</a>
+      <a href="../index.html#get-started" class="btn btn-primary" style="padding:8px 18px;font-size:14px;">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" style="min-height:70vh;">
+  <div class="hero-bg"></div>
+  <div style="position:relative;z-index:1;text-align:center;">
+    <div class="hero-badge fade-up">🔐 LyraAuth</div>
+    <h1 class="hero-title fade-up-2">Human Verification That<br /><span class="gradient-text">Trains Your AI</span></h1>
+    <p class="hero-sub fade-up-3">Drop-in reCAPTCHA replacement. Every challenge answered is a human-labeled training example added to your pipeline. No Google. No surveillance.</p>
+    <div class="hero-actions fade-up-4">
+      <a href="docs.html#lyraauth" class="btn btn-primary btn-lg">Integration Guide &rarr;</a>
+      <a href="../index.html#pricing" class="btn btn-outline btn-lg">View Pricing</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Challenge Types -->
+<section class="section">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:60px;">
+      <span class="section-label">Challenge Types</span>
+      <h2>14+ Ways to Prove You're<br /><span class="gradient-text">Human</span></h2>
+      <p style="max-width:520px;margin:16px auto 0;">Unlike image grids, Lyra's challenges test genuine cognitive ability. Bots fail. Humans enjoy them.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🔢</div><h3 style="margin-bottom:6px;">Number Sequence</h3><p style="font-size:13px;">Find the next number in a pattern — tests logical reasoning.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">😊</div><h3 style="margin-bottom:6px;">Emoji Meaning</h3><p style="font-size:13px;">Interpret emoji combinations — tests cultural and contextual understanding.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🔤</div><h3 style="margin-bottom:6px;">Word Scramble</h3><p style="font-size:13px;">Unscramble a word — tests vocabulary and pattern recognition.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🎵</div><h3 style="margin-bottom:6px;">Rhythm Pattern</h3><p style="font-size:13px;">Identify a beat pattern — tests timing and sensory processing.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🌍</div><h3 style="margin-bottom:6px;">Common Knowledge</h3><p style="font-size:13px;">General knowledge questions that bots can't easily look up.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">✏️</div><h3 style="margin-bottom:6px;">Creative Completion</h3><p style="font-size:13px;">Finish a sentence creatively — tests language generation ability.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🤖</div><h3 style="margin-bottom:6px;">Real or Fake</h3><p style="font-size:13px;">Distinguish human vs AI text — generates AI detection training data.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">♿</div><h3 style="margin-bottom:6px;">Accessibility Label</h3><p style="font-size:13px;">Describe an image — generates vision model training data.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">🎱</div><h3 style="margin-bottom:6px;">Physics Reasoning</h3><p style="font-size:13px;">Predict physical outcomes — tests spatial and causal reasoning.</p></div>
+      <div class="card"><div style="font-size:20px;margin-bottom:8px;">💬</div><h3 style="margin-bottom:6px;">Vibe Check</h3><p style="font-size:13px;">Identify tone and intent — generates emotional intelligence data.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- How it trains -->
+<section class="section-sm">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;">
+      <div>
+        <span class="section-label">Training Pipeline</span>
+        <h2>Every Challenge = One<br /><span class="gradient-text">Training Example</span></h2>
+        <p style="margin:20px 0;">Responses are stored as structured JSONL. Quality-filtered (timing + confidence). Exported in three formats: instruction-following, completion, and RLHF preference pairs.</p>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;">
+          <span class="flywheel-item" style="font-size:13px;">instruction_following</span>
+          <span class="flywheel-item" style="font-size:13px;">completion</span>
+          <span class="flywheel-item" style="font-size:13px;">preference (RLHF)</span>
+        </div>
+      </div>
+      <div class="code-block">
+        <div class="comment">// Sample training record</div>
+        <br />
+        {<br />
+        &nbsp;&nbsp;<span class="attr">"prompt"</span>: <span class="string">"Complete the sequence: 2, 4, 8, ?"</span>,<br />
+        &nbsp;&nbsp;<span class="attr">"completion"</span>: <span class="string">"16"</span>,<br />
+        &nbsp;&nbsp;<span class="attr">"label"</span>: <span class="string">"correct"</span>,<br />
+        &nbsp;&nbsp;<span class="attr">"challenge_type"</span>: <span class="string">"sequence"</span>,<br />
+        &nbsp;&nbsp;<span class="attr">"confidence"</span>: <span class="string">0.95</span>,<br />
+        &nbsp;&nbsp;<span class="attr">"response_ms"</span>: <span class="string">3420</span><br />
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-bottom" style="border-top:none;padding-top:0;">
+      <p>&copy; 2026 Lyra Labs. All rights reserved.</p>
+      <div style="display:flex;gap:20px;">
+        <a href="terms.html" style="font-size:13px;color:var(--text-dim);">Terms</a>
+        <a href="privacy.html" style="font-size:13px;color:var(--text-dim);">Privacy</a>
+        <a href="dpa.html" style="font-size:13px;color:var(--text-dim);">DPA</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

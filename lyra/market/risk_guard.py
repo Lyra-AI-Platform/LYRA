@@ -28,11 +28,11 @@ def _day_start(now: float) -> float:
     return datetime(d.year, d.month, d.day, tzinfo=timezone.utc).timestamp()
 
 
-def account_state(now: Optional[float] = None) -> Dict:
-    """Where the account stands, from the equity snapshots and fills the trader reported."""
+def account_state(owner: str = "local", now: Optional[float] = None) -> Dict:
+    """Where one owner's account stands, from the equity snapshots and fills they reported."""
     now = now or time.time()
     store = get_store()
-    rows = store.equity_rows()
+    rows = store.equity_rows(owner)
     today = _day_start(now)
     state = {"equity": None, "invested": None, "peak_equity": None, "day_start_equity": None,
              "daily_pnl": 0.0, "drawdown": 0.0, "trades_today": 0, "loss_streak": 0,
@@ -48,7 +48,7 @@ def account_state(now: Optional[float] = None) -> Dict:
             "daily_pnl": latest["equity"] / start - 1 if start else 0.0,
             "drawdown": 1 - latest["equity"] / peak if peak else 0.0,
         })
-    fills = store.fills()
+    fills = store.fills(owner)
     state["trades_today"] = sum(1 for f in fills if f["ts"] >= today)
     for f in fills:
         state["last_trade_ts"][f["ticker"]] = f["ts"]
@@ -68,13 +68,14 @@ def stop_levels(price: float, realized_vol: float) -> Dict:
             "take_profit": round(price * (1 + 2 * dist), 4)}
 
 
-def review(decision: Dict, ctx: Dict, state: Optional[Dict] = None, now: Optional[float] = None) -> Dict:
+def review(decision: Dict, ctx: Dict, state: Optional[Dict] = None, now: Optional[float] = None,
+           owner: str = "local") -> Dict:
     """Return a copy of `decision` that respects every risk limit, with a record of each check.
 
     ctx: price, last_ts (time of the latest price bar), realized_vol, p_boom, p_bust,
          equity (optional), shares_held."""
     now = now or time.time()
-    state = state or account_state(now)
+    state = state or account_state(owner, now)
     out = dict(decision)
     checks: List[Dict] = []
     action = decision["action"]

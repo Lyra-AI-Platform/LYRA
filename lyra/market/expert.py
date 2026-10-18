@@ -30,7 +30,7 @@ def _confidence(avail: Dict[str, bool], peer_info: Dict, graded: int) -> float:
 
 
 async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_held: float = 0.0,
-                  save: bool = True, fetch_full_articles: bool = True) -> Dict:
+                  save: bool = True, fetch_full_articles: bool = True, owner: str = "local") -> Dict:
     ticker = ticker.upper().strip()
     company = await smart_money.lookup_company(ticker)
     company_name = company["name"] if company else ""
@@ -58,7 +58,7 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
     decision = risk_guard.review(model_decision, {
         "ticker": ticker, "price": price, "last_ts": stats.get("last_ts"),
         "realized_vol": stats.get("realized_vol"), "p_boom": p_boom, "p_bust": p_bust,
-        "equity": portfolio_value, "shares_held": shares_held})
+        "equity": portfolio_value, "shares_held": shares_held}, owner=owner)
 
     reading = {
         "index": INDEX_NAME,
@@ -99,12 +99,12 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
     return reading
 
 
-async def scan(tickers: List[str], portfolio_value: Optional[float] = None) -> List[Dict]:
+async def scan(tickers: List[str], portfolio_value: Optional[float] = None, owner: str = "local") -> List[Dict]:
     """Analyse several tickers (sequentially, to be polite to data sources), best edge first."""
     out = []
     for t in tickers:
         try:
-            out.append(await analyze(t, portfolio_value, fetch_full_articles=False))
+            out.append(await analyze(t, portfolio_value, fetch_full_articles=False, owner=owner))
         except Exception as e:
             logger.warning(f"Tremor scan failed for {t}: {e}")
     out.sort(key=lambda r: r["decision"]["edge"], reverse=True)

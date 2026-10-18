@@ -1,0 +1,16 @@
+# Public marketing pages may be indexed; app data may not.
+User-agent: *
+Disallow: /api/
+Disallow: /market
+Disallow: /dashboard/
+
+# AI training crawlers: nothing on this site is licensed for training.
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: CCBot
+User-agent: Google-Extended
+User-agent: Applebot-Extended
+User-agent: Bytespider
+User-agent: PerplexityBot
+User-agent: meta-externalagent
+Disallow: /

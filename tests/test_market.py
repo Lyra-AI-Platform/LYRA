@@ -282,14 +282,18 @@ def test_guard_sizes_from_stop_on_volatile_stocks():
 def test_account_state_tracks_pnl_and_losing_streak(monkeypatch, tmp_path):
     monkeypatch.setattr(store_mod, "_store", store_mod.MarketStore(tmp_path / "acct.db"))
     s = store_mod.get_store()
-    s.record_equity(10000, ts=NOW - 2 * 86400)
-    s.record_equity(11000, ts=NOW - 86400 - 60)
-    s.record_equity(10500, ts=NOW)
+    s.record_equity("alice", 10000, ts=NOW - 2 * 86400)
+    s.record_equity("alice", 11000, ts=NOW - 86400 - 60)
+    s.record_equity("alice", 10500, ts=NOW)
+    s.record_equity("bob", 999999, ts=NOW)
     for i, (buy, sell) in enumerate([(100, 90), (50, 45), (20, 19)]):
-        s.record_fill("ABC", "buy", 10, buy, ts=NOW - 600 + i * 10)
-        s.record_fill("ABC", "sell", 10, sell, ts=NOW - 595 + i * 10)
-    st = risk_guard.account_state(NOW)
+        s.record_fill("alice", "ABC", "buy", 10, buy, ts=NOW - 600 + i * 10)
+        s.record_fill("alice", "ABC", "sell", 10, sell, ts=NOW - 595 + i * 10)
+    st = risk_guard.account_state("alice", NOW)
     assert st["peak_equity"] == 11000 and st["drawdown"] == pytest_approx(1 - 10500 / 11000)
     assert st["daily_pnl"] == pytest_approx(10500 / 11000 - 1)
     assert st["loss_streak"] == 3 and st["trades_today"] >= 1
-    assert s.fills(ticker="ABC")[1]["realized_pnl"] == -100.0
+    assert s.fills("alice", ticker="ABC")[1]["realized_pnl"] == -100.0
+    # Another user's account is completely separate.
+    bob = risk_guard.account_state("bob", NOW)
+    assert bob["equity"] == 999999 and bob["loss_streak"] == 0 and bob["trades_today"] == 0

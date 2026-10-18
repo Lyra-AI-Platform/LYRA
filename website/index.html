@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lyra AI — Human Verification That Trains Your AI</title>
+  <meta name="description" content="Drop-in reCAPTCHA replacement. Every challenge solved trains your private AI. Zero surveillance, you own the data." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="stylesheet" href="css/main.css" />
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <ul class="nav-links">
+      <li><a href="#products">Products</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#integrate">Integrate</a></li>
+      <li><a href="#pricing">Pricing</a></li>
+      <li><a href="pages/docs.html">Docs</a></li>
+    </ul>
+    <div class="nav-cta">
+      <a href="dashboard/login.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a>
+      <a href="dashboard/register.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Create account</a>
+    </div>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</nav>
+<div class="nav-mobile" id="nav-mobile">
+  <a href="#products">Products</a>
+  <a href="#how-it-works">How It Works</a>
+  <a href="#pricing">Pricing</a>
+  <a href="pages/docs.html">Docs</a>
+  <a href="dashboard/login.html">Sign in</a>
+  <a href="dashboard/register.html" class="btn btn-primary mobile-cta" style="text-align:center;">Create free account</a>
+</div>
+
+<!-- ══ HERO ══ -->
+<section class="hero" id="home">
+  <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;">
+
+    <div class="hero-badge fade-up">Drop-in reCAPTCHA Replacement</div>
+
+    <h1 class="hero-title fade-up-2">
+      Human Verification That<br />
+      <span class="gradient-text">Trains Your AI</span>
+    </h1>
+
+    <p class="hero-sub fade-up-3">
+      Every challenge solved by your users is a labeled training example saved to your pipeline.
+      No Google. No surveillance. You own the data — and the model it builds.
+    </p>
+
+    <div class="hero-actions fade-up-4">
+      <a href="dashboard/register.html" class="btn btn-primary btn-lg">Create Free Account &rarr;</a>
+      <a href="#pricing" class="btn btn-outline btn-lg">View Pricing</a>
+    </div>
+
+    <div class="hero-stats fade-up-4">
+      <div>
+        <div class="hero-stat-num gradient-text">14+</div>
+        <div class="hero-stat-label">Challenge Types</div>
+      </div>
+      <div>
+        <div class="hero-stat-num gradient-text">100%</div>
+        <div class="hero-stat-label">Your Data</div>
+      </div>
+      <div>
+        <div class="hero-stat-num gradient-text">2 lines</div>
+        <div class="hero-stat-label">To Install</div>
+      </div>
+      <div>
+        <div class="hero-stat-num gradient-text">∞</div>
+        <div class="hero-stat-label">Training Scale</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ PRODUCTS ══ -->
+<section class="section" id="products">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">Platform</span>
+      <h2>Five Ways to Capture<br /><span class="gradient-text">Human Intelligence</span></h2>
+      <p style="max-width:520px;margin:14px auto 0;">Each product captures a different type of human cognition — all feeding your private AI training pipeline.</p>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card" style="--card-color:#8b5cf6;">
+        <div class="product-icon">🔐</div>
+        <h3>LyraAuth</h3>
+        <p>Modern human verification. Replaces reCAPTCHA. Cognitive challenges that bots can't solve — every response trains your AI.</p>
+        <div><span class="product-tag">Bot Detection</span><span class="product-tag">Training Data</span><span class="product-tag">Drop-in</span></div>
+        <div style="margin-top:16px;"><a href="pages/lyraauth.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#ec4899;">
+        <div class="product-icon">🤖</div>
+        <h3>Real or Fake</h3>
+        <p>Users identify AI-generated vs human-written text. Builds a labeled AI detection dataset — the most valuable data right now.</p>
+        <div><span class="product-tag">AI Detection</span><span class="product-tag">RLHF Data</span></div>
+        <div style="margin-top:16px;"><a href="pages/detect.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#10b981;">
+        <div class="product-icon">♿</div>
+        <h3>Accessibility AI</h3>
+        <p>Humans describe images and UI in natural language. Generates rich alt-text training data that teaches Lyra to see the world.</p>
+        <div><span class="product-tag">Image Captioning</span><span class="product-tag">Alt Text</span></div>
+        <div style="margin-top:16px;"><a href="pages/accessibility.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#3b82f6;">
+        <div class="product-icon">🎱</div>
+        <h3>Physics Reasoning</h3>
+        <p>Spatial and physical reasoning challenges. Teaches Lyra how the real world works through human intuition.</p>
+        <div><span class="product-tag">Spatial</span><span class="product-tag">Reasoning</span></div>
+        <div style="margin-top:16px;"><a href="pages/physics.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#f59e0b;">
+        <div class="product-icon">💬</div>
+        <h3>Vibe &amp; Tone AI</h3>
+        <p>Users classify tone, intent, and emotional register of text. Builds a human-labeled sentiment dataset for emotional intelligence.</p>
+        <div><span class="product-tag">Sentiment</span><span class="product-tag">Intent</span></div>
+        <div style="margin-top:16px;"><a href="pages/vibe.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#0d9488;">
+        <div class="product-icon">🧪</div>
+        <h3>COSHH AI</h3>
+        <p>AI-powered COSHH risk assessments from Safety Data Sheets. Auto-extracts hazards, WELs, PPE requirements, and generates compliant reports.</p>
+        <div><span class="product-tag">COSHH 2002</span><span class="product-tag">EH40 WELs</span><span class="product-tag">GHS/CLP</span></div>
+        <div style="margin-top:16px;"><a href="pages/coshh.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ ANIMATED STATS ══ -->
+<section style="padding:56px 0;background:var(--text);">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;text-align:center;">
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="10" data-suffix="M+">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Challenges served</div>
+      </div>
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="99.2" data-suffix="%" data-decimals="1">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Bot detection accuracy</div>
+      </div>
+      <div style="padding:20px 12px;border-right:1px solid rgba(250,249,247,0.12);">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">&lt;200<span style="font-size:1.25rem;font-weight:500;">ms</span></div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Avg. verification time</div>
+      </div>
+      <div style="padding:20px 12px;">
+        <div style="font-size:2.25rem;font-weight:700;color:#faf9f7;letter-spacing:-.04em;line-height:1;">
+          <span class="stat-counter" data-target="14" data-suffix="+">0</span>
+        </div>
+        <div style="font-size:.8125rem;color:rgba(250,249,247,.5);margin-top:8px;">Challenge types</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">The Flywheel</span>
+      <h2>Every Verification Makes<br /><span class="gradient-text">Your AI Smarter</span></h2>
+      <p style="max-width:500px;margin:14px auto 0;">The same strategy Google used with reCAPTCHA to train its image AI — except you own the resulting model.</p>
+    </div>
+
+    <div class="flywheel">
+      <div class="flywheel-items">
+        <span class="flywheel-item">🌐 Install on your site</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">👤 Users solve challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🗂️ Labeled training data saved</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🧠 AI gets smarter</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">⚡ Better challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.4);">🔁 Loop repeats</span>
+      </div>
+      <p style="color:var(--muted);max-width:480px;margin:0 auto;font-size:13.5px;">
+        At 100,000 examples: fine-tune a 125M parameter model for ~$50.<br/>
+        At 1,000,000 examples: train one from scratch. Your AI, fully independent.
+      </p>
+    </div>
+
+    <div class="steps" style="margin-top:64px;">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Register Your Site</h3>
+        <p style="font-size:13.5px;">Get a site key and secret key. Takes 30 seconds. No credit card required for free tier.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Add Two Lines of HTML</h3>
+        <p style="font-size:13.5px;">Drop the widget div and script tag into your form. Works with any framework.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Verify on Backend</h3>
+        <p style="font-size:13.5px;">One POST request to confirm the token is valid. Same pattern as reCAPTCHA.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Data Accumulates</h3>
+        <p style="font-size:13.5px;">Every solved challenge is a training record. Export JSONL anytime to fine-tune your model.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ INTEGRATE ══ -->
+<section class="section-sm" id="integrate">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">Integration</span>
+      <h2>Add to Any Site in<br /><span class="gradient-text">30 Seconds</span></h2>
+      <p style="max-width:480px;margin:14px auto 0;">Works with every framework and language. Same API surface as reCAPTCHA — drop-in replacement.</p>
+    </div>
+
+    <div class="two-col" style="gap:40px;">
+      <div>
+        <h3 style="margin-bottom:20px;">Step 1 — Get your keys</h3>
+        <div class="code-block">
+<span class="comment">POST https://lyraauth.com/api/auth/register</span>
+
+{
+  <span class="attr">"domain"</span>: <span class="string">"yoursite.com"</span>,
+  <span class="attr">"email"</span>:  <span class="string">"you@yoursite.com"</span>
+}
+
+<span class="comment">↓ Response</span>
+
+{
+  <span class="attr">"site_key"</span>:   <span class="string">"lyra_sk_..."</span>,
+  <span class="attr">"secret_key"</span>: <span class="string">"lyra_secret_..."</span>
+}</div>
+
+        <div style="margin-top:28px;">
+          <h3 style="margin-bottom:12px;">Step 3 — Verify on your server</h3>
+          <div class="tabs-wrapper">
+            <div class="tabs">
+              <button class="tab-btn active" data-tab="verify-py">Python</button>
+              <button class="tab-btn" data-tab="verify-node">Node.js</button>
+              <button class="tab-btn" data-tab="verify-php">PHP</button>
+            </div>
+            <div id="verify-py" class="tab-pane active">
+              <div class="code-block">
+<span class="kw">import</span> requests
+
+<span class="kw">def</span> <span class="fn">verify_human</span>(token):
+    r = requests.post(
+        <span class="string">"https://lyraauth.com/api/auth/siteverify"</span>,
+        data={<span class="string">"secret"</span>: <span class="string">"YOUR_SECRET_KEY"</span>, <span class="string">"token"</span>: token}
+    )
+    <span class="kw">return</span> r.json().get(<span class="string">"success"</span>, False)</div>
+            </div>
+            <div id="verify-node" class="tab-pane">
+              <div class="code-block">
+<span class="kw">async function</span> <span class="fn">verifyHuman</span>(token) {
+  const res = <span class="kw">await</span> fetch(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, {
+    method: <span class="string">'POST'</span>,
+    body: new URLSearchParams({ secret: <span class="string">'YOUR_SECRET_KEY'</span>, token })
+  });
+  <span class="kw">return</span> (await res.json()).success;
+}</div>
+            </div>
+            <div id="verify-php" class="tab-pane">
+              <div class="code-block">
+<span class="kw">function</span> <span class="fn">verifyHuman</span>($token) {
+    $r = file_get_contents(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+        false, stream_context_create([<span class="string">'http'</span> => [
+            <span class="string">'method'</span> => <span class="string">'POST'</span>,
+            <span class="string">'content'</span> => http_build_query([
+                <span class="string">'secret'</span> => <span class="string">'YOUR_SECRET_KEY'</span>,
+                <span class="string">'token'</span>  => $token
+            ])
+        ]])
+    );
+    <span class="kw">return</span> json_decode($r)->success ?? false;
+}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:20px;">Step 2 — Add to your form</h3>
+        <div class="tabs-wrapper">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="html-tab">HTML</button>
+            <button class="tab-btn" data-tab="react-tab">React</button>
+            <button class="tab-btn" data-tab="vue-tab">Vue</button>
+            <button class="tab-btn" data-tab="django-tab">Django</button>
+            <button class="tab-btn" data-tab="wp-tab">WordPress</button>
+          </div>
+          <div id="html-tab" class="tab-pane active">
+            <div class="code-block">
+<span class="tag">&lt;form</span> <span class="attr">method</span>=<span class="string">"POST"</span><span class="tag">&gt;</span>
+  <span class="comment">&lt;!-- your form fields --&gt;</span>
+
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"lyraauth"</span>
+       <span class="attr">data-sitekey</span>=<span class="string">"YOUR_SITE_KEY"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+  <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="string">"submit"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;/form&gt;</span>
+
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="string">"https://lyraauth.com/widget.js"</span> <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></div>
+          </div>
+          <div id="react-tab" class="tab-pane">
+            <div class="code-block">
+<span class="kw">import</span> { useEffect, useRef } <span class="kw">from</span> <span class="string">'react'</span>;
+
+<span class="kw">export function</span> <span class="fn">LyraAuth</span>({ siteKey, onVerified }) {
+  const ref = useRef();
+  useEffect(() => {
+    <span class="kw">const</span> script = document.createElement(<span class="string">'script'</span>);
+    script.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+    script.onload = () => window.LyraAuth?.render(ref.current, {
+      siteKey, onSuccess: onVerified
+    });
+    document.body.appendChild(script);
+  }, []);
+  <span class="kw">return</span> &lt;div ref={ref} /&gt;;
+}</div>
+          </div>
+          <div id="vue-tab" class="tab-pane">
+            <div class="code-block">
+<span class="tag">&lt;template&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">ref</span>=<span class="string">"widget"</span><span class="tag">&gt;&lt;/div&gt;</span>
+<span class="tag">&lt;/template&gt;</span>
+
+<span class="tag">&lt;script setup&gt;</span>
+<span class="kw">import</span> { ref, onMounted } <span class="kw">from</span> <span class="string">'vue'</span>;
+<span class="kw">const</span> widget = ref();
+onMounted(() => {
+  <span class="kw">const</span> s = document.createElement(<span class="string">'script'</span>);
+  s.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+  s.onload = () => window.LyraAuth?.render(widget.value, {
+    siteKey: <span class="string">'YOUR_SITE_KEY'</span>
+  });
+  document.head.appendChild(s);
+});
+<span class="tag">&lt;/script&gt;</span></div>
+          </div>
+          <div id="django-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment"># views.py</span>
+<span class="kw">import</span> requests
+<span class="kw">from</span> django.conf <span class="kw">import</span> settings
+
+<span class="kw">def</span> <span class="fn">contact</span>(request):
+    <span class="kw">if</span> request.method == <span class="string">'POST'</span>:
+        token = request.POST.get(<span class="string">'lyraauth-token'</span>)
+        r = requests.post(
+            <span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+            data={<span class="string">'secret'</span>: settings.LYRA_SECRET, <span class="string">'token'</span>: token}
+        )
+        <span class="kw">if not</span> r.json().get(<span class="string">'success'</span>):
+            <span class="kw">return</span> HttpResponseForbidden(<span class="string">'Bot detected'</span>)
+        <span class="comment"># process form...</span></div>
+          </div>
+          <div id="wp-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment">// functions.php — add to contact form</span>
+<span class="kw">add_filter</span>(<span class="string">'wpcf7_spam'</span>, <span class="kw">function</span>($spam) {
+    $token = $_POST[<span class="string">'lyraauth-token'</span>] ?? <span class="string">''</span>;
+    <span class="kw">if</span> (!$token) <span class="kw">return true</span>;
+    $r = wp_remote_post(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, [
+        <span class="string">'body'</span> => [<span class="string">'secret'</span> => LYRA_SECRET, <span class="string">'token'</span> => $token]
+    ]);
+    $data = json_decode(wp_remote_retrieve_body($r));
+    <span class="kw">return</span> !($data->success ?? false);
+});</div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <strong>Token field:</strong> After the user completes the challenge, the widget automatically adds a hidden <code>lyraauth-token</code> field to your form. Read this on your server and verify it.
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:48px;">
+      <a href="pages/docs.html" class="btn btn-outline">Full Documentation with All Options &rarr;</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ WHY NOT RECAPTCHA ══ -->
+<section class="section-sm">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>Privacy-First Verification That<br /><span class="gradient-text">Works for You</span></h2>
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🔒</div>
+        <h3 style="margin-bottom:6px;">No Google Tracking</h3>
+        <p style="font-size:13.5px;">reCAPTCHA fingerprints users across the entire web. Lyra never shares data with third parties.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🧠</div>
+        <h3 style="margin-bottom:6px;">You Own the AI</h3>
+        <p style="font-size:13.5px;">Google trained its image recognition on reCAPTCHA data for free. With Lyra, you own every data point and the model it creates.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">⚡</div>
+        <h3 style="margin-bottom:6px;">Drop-in Replacement</h3>
+        <p style="font-size:13.5px;">Same site key / secret key pattern as reCAPTCHA. One POST to verify. Migrate any existing integration in minutes.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🎮</div>
+        <h3 style="margin-bottom:6px;">Engaging Challenges</h3>
+        <p style="font-size:13.5px;">No more fire hydrants and crosswalks. Lyra's challenges test real cognitive ability — users find them interesting.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🏠</div>
+        <h3 style="margin-bottom:6px;">Self-Hostable</h3>
+        <p style="font-size:13.5px;">Run the entire platform on your own VPS for $6/month. Open source. GDPR-friendly by design.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">📊</div>
+        <h3 style="margin-bottom:6px;">Training Data Export</h3>
+        <p style="font-size:13.5px;">Export your accumulated training data in JSONL format — instruction/completion, preference pairs, or raw labels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ COMPARISON TABLE ══ -->
+<section class="section-sm" id="compare">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>LyraAuth vs the alternatives</h2>
+      <p style="max-width:460px;margin:14px auto 0;">The only verification tool that turns every human challenge into permanent AI training value — and gives it back to you.</p>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem;min-width:560px;">
+        <thead>
+          <tr>
+            <th style="padding:10px 16px;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">Feature</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);border-bottom:2px solid var(--border);background:var(--surface2);">✦ LyraAuth</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">reCAPTCHA v3</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">hCaptcha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Privacy — no third-party tracking</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Training data export (JSONL)</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Self-hostable / open source</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Cognitive challenge variety</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;font-weight:600;color:var(--text);">14 types</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Score only</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Image tasks</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">GDPR-friendly by design</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#ca8a04;font-weight:600;">~</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Free tier</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">10k / mo</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">Unlimited</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">1M / mo</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;color:var(--muted);">You own the AI it builds</td>
+            <td style="padding:13px 16px;text-align:center;color:#16a34a;font-weight:600;">✓ 100%</td>
+            <td style="padding:13px 16px;text-align:center;color:#dc2626;">✗ Google owns it</td>
+            <td style="padding:13px 16px;text-align:center;color:#dc2626;">✗ hCaptcha owns it</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ CHAT CTA ══ -->
+<section style="padding:72px 0;background:var(--surface);border-top:1px solid var(--border);">
+  <div class="container">
+    <div style="max-width:640px;margin:0 auto;display:flex;gap:40px;align-items:center;flex-wrap:wrap;">
+      <div style="flex:1;min-width:240px;">
+        <span class="section-label">AI Chat</span>
+        <h2 style="margin:10px 0 12px;">Chat with Lyra —<br /><span class="gradient-text">sign up to try it</span></h2>
+        <p>Once you have an account, unlock the full Lyra AI chat — autonomous memory, real-time web search, and continuously improving reasoning. No local GPU required.</p>
+        <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;">
+          <a href="dashboard/register.html" class="btn btn-primary">Create free account &rarr;</a>
+          <a href="dashboard/login.html" class="btn btn-outline">Sign in to chat</a>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px;">
+        <!-- Chat preview mockup -->
+        <div style="background:var(--bg);border:1px solid var(--border-hi);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <div style="background:var(--surface2);padding:10px 14px;border-bottom:1px solid var(--border);font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;"><span style="font-weight:600;color:var(--text);">✦ Lyra Chat</span></div>
+          <div style="padding:16px 14px;">
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <div style="width:26px;height:26px;background:var(--text);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6875rem;color:var(--bg);font-weight:700;">Y</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 8px 2px;padding:9px 12px;font-size:.8125rem;color:var(--text);">How does transformer attention work?</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="width:26px;height:26px;background:var(--surface2);border:1px solid var(--border-hi);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;">✦</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 2px 8px;padding:9px 12px;font-size:.8125rem;color:var(--muted);line-height:1.6;">Transformer attention computes a weighted sum of values, where weights come from the dot-product similarity of queries and keys...</div>
+            </div>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:.8125rem;color:var(--dim);">Message Lyra...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ PRICING ══ -->
+<section class="section" id="pricing">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">Pricing</span>
+      <h2>One plan for every size.<br /><span class="gradient-text">Start free, scale forever.</span></h2>
+      <p style="max-width:480px;margin:14px auto 0;">Every plan includes the full LyraAuth widget, all 14+ challenge types, and the training data pipeline. Upgrade or cancel anytime.</p>
+    </div>
+
+    <div class="pricing-grid-5">
+
+      <!-- FREE -->
+      <div class="price-card5">
+        <div class="price-tier5">Free</div>
+        <div class="price-amount">$0<span>/mo</span></div>
+        <p class="price-desc5">Personal projects &amp; open source.</p>
+        <ul class="price-features">
+          <li>10,000 verifications / mo</li>
+          <li>3 sites</li>
+          <li>All 14+ challenge types</li>
+          <li>Training data pipeline</li>
+          <li>Community support</li>
+        </ul>
+        <a href="dashboard/register.html" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Create free account</a>
+      </div>
+
+      <!-- STARTER -->
+      <div class="price-card5">
+        <div class="price-tier5">Starter</div>
+        <div class="price-amount">$9<span>/mo</span></div>
+        <p class="price-desc5">Small businesses getting started.</p>
+        <ul class="price-features">
+          <li>100,000 verifications / mo</li>
+          <li>10 sites</li>
+          <li>All Free features</li>
+          <li>Email support</li>
+          <li>Training data export</li>
+        </ul>
+        <a href="dashboard/register.html?plan=starter" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Starter</a>
+      </div>
+
+      <!-- PRO — FEATURED -->
+      <div class="price-card5 price-card5-featured">
+        <div class="price-tier5" style="color:var(--text);">Pro — Most Popular</div>
+        <div class="price-amount">$29<span>/mo</span></div>
+        <p class="price-desc5">Growing sites that need real scale.</p>
+        <ul class="price-features">
+          <li>500,000 verifications / mo</li>
+          <li>Unlimited sites</li>
+          <li>All Starter features</li>
+          <li>Custom challenge branding</li>
+          <li>Analytics dashboard</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="dashboard/register.html?plan=pro" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:auto;">Subscribe to Pro</a>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="price-card5">
+        <div class="price-tier5">Business</div>
+        <div class="price-amount">$79<span>/mo</span></div>
+        <p class="price-desc5">High-traffic sites &amp; teams.</p>
+        <ul class="price-features">
+          <li>2,000,000 verifications / mo</li>
+          <li>Unlimited sites</li>
+          <li>All Pro features</li>
+          <li>Team member access</li>
+          <li>SLA 99.9% uptime</li>
+          <li>White-label widget</li>
+        </ul>
+        <a href="dashboard/register.html?plan=business" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Business</a>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-card5">
+        <div class="price-tier5">Enterprise</div>
+        <div class="price-amount">$249<span>/mo</span></div>
+        <p class="price-desc5">Large orgs. Full control.</p>
+        <ul class="price-features">
+          <li>Unlimited verifications</li>
+          <li>Self-hosted deployment</li>
+          <li>All Business features</li>
+          <li>Custom challenge types</li>
+          <li>GDPR DPA included</li>
+          <li>Dedicated account manager</li>
+        </ul>
+        <a href="mailto:support@lyraauth.com" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Contact Sales</a>
+      </div>
+
+    </div>
+
+    <p style="text-align:center;font-size:13px;color:var(--dim);margin-top:28px;">All plans billed monthly. No contracts. Cancel anytime. Need a custom quote? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">Email us.</a></p>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ CTA STRIP ══ -->
+<section style="padding:72px 0;background:var(--text);">
+  <div class="container" style="text-align:center;">
+    <h2 style="color:#faf9f7;margin-bottom:12px;letter-spacing:-0.03em;">Ready to replace reCAPTCHA?</h2>
+    <p style="color:rgba(250,249,247,0.6);max-width:440px;margin:0 auto 32px;font-size:1rem;">Takes 2 minutes to add to any site. Free account, no credit card needed.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="dashboard/register.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:#faf9f7;color:#14120e;border-radius:8px;font-size:.9375rem;font-weight:600;text-decoration:none;">Create Free Account &rarr;</a>
+      <a href="pages/docs.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:transparent;color:rgba(250,249,247,0.7);border:1px solid rgba(250,249,247,0.2);border-radius:8px;font-size:.9375rem;font-weight:500;text-decoration:none;">Read the Docs</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo">✦ Lyra AI</div>
+        <p class="footer-desc">Human verification that trains your AI. Private, self-hostable, fully owned by you.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Products</h4>
+        <ul>
+          <li><a href="pages/lyraauth.html">LyraAuth</a></li>
+          <li><a href="pages/detect.html">Real or Fake</a></li>
+          <li><a href="pages/accessibility.html">Accessibility AI</a></li>
+          <li><a href="pages/physics.html">Physics Reasoning</a></li>
+          <li><a href="pages/vibe.html">Vibe &amp; Tone</a></li>
+          <li><a href="pages/coshh.html">COSHH AI</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Developers</h4>
+        <ul>
+          <li><a href="pages/docs.html">Documentation</a></li>
+          <li><a href="pages/docs.html#quickstart">Quick Start</a></li>
+          <li><a href="pages/docs.html#api">API Reference</a></li>
+          <li><a href="pages/docs.html#terminal">Terminal CLI</a></li>
+          <li><a href="pages/docs.html#deploy">Self-Host Guide</a></li>
+          <li><a href="dashboard/chat.html">AI Chat</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Legal</h4>
+        <ul>
+          <li><a href="pages/terms.html">Terms of Service</a></li>
+          <li><a href="pages/privacy.html">Privacy Policy</a></li>
+          <li><a href="pages/dpa.html">Data Processing Agreement</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Lyra Labs. All rights reserved.</p>
+      <p>lyraauth.com — Human verification that trains your AI</p>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

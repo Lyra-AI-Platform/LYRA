@@ -28,12 +28,14 @@ CREATE TABLE IF NOT EXISTS weights (
     model TEXT PRIMARY KEY, data TEXT, updated_at REAL
 );
 CREATE TABLE IF NOT EXISTS equity (
-    ts REAL, equity REAL, invested REAL
+    owner TEXT, ts REAL, equity REAL, invested REAL
 );
+CREATE INDEX IF NOT EXISTS idx_equity_owner ON equity(owner, ts);
 CREATE TABLE IF NOT EXISTS fills (
-    id INTEGER PRIMARY KEY AUTOINCREMENT, ts REAL, ticker TEXT, side TEXT, shares REAL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT, owner TEXT, ts REAL, ticker TEXT, side TEXT, shares REAL,
     price REAL, realized_pnl REAL
 );
+CREATE INDEX IF NOT EXISTS idx_fills_owner ON fills(owner, ts);
 CREATE TABLE IF NOT EXISTS mistakes (
     id INTEGER PRIMARY KEY AUTOINCREMENT, prediction_id INTEGER, ticker TEXT,
     predicted TEXT, actual TEXT, outcome_return REAL, blamed_factors TEXT, created_at REAL
@@ -47,6 +49,10 @@ class MarketStore:
         self._lock = threading.Lock()
         self._conn = sqlite3.connect(str(path), check_same_thread=False)
         self._conn.row_factory = sqlite3.Row
+        for table in ("equity", "fills"):  # databases from before accounts were per-user
+            cols = [r[1] for r in self._conn.execute(f"PRAGMA table_info({table})")]
+            if cols and "owner" not in cols:
+                self._conn.execute(f"ALTER TABLE {table} ADD COLUMN owner TEXT DEFAULT 'local'")
         self._conn.executescript(SCHEMA)
         self._conn.commit()
 
@@ -139,17 +145,20 @@ class MarketStore:
     def save_weights(self, model: str, data: Dict):
         self._exec("INSERT OR REPLACE INTO weights VALUES (?,?,?)", (model, json.dumps(data), time.time()))
 
-    # Account (fed by the AI trader so the risk guard knows where it stands)
-    def record_equity(self, equity: float, invested: Optional[float] = None, ts: Optional[float] = None):
-        self._exec("INSERT INTO equity VALUES (?,?,?)", (ts or time.time(), equity, invested))
+    # Account (fed by the AI trader so the risk guard knows where it stands).
+    # Every row belongs to one owner, so users never see or affect each other's state.
+    def record_equity(self, owner: str, equity: float, invested: Optional[float] = None, ts: Optional[float] = None):
+        self._exec("INSERT INTO equity (owner,ts,equity,invested) VALUES (?,?,?,?)",
+                   (owner, ts or time.time(), equity, invested))
 
-    def equity_rows(self, since: float = 0) -> List[Dict]:
-        return self._all("SELECT * FROM equity WHERE ts>=? ORDER BY ts", (since,))
+    def equity_rows(self, owner: str, since: float = 0) -> List[Dict]:
+        return self._all("SELECT ts, equity, invested FROM equity WHERE owner=? AND ts>=? ORDER BY ts", (owner, since))
 
-    def position(self, ticker: str) -> Dict:
+    def position(self, owner: str, ticker: str) -> Dict:
         """Shares held and average cost, replayed from fills."""
         shares = cost = 0.0
-        for f in self._all("SELECT side, shares, price FROM fills WHERE ticker=? ORDER BY ts, id", (ticker.upper(),)):
+        for f in self._all("SELECT side, shares, price FROM fills WHERE owner=? AND ticker=? ORDER BY ts, id",
+                           (owner, ticker.upper())):
             if f["side"] == "buy":
                 cost += f["shares"] * f["price"]
                 shares += f["shares"]
@@ -159,18 +168,19 @@ class MarketStore:
                 shares -= sold
         return {"shares": shares, "avg_cost": cost / shares if shares else 0.0}
 
-    def record_fill(self, ticker: str, side: str, shares: float, price: float, ts: Optional[float] = None) -> Dict:
+    def record_fill(self, owner: str, ticker: str, side: str, shares: float, price: float,
+                    ts: Optional[float] = None) -> Dict:
         ticker = ticker.upper()
         pnl = None
         if side == "sell":
-            pos = self.position(ticker)
+            pos = self.position(owner, ticker)
             pnl = round((price - pos["avg_cost"]) * min(shares, pos["shares"]), 2) if pos["shares"] else 0.0
-        cur = self._exec("INSERT INTO fills (ts,ticker,side,shares,price,realized_pnl) VALUES (?,?,?,?,?,?)",
-                         (ts or time.time(), ticker, side, shares, price, pnl))
+        cur = self._exec("INSERT INTO fills (owner,ts,ticker,side,shares,price,realized_pnl) VALUES (?,?,?,?,?,?,?)",
+                         (owner, ts or time.time(), ticker, side, shares, price, pnl))
         return {"id": cur.lastrowid, "ticker": ticker, "side": side, "realized_pnl": pnl}
 
-    def fills(self, since: float = 0, ticker: str = "") -> List[Dict]:
-        sql, params = "SELECT * FROM fills WHERE ts>=?", [since]
+    def fills(self, owner: str, since: float = 0, ticker: str = "") -> List[Dict]:
+        sql, params = "SELECT id, ts, ticker, side, shares, price, realized_pnl FROM fills WHERE owner=? AND ts>=?", [owner, since]
         if ticker:
             sql += " AND ticker=?"
             params.append(ticker.upper())

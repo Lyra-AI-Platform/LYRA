@@ -1,1 +1,1 @@
-# LyraAuth
+# LyraAuth — Human Intelligence Authenticator

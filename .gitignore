@@ -8,6 +8,7 @@ data/uploads/
 data/memory/
 data/logs/
 data/market/market.db
+data/.jwt_secret
 .env
 *.local.env
 .DS_Store
@@ -15,3 +16,13 @@ Thumbs.db
 *.log
 *.tmp
 community_data.json
+
+# website/ now included in repo
+
+# Runtime state written by the app (user accounts, integrity fingerprints, self-model)
+data/*.db
+data/.c5
+data/.fp
+data/self_model.json
+data/auth/
+data/market/

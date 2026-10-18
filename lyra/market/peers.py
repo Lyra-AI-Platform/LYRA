@@ -4,7 +4,7 @@ GitHub — so one bad data source can't dominate a decision.
 
 Configure peers in data/market/peers.json, e.g.
 [
-  {"name": "friend-node", "type": "lyra", "url": "http://10.0.0.5:8080", "weight": 1.0},
+  {"name": "friend-node", "type": "lyra", "url": "https://friend.example", "key": "<their LYRA_PEER_KEY>", "weight": 1.0},
   {"name": "some-repo", "type": "json", "weight": 0.5,
    "url": "https://raw.githubusercontent.com/<owner>/<repo>/main/signals.json"}
 ]
@@ -36,7 +36,8 @@ def _clean(sig: Dict) -> Dict:
 
 async def _peer_signal(peer: Dict, ticker: str) -> Dict:
     if peer.get("type") == "lyra":
-        body = await fetch_text(f"{peer['url'].rstrip('/')}/api/market/signal/{ticker}", max_age=1800, timeout=8)
+        body = await fetch_text(f"{peer['url'].rstrip('/')}/api/market/signal/{ticker}", max_age=1800, timeout=8,
+                                headers={"X-Lyra-Peer-Key": peer.get("key", "")})
         sig = json.loads(body) if body else {}
     else:
         body = await fetch_text(peer["url"], max_age=1800, timeout=8)

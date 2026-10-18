@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
 <title>Lyra — Tremor Index</title>
 <style>
   :root {
@@ -54,12 +55,16 @@
   .muted { color: var(--muted); font-size: 13px; }
   .full { grid-column: 1 / -1; }
   .empty { color: var(--muted); padding: 20px 0; text-align: center; }
+  main { -webkit-user-select: none; user-select: none; }
+  main input { -webkit-user-select: text; user-select: text; }
+  .watermark { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  @media print { body { display: none; } }
 </style>
 </head>
 <body>
 <header>
   <h1>✦ Tremor Index</h1>
-  <a href="/">← Back to Lyra</a>
+  <a href="/dashboard/index.html">← Dashboard</a>
   <div class="vix" id="vix">VIX loading…</div>
 </header>
 
@@ -108,11 +113,42 @@ const when = (ts) => ts ? new Date(ts * 1000).toLocaleString() : "";
 const money = (v) => v ? "$" + Number(v).toLocaleString(undefined, {maximumFractionDigits: 0}) : "—";
 let currentTicker = "";
 
-async function api(path, opts) {
-  const r = await fetch(path, opts);
+const LOGIN_URL = "/dashboard/login.html";
+let token = null, viewer = {};
+try { token = localStorage.getItem("lyra_token"); viewer = JSON.parse(localStorage.getItem("lyra_user") || "{}"); } catch {}
+
+function toLogin() {
+  try { localStorage.setItem("lyra_next", "/market"); localStorage.removeItem("lyra_token"); } catch {}
+  location.href = LOGIN_URL;
+}
+if (!token) toLogin();
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + token } });
+  if (r.status === 401) { toLogin(); throw new Error("Please sign in"); }
+  if (r.status === 429) throw new Error("You've hit the hourly limit — try again a bit later.");
   if (!r.ok) throw new Error((await r.text()) || r.statusText);
   return r.json();
 }
+
+// Copy deterrents. Anything shown on a screen can ultimately be captured, so
+// the real protection is server-side (login + rate limits); this just stops
+// casual select-all / right-click copying and stamps every view with who saw it.
+(function protect() {
+  const stamp = (viewer.email || "signed-in user") + " · " + new Date().toISOString().slice(0, 16).replace("T", " ");
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><text x='10' y='110' transform='rotate(-22 180 100)'
+    fill='rgba(139,92,246,0.10)' font-family='sans-serif' font-size='15'>${stamp.replace(/[<&>'"]/g, "")}</text></svg>`;
+  const mark = document.createElement("div");
+  mark.className = "watermark";
+  mark.style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
+  document.body.appendChild(mark);
+  const guarded = (e) => e.target.closest && e.target.closest("main") && !e.target.closest("input");
+  ["copy", "cut", "contextmenu", "dragstart"].forEach(ev =>
+    document.addEventListener(ev, (e) => { if (guarded(e)) e.preventDefault(); }));
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && ["a", "c", "s", "p", "u"].includes(e.key.toLowerCase()) && !e.target.closest("input")) e.preventDefault();
+  });
+})();
 
 async function loadVix() {
   try {

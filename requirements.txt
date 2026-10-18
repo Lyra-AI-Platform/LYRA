@@ -1,3 +1,24 @@
+# Lyra AI Platform — Dependencies
+# SaaS layer
+sqlalchemy>=2.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1                 # passlib breaks on bcrypt>=4.1 (signup/login crash)
+stripe>=7.0.0
+
+# Super-Intelligence RAG pipeline
+pinecone-text>=0.9.0          # BM25 sparse encoder for hybrid search
+anthropic>=0.30.0             # Claude API (reasoning layer)
+langchain-anthropic>=0.1.0    # LangChain Claude integration
+torch>=2.2.0                  # PyTorch (training + inference)
+trl>=0.9.0                    # Transformer Reinforcement Learning (fine-tuning)
+wandb>=0.17.0                 # Training metrics + experiment tracking
+xformers>=0.0.26              # Memory-efficient attention (optional speedup)
+
+
+# Copyright (C) 2026 Lyra Contributors — All Rights Reserved.
+# See LICENSE for terms.
+
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 python-multipart>=0.0.9
@@ -6,10 +27,41 @@ httpx>=0.27.0
 pydantic>=2.0.0
 websockets>=12.0
 python-dotenv>=1.0.0
-rich>=13.0.0
-networkx>=3.0
+
+# AI Models
+llama-cpp-python>=0.3.0
+transformers>=4.44.0
+accelerate>=0.33.0
+sentencepiece>=0.2.0
+huggingface_hub>=0.20.0
+
+# Memory
+chromadb>=0.5.0
+sentence-transformers>=3.0.0
+pinecone>=3.0.0
+
+# Dataset ingestion
+datasets>=2.0.0
+
+# File Processing
+pymupdf>=1.24.0
+pypdf>=4.0.0
+python-docx>=1.1.0
+openpyxl>=3.1.0
+
+# Terminal CLI
+rich>=13.0.0         # Beautiful terminal output (optional but recommended)
+
+# Web Search & Crawling
+ddgs>=0.1.0  # formerly duckduckgo-search
 beautifulsoup4>=4.12.0
-ddgs>=0.1.0
-spacy>=3.0.0
-nltk>=3.8.0
-paramiko>=4.0.0
+
+# Graph Knowledge (in-memory fallback — always installed, lightweight)
+networkx>=3.0
+
+# Optional graph DB drivers — install only when you're running that DB:
+# pip install neo4j          → Neo4j Community (bolt://localhost:7687)
+# pip install python-arango  → ArangoDB Community (http://localhost:8529)
+# pip install gremlinpython  → JanusGraph (ws://localhost:8182/gremlin)
+# pip install nebula3-python → NebulaGraph (127.0.0.1:9669)
+# (Memgraph uses the neo4j driver, port 7688)

@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# Lyra AI Platform — Terminal CLI Launcher
+# Copyright (C) 2026 Lyra Contributors — All Rights Reserved.
+# Licensed under the Lyra Community License v1.0. See LICENSE for details.
+#
+# Usage:
+#   ./scripts/lyra-cli              # auto-detect (connect to server or direct)
+#   ./scripts/lyra-cli --direct     # load model directly in this terminal
+#   ./scripts/lyra-cli --persona lyra-code
+#   ./scripts/lyra-cli --host 127.0.0.1 --port 7860
+#
+# To install system-wide so you can just type 'lyra' anywhere:
+#   sudo ln -sf "$(pwd)/scripts/lyra-cli" /usr/local/bin/lyra
+#   sudo ln -sf "$(pwd)/scripts/lyra-cli" /usr/local/bin/lyra-cli
+
+set -e
+
+LYRA_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+# Use venv python if available
+if [ -f "$LYRA_DIR/.venv/bin/python" ]; then
+    PYTHON="$LYRA_DIR/.venv/bin/python"
+elif [ -f "$LYRA_DIR/venv/bin/python" ]; then
+    PYTHON="$LYRA_DIR/venv/bin/python"
+else
+    PYTHON="python3"
+fi
+
+# Check python is available
+if ! command -v "$PYTHON" &>/dev/null && ! "$PYTHON" --version &>/dev/null 2>&1; then
+    echo "Error: Python not found. Install Python 3.10+ and try again."
+    exit 1
+fi
+
+# Check rich is installed (optional but recommended)
+if ! "$PYTHON" -c "import rich" &>/dev/null 2>&1; then
+    echo "  Tip: Install 'rich' for a better terminal UI: pip install rich"
+fi
+
+cd "$LYRA_DIR"
+exec "$PYTHON" -m lyra.cli "$@"

@@ -20,14 +20,15 @@ def _headers(url: str) -> dict:
     return {"User-Agent": ua, "Accept-Encoding": "gzip, deflate"}
 
 
-async def fetch_text(url: str, max_age: float = 900, timeout: float = 15) -> Optional[str]:
+async def fetch_text(url: str, max_age: float = 900, timeout: float = 15,
+                     headers: Optional[dict] = None) -> Optional[str]:
     """GET a URL, returning the body or None. Responses are cached for max_age seconds."""
     store = get_store()
     cached = store.cache_get(url, max_age)
     if cached is not None:
         return cached
     try:
-        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, headers=_headers(url)) as client:
+        async with httpx.AsyncClient(timeout=timeout, follow_redirects=True, headers={**_headers(url), **(headers or {})}) as client:
             if "sec.gov" in url:
                 async with _sec_gate:
                     resp = await client.get(url)
