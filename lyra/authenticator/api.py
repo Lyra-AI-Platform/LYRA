@@ -303,7 +303,7 @@ _DEMO_HTML = """<!DOCTYPE html>
     </form>
     <div class="footer">Protected by <a href="/">LyraAuth</a> · Your answers train Lyra AI</div>
   </div>
-  <script src="/lyraauth.js"></script>
+  <script src="/widget.js"></script>
   <script>
     document.getElementById('f').addEventListener('submit', function(e) {
       e.preventDefault();

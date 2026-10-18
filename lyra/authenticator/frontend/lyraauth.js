@@ -4,7 +4,7 @@
  * Copyright (C) 2026 Lyra Contributors
  *
  * Drop-in replacement for reCAPTCHA. Add to any website with one line:
- *   <script src="https://auth.lyra.ai/lyraauth.js"></script>
+ *   <script src="https://lyraauth.com/widget.js"></script>
  *   <div class="lyraauth" data-sitekey="lyra_YOUR_KEY"></div>
  *
  * What it does:
@@ -13,7 +13,7 @@
  *   3. Contributes one labeled training example to Lyra's AI training
  *
  * Privacy: Users are clearly told their answer trains an AI.
- * See our Privacy Policy and Terms at https://auth.lyra.ai/legal
+ * See our Privacy Policy and Terms at https://lyraauth.com/pages/privacy.html and https://lyraauth.com/pages/terms.html
  */
 
 (function (window) {
@@ -311,8 +311,8 @@
         footer.className = 'lyraauth-footer';
         footer.innerHTML = `
           <span class="lyraauth-footer-text">
-            <a href="https://auth.lyra.ai/privacy" target="_blank">Privacy</a> ·
-            <a href="https://auth.lyra.ai/terms" target="_blank">Terms</a> ·
+            <a href="https://lyraauth.com/pages/privacy.html" target="_blank">Privacy</a> ·
+            <a href="https://lyraauth.com/pages/terms.html" target="_blank">Terms</a> ·
             Your answer trains Lyra AI
           </span>
           <span class="lyraauth-badge">⚡ v${LYRAAUTH_VERSION}</span>
@@ -387,7 +387,7 @@
       const note = document.createElement('div');
       note.className = 'lyraauth-training-note';
       note.innerHTML = `By answering, you consent to your response being used to train Lyra AI.
-        <a href="https://auth.lyra.ai/privacy" target="_blank">Learn more</a>`;
+        <a href="https://lyraauth.com/pages/privacy.html" target="_blank">Learn more</a>`;
       body.appendChild(note);
 
       return body;
