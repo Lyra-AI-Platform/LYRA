@@ -240,6 +240,7 @@ async function loadBacktest() {
       <td class="num">${pct(p.predicted, 1)}</td><td class="num">${pct(p.observed, 1)}</td><td class="num">${p.count.toLocaleString()}</td></tr>`).join("");
     $("backtest-body").innerHTML = `
       <div class="callout"><p><b>Result:</b> ${esc(b.verdict)}</p></div>
+      <p class="muted">Below: how the original hand-set weights did over the whole period. The re-fitted weights are further down.</p>
       <p>We replayed ${s.readings.toLocaleString()} readings across ${b.tickers_used.length} large US stocks from
         ${esc(fmtIso(b.period.from))} to ${esc(fmtIso(b.period.to))}, ${esc(b.sampling)}. Each reading used only data
         available on its date and was graded on the close ${b.horizon_days} days later (${esc(b.definition)}).</p>
@@ -266,6 +267,18 @@ async function loadBacktest() {
       <details><summary>Calibration as a table</summary><div class="table-wrap"><table>
         <tr><th>Forecast</th><th>Bin</th><th class="num">Predicted</th><th class="num">Happened</th><th class="num">Readings</th></tr>
         ${calRows("boom", "Boom")}${calRows("bust", "Bust")}</table></div></details>
+      ${b.walk_forward ? `<h3>Re-fitting the weights</h3>
+      <p>The hand-set weights were re-fitted on readings up to ${esc(fmtIso(b.walk_forward.cutoff))}
+        (${b.walk_forward.train_readings.toLocaleString()} readings) and judged on the
+        ${b.walk_forward.test_readings.toLocaleString()} later readings they never saw.</p>
+      <div class="table-wrap"><table>
+        <tr><th>On the unseen period</th><th class="num">Hand-set weights</th><th class="num">Re-fitted weights</th><th class="num">Base rate only</th></tr>
+        <tr><td>Brier, boom</td><td class="num">${b.walk_forward.prior_on_test.brier.boom}</td><td class="num">${b.walk_forward.fitted_on_test.brier.boom}</td><td class="num">${b.walk_forward.fitted_on_test.brier.boom_baseline}</td></tr>
+        <tr><td>Brier, bust</td><td class="num">${b.walk_forward.prior_on_test.brier.bust}</td><td class="num">${b.walk_forward.fitted_on_test.brier.bust}</td><td class="num">${b.walk_forward.fitted_on_test.brier.bust_baseline}</td></tr>
+        <tr><td>Calls matching the outcome</td><td class="num">${pct(b.walk_forward.prior_on_test.hit_rate, 1)}</td><td class="num">${pct(b.walk_forward.fitted_on_test.hit_rate, 1)}</td><td class="num">${pct(b.walk_forward.fitted_on_test.hit_rate_random_same_mix, 1)} (random)</td></tr>
+      </table></div>
+      <p class="muted">${b.fitted_adopted ? "The re-fitted weights are the live model's starting point." : "The re-fitted weights were not adopted."}
+        ${b.proven ? "" : "Exact percentages stay hidden until a backtest shows clear skill."}</p>` : ""}
       <h3>What this test does not cover</h3>
       <ul>${b.limitations.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
       <p class="muted">Inputs tested: ${b.inputs_tested.map(esc).join(", ")}. Weights: ${esc(b.weights)}.

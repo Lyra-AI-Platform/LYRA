@@ -86,6 +86,8 @@ def price_stats(bars: List[Dict]) -> Dict:
         "drawdown": 1 - price / high if high else 0,
         "realized_vol": _stdev(rets[-20:]) * math.sqrt(252),
         "volume_z": (recent_vol - base_mean) / base_sd if base_sd else 0,
+        # Classic 12-1 month momentum: the past year's return, skipping the most recent month.
+        "return_12m_ex_1m": closes[-21] / closes[-min(len(closes), 252)] - 1 if len(closes) >= 150 else None,
         "last_ts": bars[-1]["ts"],
     }
 

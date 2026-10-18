@@ -18,20 +18,20 @@ from lyra.market.config import INDEX_CODE, MAX_POSITION
 # Every feature is scaled to roughly [-1, 1]; positive means bullish,
 # except "uncertainty", which is non-directional (0..1).
 FEATURES = [
-    "momentum", "trend", "short_term", "drawdown", "vol_vs_market", "market_fear", "fear_spike",
+    "momentum", "long_momentum", "trend", "short_term", "drawdown", "vol_vs_market", "market_fear", "fear_spike",
     "volume_surge", "news_sentiment", "news_buzz", "insider_flow", "insider_cluster", "fund_flow",
     "congress_flow", "quiet_accumulation", "peer_consensus", "uncertainty",
 ]
 
 PRIOR_BOOM = {
-    "bias": -0.85, "momentum": 0.45, "trend": 0.35, "short_term": 0.1, "drawdown": 0.15,
+    "bias": -0.85, "momentum": 0.45, "long_momentum": 0.2, "trend": 0.35, "short_term": 0.1, "drawdown": 0.15,
     "vol_vs_market": 0.1, "market_fear": 0.3, "fear_spike": 0.25, "volume_surge": 0.2,
     "news_sentiment": 0.5, "news_buzz": 0.2, "insider_flow": 0.8, "insider_cluster": 0.4,
     "fund_flow": 0.35, "congress_flow": 0.45, "quiet_accumulation": 0.5, "peer_consensus": 0.4,
     "uncertainty": 0.6,
 }
 PRIOR_BUST = {
-    "bias": -1.1, "momentum": -0.35, "trend": -0.35, "short_term": -0.1, "drawdown": -0.3,
+    "bias": -1.1, "momentum": -0.35, "long_momentum": -0.2, "trend": -0.35, "short_term": -0.1, "drawdown": -0.3,
     "vol_vs_market": -0.3, "market_fear": -0.5, "fear_spike": -0.4, "volume_surge": -0.2,
     "news_sentiment": -0.6, "news_buzz": -0.2, "insider_flow": -0.6, "insider_cluster": -0.2,
     "fund_flow": -0.3, "congress_flow": -0.35, "quiet_accumulation": -0.4, "peer_consensus": -0.4,
@@ -40,6 +40,8 @@ PRIOR_BUST = {
 
 EXPLAIN = {
     "momentum": ("strong 20-day price momentum", "falling 20-day price momentum"),
+    "long_momentum": ("up strongly over the past year (excluding the last month)",
+                      "down over the past year (excluding the last month)"),
     "trend": ("trading above its 50-day average", "trading below its 50-day average"),
     "short_term": ("rising over the past week", "sliding over the past week"),
     "drawdown": ("close to its 52-week high", "deep below its 52-week high"),
@@ -75,6 +77,8 @@ def build_features(stats: Dict, vix: Dict, news: Dict, money: Dict, peers: Dict)
 
     if stats:
         put("momentum", _t(stats["return_20d"] / 0.10))
+        if stats.get("return_12m_ex_1m") is not None:
+            put("long_momentum", _t(stats["return_12m_ex_1m"] / 0.40))
         put("trend", _t(stats["vs_sma50"] / 0.10))
         put("short_term", _t(stats["return_5d"] / 0.05))
         put("drawdown", -_t(stats["drawdown"] / 0.30))

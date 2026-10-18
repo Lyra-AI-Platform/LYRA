@@ -18,13 +18,15 @@ Writes data/market/backtest.json, served at /api/market/public/backtest.
 import argparse
 import asyncio
 import json
+import math
 import time
 from typing import Dict, List
 
 from lyra.market.config import BOOM_THRESHOLD, BUST_THRESHOLD, DATA_DIR, HORIZON_DAYS
 from lyra.market.learner import outcome_of
 from lyra.market.market_data import get_history, price_on_or_after, price_stats
-from lyra.market.tremor_index import PRIOR_BOOM, PRIOR_BUST, LogisticModel, build_features, decide
+from lyra.market.store import get_store
+from lyra.market.tremor_index import FEATURES, PRIOR_BOOM, PRIOR_BUST, LogisticModel, build_features, decide
 
 RESULT_FILE = DATA_DIR / "backtest.json"
 
@@ -54,8 +56,10 @@ def _confidence(avail: Dict[str, bool]) -> float:
     return sum(w for w, keys in groups if any(avail.get(k) for k in keys)) * 0.6
 
 
-def readings_for(ticker: str, bars: List[Dict], vix_bars: List[Dict], step: int) -> List[Dict]:
-    boom, bust = LogisticModel(PRIOR_BOOM), LogisticModel(PRIOR_BUST)
+def readings_for(ticker: str, bars: List[Dict], vix_bars: List[Dict], step: int,
+                 boom: LogisticModel = None, bust: LogisticModel = None) -> List[Dict]:
+    boom = boom or LogisticModel(PRIOR_BOOM)
+    bust = bust or LogisticModel(PRIOR_BUST)
     out = []
     horizon = HORIZON_DAYS * 86400
     for i in range(252, len(bars), step):
@@ -76,8 +80,67 @@ def readings_for(ticker: str, bars: List[Dict], vix_bars: List[Dict], step: int)
             break
         ret = later / stats["price"] - 1
         out.append({"ticker": ticker, "ts": now["ts"], "p_boom": p_boom, "p_bust": p_bust,
-                    "action": action, "ret": ret, "outcome": outcome_of(ret)})
+                    "action": action, "ret": ret, "outcome": outcome_of(ret), "x": x,
+                    "confidence": _confidence(feats["available"]), "vix": vix.get("level"), "price": stats["price"]})
     return out
+
+
+# ── Fitting ──────────────────────────────────────────────────────────────────
+#
+# The live model starts from hand-set weights. Here they are re-fitted on the
+# first part of the history and judged on the later part it never saw
+# (walk-forward), so the out-of-sample numbers are an honest estimate.
+
+def fit_logistic(rows: List[Dict], target: str, prior: Dict[str, float], l2: float = 2.0) -> Dict[str, float]:
+    """L2-regularised logistic regression by gradient descent. Features that never vary in the
+    data (news, filings: no history here) keep their prior weight instead of being fitted."""
+    import numpy as np
+    feats = [f for f in FEATURES if any(r["x"].get(f, 0.0) != 0.0 for r in rows)]
+    X = np.array([[1.0] + [r["x"].get(f, 0.0) for f in feats] for r in rows])
+    y = np.array([1.0 if r["outcome"] == target else 0.0 for r in rows])
+    w = np.zeros(X.shape[1])
+    w[0] = math.log(max(y.mean(), 1e-3) / max(1 - y.mean(), 1e-3))   # start at the base rate
+    n = len(rows)
+    for _ in range(3000):
+        p = 1 / (1 + np.exp(-np.clip(X @ w, -30, 30)))
+        grad = X.T @ (p - y) / n
+        grad[1:] += l2 * w[1:] / n
+        w -= 0.5 * grad
+    fitted = dict(prior)
+    fitted["bias"] = round(float(w[0]), 6)
+    for f, v in zip(feats, w[1:]):
+        fitted[f] = round(float(v), 6)
+    return fitted
+
+
+def rescore(rows: List[Dict], boom: LogisticModel, bust: LogisticModel) -> List[Dict]:
+    out = []
+    for r in rows:
+        p_boom, p_bust = boom.predict(r["x"]), bust.predict(r["x"])
+        if p_boom + p_bust > 0.98:
+            s = (p_boom + p_bust) / 0.98
+            p_boom, p_bust = p_boom / s, p_bust / s
+        action = decide(p_boom, p_bust, r["confidence"], r["vix"], r["price"])["action"]
+        out.append({**r, "p_boom": p_boom, "p_bust": p_bust, "action": action})
+    return out
+
+
+def walk_forward(rows: List[Dict], train_fraction: float = 0.6) -> Dict:
+    """Fit on the earliest train_fraction of dates, test on the rest. Returns both fits' test scores."""
+    ts = sorted(r["ts"] for r in rows)
+    cutoff = ts[int(len(ts) * train_fraction)]
+    train = [r for r in rows if r["ts"] < cutoff]
+    test = [r for r in rows if r["ts"] >= cutoff + HORIZON_DAYS * 86400]   # gap so no train window overlaps the test
+    w_boom = fit_logistic(train, "boom", PRIOR_BOOM)
+    w_bust = fit_logistic(train, "bust", PRIOR_BUST)
+    fitted_test = rescore(test, LogisticModel(w_boom), LogisticModel(w_bust))
+    return {
+        "cutoff": time.strftime("%Y-%m-%d", time.gmtime(cutoff)),
+        "train_readings": len(train), "test_readings": len(test),
+        "prior_on_test": summarise(test),
+        "fitted_on_test": summarise(fitted_test),
+        "weights": {"boom": w_boom, "bust": w_bust},
+    }
 
 
 def _brier(ps: List[float], ys: List[int]) -> float:
@@ -132,6 +195,12 @@ def summarise(rows: List[Dict]) -> Dict:
     }
 
 
+def skill(s: Dict) -> Dict:
+    b = s["brier"]
+    return {"boom": round(1 - b["boom"] / b["boom_baseline"], 4) if b["boom_baseline"] else 0.0,
+            "bust": round(1 - b["bust"] / b["bust_baseline"], 4) if b["bust_baseline"] else 0.0}
+
+
 def verdict(s: Dict) -> str:
     b = s["brier"]
     # A baseline Brier of 0 means the outcome never occurred in the sample; no skill can be shown.
@@ -140,7 +209,7 @@ def verdict(s: Dict) -> str:
     beats = s["hit_rate"] > s["hit_rate_random_same_mix"]
     if skill_boom > 0.02 and skill_bust > 0.02 and beats:
         return "The price/VIX model beats the simple baselines on this data."
-    return ("The price/VIX model does not beat a simple base-rate forecast on this data, so its "
+    return ("The price/VIX model does not beat a simple base-rate forecast on data it was not trained on, so its "
             "percentages should be read as unproven leanings, not measured probabilities.")
 
 
@@ -159,6 +228,22 @@ async def run(years: int = 5, step: int = 5, tickers: List[str] = UNIVERSE) -> D
     if not rows:
         raise RuntimeError("no price data")
     s = summarise(rows)
+    wf = walk_forward(rows)
+    fitted = wf["fitted_on_test"]
+    prior_test = wf["prior_on_test"]
+    fitted_skill = skill(fitted)
+    # Adopt the fitted weights when they do better than the hand-set ones on unseen data and are
+    # no worse than the base rate. "Proven" is a higher bar: clear skill on both sides plus a hit
+    # rate above the random baseline. Only a proven model gets its percentages shown.
+    adopt = (fitted["brier"]["boom"] < prior_test["brier"]["boom"] and fitted["brier"]["bust"] < prior_test["brier"]["bust"]
+             and fitted_skill["boom"] >= 0 and fitted_skill["bust"] >= 0)
+    proven = (fitted_skill["boom"] > 0.02 and fitted_skill["bust"] > 0.02
+              and fitted["hit_rate"] > fitted["hit_rate_random_same_mix"])
+    if adopt:
+        # The fitted weights become the live model's starting point; the learner keeps adjusting them.
+        store = get_store()
+        store.save_weights("boom", wf["weights"]["boom"])
+        store.save_weights("bust", wf["weights"]["bust"])
     first, last = min(r["ts"] for r in rows), max(r["ts"] for r in rows)
     result = {
         "generated_at": time.time(),
@@ -180,8 +265,25 @@ async def run(years: int = 5, step: int = 5, tickers: List[str] = UNIVERSE) -> D
             "Prices are Yahoo Finance daily closes; dividends are not included in returns.",
         ],
         "summary": s,
+        "walk_forward": {k: v for k, v in wf.items() if k != "weights"},
+        "fitted_weights": wf["weights"],
+        "skill": {"prior_all": skill(s), "prior_test": skill(wf["prior_on_test"]), "fitted_test": fitted_skill},
+        "fitted_adopted": adopt,
+        "proven": proven,
     }
-    result["verdict"] = verdict(s)
+    if proven:
+        result["verdict"] = ("Re-fitted price/VIX weights beat the base-rate baselines on data they were not trained on "
+                             f"(Brier skill boom {fitted_skill['boom']:+.1%}, bust {fitted_skill['bust']:+.1%}; "
+                             f"hit rate {fitted['hit_rate']:.1%} vs {fitted['hit_rate_random_same_mix']:.1%} random). "
+                             "They are the live model's starting weights.")
+    elif adopt:
+        result["verdict"] = ("The hand-set weights did worse than a base-rate forecast. Weights re-fitted on the first "
+                             f"part of the history do slightly better than base rates on the later part they never saw "
+                             f"(Brier skill boom {fitted_skill['boom']:+.1%}, bust {fitted_skill['bust']:+.1%}; hit rate "
+                             f"{fitted['hit_rate']:.1%} vs {fitted['hit_rate_random_same_mix']:.1%} random), so they are now "
+                             "the live starting weights. The edge is small and unproven, so exact percentages stay hidden.")
+    else:
+        result["verdict"] = verdict(s)
     RESULT_FILE.write_text(json.dumps(result, indent=1))
     return result
 
@@ -201,4 +303,7 @@ if __name__ == "__main__":
     r = asyncio.run(run(a.years, a.step))
     print(json.dumps({k: r[k] for k in ("period", "verdict")} | {"summary": {k: v for k, v in r["summary"].items()
                                                                              if k != "calibration"}}, indent=1))
+    print(json.dumps({"skill": r["skill"], "fitted_adopted": r["fitted_adopted"],
+                      "walk_forward": {k: v for k, v in r["walk_forward"].items() if k in ("cutoff", "train_readings", "test_readings")},
+                      "fitted_test": {k: v for k, v in r["walk_forward"]["fitted_on_test"].items() if k != "calibration"}}, indent=1))
     print(f"{len(r['tickers_used'])} tickers, {len(r['tickers_failed'])} failed")

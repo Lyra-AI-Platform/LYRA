@@ -351,3 +351,9 @@ def test_backtest_uses_no_future_data_and_scores_baselines():
     assert set(s["brier"]) == {"boom", "boom_baseline", "bust", "bust_baseline"}
     assert abs(sum(s["base_rates"].values()) - 1) < 1e-6
     assert isinstance(backtest.verdict(s), str)
+    wf = backtest.walk_forward(rows, train_fraction=0.6)
+    assert wf["train_readings"] and wf["test_readings"]
+    # fitted weights keep the prior for inputs the backtest can't observe (news, filings)
+    assert wf["weights"]["boom"]["news_sentiment"] == PRIOR_BOOM["news_sentiment"]
+    assert wf["weights"]["boom"]["momentum"] != PRIOR_BOOM["momentum"]
+    assert set(wf["fitted_on_test"]["brier"]) == set(wf["prior_on_test"]["brier"])

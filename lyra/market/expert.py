@@ -87,7 +87,7 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
     }
     failed_core = [k for k in CORE_SOURCES if sources[k]["status"] in ("failed", "stale")]
     bt = backtest.load_result()
-    proven = bool(bt) and bt.get("verdict", "").startswith("The price/VIX model beats")
+    proven = bool(bt.get("proven"))
     experimental = stats_db["evaluated"] < EXPERIMENTAL_UNTIL_GRADED
 
     reading = {
@@ -121,7 +121,7 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "decision": decision,
         "features": x,
         "market": {k: v for k, v in vix.items() if k != "history"},
-        "price_stats": {k: round(v, 4) for k, v in stats.items()},
+        "price_stats": {k: round(v, 4) for k, v in stats.items() if v is not None},
         "news": {**news_info, "scoring": "word-list sentiment (lyra/market/sentiment.py) on headline and "
                  "summary; only articles naming the ticker or company are counted",
                  "headlines": [
