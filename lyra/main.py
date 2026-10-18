@@ -33,7 +33,6 @@ from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
 from lyra.api.market_api import router as market_router
-from lyra.api.watch_api import router as watch_router
 from lyra.api.coshh_api import router as coshh_router
 
 logging.basicConfig(
@@ -86,7 +85,6 @@ app.include_router(sites_router)
 app.include_router(billing_router)
 app.include_router(intelligence_router)
 app.include_router(market_router)
-app.include_router(watch_router)
 app.include_router(coshh_router)
 
 

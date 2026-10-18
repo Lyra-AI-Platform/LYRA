@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyra Watch — Power Moves of Public Figures</title>
+<meta name="description" content="Disclosed trades, deals, company mentions and statements of politicians, investors, executives and public figures, built from public records." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="stylesheet" href="../css/main.css" />
+<style>
+  :root { --buy: #15803d; --sell: #b45309; --bar: #2a78d6; --chip: #eef2f7; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 96px 16px 80px; }
+  .wrap h1 { margin-bottom: 10px; }
+  .wrap h2 { font-size: 1.35rem; margin: 40px 0 12px; }
+  .lede { max-width: 720px; }
+  .tabs { display: flex; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
+  .tabs button, .chip-btn { font: inherit; font-size: 13px; border: 1px solid var(--border-hi); background: var(--surface);
+    border-radius: 999px; padding: 5px 13px; cursor: pointer; color: var(--text); }
+  .tabs button[aria-pressed="true"] { background: var(--text); color: #faf9f7; border-color: var(--text); }
+  .search { width: 100%; max-width: 340px; font: inherit; font-size: 14px; padding: 8px 12px; border: 1px solid var(--border-hi);
+    border-radius: var(--radius-sm); background: var(--surface); color: var(--text); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; margin-top: 14px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  a.card { display: block; transition: border-color .15s; } a.card:hover { opacity: 1; border-color: var(--border-hi); }
+  .card .name { font-weight: 600; font-size: 15px; color: var(--text); }
+  .card .role { font-size: 13px; color: var(--muted); margin: 2px 0 8px; line-height: 1.45; }
+  .card .latest { font-size: 13px; color: var(--text); line-height: 1.45; margin-top: 8px; }
+  .meta { font-size: 12px; color: var(--muted); }
+  .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font-size: 11.5px; background: var(--chip); color: #1e3a5f; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  .chip.move { background: #fef3c7; color: #92400e; }
+  .chip.aff { background: var(--surface2); color: var(--text); }
+  .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; }
+  @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+  .feed { list-style: none; }
+  .feed li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.5; }
+  .feed .who { font-weight: 600; color: var(--text); }
+  .feed .when { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 16px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; }
+  .stat .v { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+  .stat .l { font-size: 12.5px; color: var(--muted); }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th, td { text-align: left; padding: 7px 6px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; white-space: nowrap; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td.nowrap { white-space: nowrap; }
+  .buy { color: var(--buy); font-weight: 600; } .sell { color: var(--sell); font-weight: 600; }
+  .bars { list-style: none; }
+  .bars li { display: grid; grid-template-columns: 9.5em 1fr 2.5em; align-items: center; gap: 8px; font-size: 13px; margin: 6px 0; }
+  .bars .track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+  .bars .fill { height: 100%; background: var(--bar); border-radius: 4px; }
+  .bars .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .callout { background: var(--surface2); border-left: 3px solid var(--text); border-radius: 6px; padding: 12px 14px; margin: 14px 0; font-size: 14px; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .back { font-size: 14px; color: var(--muted); display: inline-block; margin-bottom: 14px; }
+  .src { font-size: 13px; } .src li { margin: 4px 0 4px 18px; color: var(--muted); }
+  .ok { color: var(--buy); } .bad { color: var(--sell); }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 8px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <div class="nav-cta"><a href="/tremor/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Tremor Index</a></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- Directory -->
+  <section id="directory">
+    <h1>Lyra Watch</h1>
+    <p class="lede">Power moves of people in public life: politicians' disclosed trades, insiders' SEC filings, what famous
+      funds bought and sold, deals and lawsuits in the news, the companies they're tied to and the issues they talk about.
+      Every item links to its public source.</p>
+
+    <div class="tabs" id="tabs" role="group" aria-label="Filter by group"></div>
+    <input class="search" id="search" type="search" placeholder="Search by name, role or country" aria-label="Search" />
+
+    <div class="layout" style="margin-top:6px;">
+      <div><div class="grid" id="grid"></div></div>
+      <aside>
+        <h2 style="margin-top:18px;">Latest moves</h2>
+        <div class="tabs" id="feedTabs" role="group" aria-label="Filter moves" style="margin:0 0 4px;">
+          <button data-kind="" aria-pressed="true">All</button>
+          <button data-kind="trade" aria-pressed="false">Trades</button>
+          <button data-kind="statement" aria-pressed="false">In the news</button>
+        </div>
+        <ul class="feed" id="feed"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Profile -->
+  <section id="profile" hidden>
+    <a href="#" class="back">&larr; All people</a>
+    <h1 id="pName"></h1>
+    <p id="pRole"></p>
+    <div class="chips" id="pChips"></div>
+    <div class="stats" id="pStats"></div>
+    <div class="callout" id="pPending" hidden>This profile hasn't been built yet. Profiles refresh in the background every few hours.</div>
+
+    <div class="layout">
+      <div>
+        <h2>Power moves</h2>
+        <p class="muted">Disclosed trades plus headlines that match a deal, stake, policy, contract, legal, appointment
+          or endorsement rule. The word that triggered each label is shown on hover.</p>
+        <ul class="feed" id="pMoves"></ul>
+
+        <h2>Disclosed trades</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Company</th><th>Action</th><th class="num">Amount</th><th>Source</th></tr></thead>
+          <tbody id="pTrades"></tbody>
+        </table></div>
+        <p class="muted" id="pTradesNote"></p>
+      </div>
+      <aside>
+        <h2>Political affiliation</h2>
+        <div id="pStance"></div>
+
+        <h2>Companies they trade</h2>
+        <ul class="feed" id="pTraded"></ul>
+
+        <h2>Companies in their coverage</h2>
+        <ul class="bars" id="pCompanies"></ul>
+
+        <h2>Issues they're tied to</h2>
+        <ul class="bars" id="pTopics"></ul>
+
+        <h2>How they come across</h2>
+        <div id="pTone"></div>
+
+        <h2>Sources</h2>
+        <ul class="src" id="pSources"></ul>
+      </aside>
+    </div>
+  </section>
+
+  <details style="margin-top:48px;">
+    <summary>How Lyra Watch works</summary>
+    <div class="card" style="margin-top:10px;">
+      <p><b>Trades</b> come from SEC EDGAR (Form 4 insider filings and 13F fund holdings) and the US House Clerk's
+        STOCK Act Periodic Transaction Reports, parsed from the filed PDFs. House reports give value ranges, so totals
+        use the bottom of each range. Filings are made days to weeks after the trade (13F up to 45 days after the
+        quarter). The Senate's disclosure site has no open feed and is not covered yet.</p>
+      <p style="margin-top:8px;"><b>Statements and coverage</b> come from news headlines (Google News RSS), plus RSS feeds
+        of a person's own accounts where they publish one. X/Twitter and Facebook aren't read: their terms forbid
+        scraping and their data APIs are paid. Company mentions, power-move labels, issues and tone are keyword rules
+        over the headline text. They're a starting point for reading the source, not a verdict.</p>
+      <p style="margin-top:8px;"><b>Political affiliation</b> is shown only when it's documented: a party
+        membership or office, with a link to the source. Lyra doesn't infer anyone's politics from their words, and
+        doesn't record religion or other sensitive personal traits.</p>
+      <p style="margin-top:8px;">Nothing here is investment advice. Spotted an error? Email <a href="mailto:contact@lyraauth.com"><u>contact@lyraauth.com</u></a>.</p>
+    </div>
+  </details>
+</main>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
+  const link = (u, text) => safeUrl(u) ? el("a", { href: u, target: "_blank", rel: "noopener nofollow", text }) : document.createTextNode(text);
+  const money = (v) => v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${Math.round(v)}`;
+  const ago = (ts) => { if (!ts) return "never"; const h = (Date.now() / 1000 - ts) / 3600; return h < 1 ? "under an hour ago" : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
+  const api = (p) => fetch(`/api/watch/${p}`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+
+  let figures = [], category = "", feedKind = "";
+
+  function renderGrid() {
+    const q = $("search").value.trim().toLowerCase();
+    const rows = figures.filter((f) => (!category || f.category === category) &&
+      (!q || `${f.name} ${f.role} ${f.country}`.toLowerCase().includes(q)));
+    $("grid").replaceChildren(...rows.map((f) => el("a", { class: "card", href: `#${f.slug}` },
+      el("div", { class: "name", text: f.name }),
+      el("div", { class: "role", text: `${f.role} · ${f.country}` }),
+      el("div", { class: "chips" },
+        f.stance.basis === "documented" ? el("span", { class: "chip aff", text: f.stance.label }) : null,
+        ...f.top_companies.map((c) => el("span", { class: "chip", text: c }))),
+      f.latest ? el("div", { class: "latest", text: f.latest }) : el("div", { class: "meta", text: "No activity collected yet" }),
+      el("div", { class: "meta", style: "margin-top:6px", text: `${f.trades} trades · ${f.moves} moves · updated ${ago(f.built_at)}` }))));
+    if (!rows.length) $("grid").replaceChildren(el("p", { text: "Nobody matches that search." }));
+  }
+
+  async function loadFeed() {
+    try {
+      const { moves } = await api(`feed?limit=40${feedKind ? `&kind=${feedKind}` : ""}`);
+      $("feed").replaceChildren(...moves.map((m) => el("li", {},
+        el("a", { class: "who", href: `#${m.slug}`, text: m.person }), " ",
+        el("span", { class: "when", text: m.date }), el("br"),
+        link(m.url, m.title), " ",
+        ...m.labels.map((l) => el("span", { class: "chip move", text: l })))));
+      if (!moves.length) $("feed").replaceChildren(el("li", { class: "muted", text: "Nothing collected yet." }));
+    } catch { $("feed").replaceChildren(el("li", { class: "muted", text: "Couldn't load the feed." })); }
+  }
+
+  function bars(target, rows, label, value) {
+    const max = Math.max(1, ...rows.map(value));
+    $(target).replaceChildren(...rows.map((r) => el("li", {},
+      el("span", { text: label(r) }),
+      el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${(100 * value(r) / max).toFixed(1)}%` })),
+      el("span", { class: "n", text: String(value(r)) }))));
+    if (!rows.length) $(target).replaceChildren(el("li", { class: "muted", text: "None found." }));
+  }
+
+  function actionCell(t) {
+    if (t.kind === "fund") {
+      const words = { new: ["New position", "buy"], add: ["Added", "buy"], trim: ["Trimmed", "sell"], exit: ["Exited", "sell"] }[t.action];
+      return el("td", { class: words[1], text: words[0] });
+    }
+    if (t.side === "filed") return el("td", { text: "Filed report" });
+    const word = { buy: "Bought", sell: t.partial ? "Sold (part)" : "Sold", exchange: "Exchanged" }[t.side] || t.side;
+    return el("td", { class: t.side === "buy" ? "buy" : t.side === "sell" ? "sell" : "", text: word + (t.options ? " · options" : "") });
+  }
+
+  async function showProfile(slug) {
+    $("directory").hidden = true; $("profile").hidden = false; window.scrollTo(0, 0);
+    let p;
+    try { p = await api(`figures/${encodeURIComponent(slug)}`); }
+    catch { $("pName").textContent = "Not found"; $("pRole").textContent = "This person isn't on the watchlist."; return; }
+    document.title = `${p.name} — Lyra Watch`;
+    $("pName").textContent = p.name;
+    $("pRole").textContent = `${p.role} · ${p.country} · ${p.category_label}`;
+    $("pPending").hidden = !p.pending;
+    const s = p.summary || {};
+    $("pChips").replaceChildren(...(s.move_kinds || []).map((m) => el("span", { class: "chip move", text: `${m.label} · ${m.count}` })));
+    const trades = p.trades || [];
+    $("pStats").replaceChildren(...[
+      [trades.filter((t) => t.side !== "filed").length, "Disclosed trades"],
+      [(p.moves || []).length, "Power moves"],
+      [(p.statements || []).length, `Headlines (${30} days)`],
+      [ago(p.built_at), "Last refreshed"],
+    ].map(([v, l]) => el("div", { class: "stat" }, el("div", { class: "v", text: String(v) }), el("div", { class: "l", text: l }))));
+
+    $("pMoves").replaceChildren(...(p.moves || []).slice(0, 30).map((m) => el("li", {},
+      el("span", { class: "when", text: m.date }), " ",
+      m.type === "trade" ? el("span", { class: "chip", text: { insider: "SEC Form 4", fund: "13F", congress: "House PTR" }[m.kind] || "Trade" }) : null, " ",
+      link(m.url, m.title), " ",
+      ...(m.moves || []).map((x) => el("span", { class: "chip move", title: `Matched “${x.trigger}”`, text: x.label })))));
+    if (!(p.moves || []).length) $("pMoves").replaceChildren(el("li", { class: "muted", text: "No power moves found in this period." }));
+
+    $("pTrades").replaceChildren(...trades.map((t) => el("tr", {},
+      el("td", { class: "nowrap", text: t.date || "" }),
+      el("td", {}, el("span", { text: t.company || t.ticker || "" }), t.ticker ? el("span", { class: "meta", text: ` ${t.ticker}` }) : null,
+        t.description ? el("div", { class: "meta", text: t.description }) : null),
+      actionCell(t),
+      el("td", { class: "num", text: t.amount_range || (t.kind === "fund" ? money(Math.abs(t.value_change || 0)) : t.value ? money(t.value) : "") }),
+      el("td", {}, link(t.url, t.source || (t.kind === "fund" ? "13F filing" : "Filing"))))));
+    if (!trades.length) $("pTrades").replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted", text: "No disclosed trades on file for this period. Not everyone has to disclose trades." })));
+    $("pTradesNote").textContent = p.lookback_days ? `Covers the last ${p.lookback_days} days of filings.` : "";
+
+    const st = p.stance || {};
+    $("pStance").replaceChildren(st.basis === "documented"
+      ? el("p", {}, el("b", { text: st.label }), " · ", link(st.source, "source"))
+      : el("p", { text: "Not publicly declared. Lyra only shows documented affiliations and doesn't infer anyone's politics." }));
+
+    $("pTraded").replaceChildren(...(s.traded || []).slice(0, 8).map((c) => el("li", {},
+      el("span", { class: "who", text: c.name }), c.ticker ? el("span", { class: "meta", text: ` ${c.ticker}` }) : null, el("br"),
+      el("span", { class: "buy", text: `${c.buys} buy${c.buys === 1 ? "" : "s"}` }), " · ",
+      el("span", { class: "sell", text: `${c.sells} sell${c.sells === 1 ? "" : "s"}` }),
+      el("span", { class: "meta", text: ` · ${money(c.value)} · last ${c.last}` }))));
+    if (!(s.traded || []).length) $("pTraded").replaceChildren(el("li", { class: "muted", text: "None disclosed." }));
+
+    bars("pCompanies", (s.companies || []).slice(0, 8), (c) => c.ticker ? `${c.name} (${c.ticker})` : c.name, (c) => c.mentions);
+    bars("pTopics", (s.topics || []).slice(0, 8), (t) => t.topic, (t) => t.mentions);
+
+    const tone = (s.tone || {});
+    const toneRow = (label, t) => t ? el("p", {}, el("b", { text: label + ": " }), `${t.label} (${t.avg > 0 ? "+" : ""}${t.avg.toFixed(2)} across ${t.items} items)`) : null;
+    $("pTone").replaceChildren(
+      toneRow("Their own posts", tone.own_words) || el("p", { class: "muted", text: "No feed of their own posts is connected, so this reflects coverage, not their own words." }),
+      toneRow("Coverage", tone.coverage));
+
+    $("pSources").replaceChildren(...Object.values(p.sources || {}).map((src) => el("li", {},
+      el("span", { class: src.status === "ok" ? "ok" : "bad", text: src.status === "ok" ? "✓ " : "! " }),
+      `${src.provider || "Source"}${src.detail ? ` — ${src.detail}` : ""}`)));
+  }
+
+  function route() {
+    const slug = location.hash.slice(1);
+    if (slug) return showProfile(slug);
+    document.title = "Lyra Watch — Power Moves of Public Figures";
+    $("profile").hidden = true; $("directory").hidden = false;
+  }
+
+  async function init() {
+    try {
+      const data = await api("figures");
+      figures = data.figures;
+      $("tabs").replaceChildren(...[["", "Everyone"], ...Object.entries(data.categories)].map(([k, v]) => {
+        const b = el("button", { "aria-pressed": String(k === category), text: v });
+        b.onclick = () => { category = k; [...$("tabs").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); renderGrid(); };
+        return b;
+      }));
+      renderGrid();
+    } catch { $("grid").replaceChildren(el("p", { text: "Couldn't load the watchlist. Try again in a minute." })); }
+    loadFeed();
+  }
+
+  $("search").addEventListener("input", renderGrid);
+  [...$("feedTabs").children].forEach((b) => b.onclick = () => {
+    feedKind = b.dataset.kind; [...$("feedTabs").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); loadFeed();
+  });
+  window.addEventListener("hashchange", route);
+  init(); route();
+})();
+</script>
+</body>
+</html>

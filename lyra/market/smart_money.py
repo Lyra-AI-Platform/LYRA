@@ -86,6 +86,8 @@ def parse_form4(xml_text: str) -> List[Dict]:
     if _text(rel, "isTenPercentOwner") in ("1", "true"):
         parts.append("10% Owner")
     role = ", ".join(parts) or "Insider"
+    issuer = root.find("issuer")
+    company, symbol = _text(issuer, "issuerName"), _text(issuer, "issuerTradingSymbol").upper()
     trades = []
     for tx in root.iter("nonDerivativeTransaction"):
         code = _text(tx, "transactionCoding/transactionCode")
@@ -100,6 +102,7 @@ def parse_form4(xml_text: str) -> List[Dict]:
             "person": name, "role": role, "side": "buy" if code == "P" else "sell",
             "shares": shares, "price": price, "value": round(shares * price, 2),
             "date": _text(tx, "transactionDate/value"), "source": "SEC Form 4",
+            "company": company, "ticker": symbol,
         })
     return trades
 
