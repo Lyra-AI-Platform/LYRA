@@ -333,3 +333,21 @@ def test_failed_sources_are_reported_not_hidden(monkeypatch):
     assert r["smart_money"]["congress"] == []
     assert "prediction_id" not in r            # partial readings never enter the track record
     assert "PARTIAL READING" in expert.ai_brief(r)
+
+
+def test_backtest_uses_no_future_data_and_scores_baselines():
+    from lyra.market import backtest
+    from lyra.market.market_data import parse_yahoo_chart
+    bars = parse_yahoo_chart(chart(80, 0.002, n=400))
+    vix = parse_yahoo_chart(chart(18, -0.001, n=400))
+    rows = backtest.readings_for("XYZ", bars, vix, step=10)
+    assert rows
+    for r in rows:
+        # every reading is graded on a price at least 30 days after it was made
+        assert r["ts"] + 30 * 86400 <= bars[-1]["ts"]
+        assert r["outcome"] in ("boom", "bust", "flat") and 0 < r["p_boom"] < 1
+    s = backtest.summarise(rows)
+    assert s["readings"] == len(rows)
+    assert set(s["brier"]) == {"boom", "boom_baseline", "bust", "bust_baseline"}
+    assert abs(sum(s["base_rates"].values()) - 1) < 1e-6
+    assert isinstance(backtest.verdict(s), str)

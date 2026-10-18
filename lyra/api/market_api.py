@@ -13,12 +13,12 @@ import time
 from collections import defaultdict, deque
 from typing import Deque, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from lyra.api.users_api import get_current_user
 from lyra.db.models import User
-from lyra.market import expert, learner, news, peers, risk_guard
+from lyra.market import backtest, expert, learner, news, peers, risk_guard
 from lyra.market.market_data import get_vix
 from lyra.market.store import get_store
 
@@ -71,6 +71,48 @@ def _owner(user: User) -> str:
 
 
 router = APIRouter(prefix="/api/market", tags=["market"])
+
+# ── Public (no login): methodology data, backtest, track record, one sample reading ──
+SAMPLE_TICKER = os.environ.get("LYRA_MARKET_SAMPLE_TICKER", "NVDA")
+_sample: Dict = {"at": 0.0, "reading": None}
+
+
+def _public(response: Response, request: Request):
+    response.headers["Cache-Control"] = "public, max-age=300"
+    _limit("read", "ip:" + (request.headers.get("cf-connecting-ip") or (request.client.host if request.client else "?")))
+
+
+@router.get("/public/backtest")
+async def public_backtest(response: Response, request: Request):
+    _public(response, request)
+    return backtest.load_result() or {"available": False}
+
+
+@router.get("/public/track-record")
+async def public_track_record(response: Response, request: Request):
+    """Every saved reading with its later outcome. Append-only: nothing is removed."""
+    _public(response, request)
+    rows = get_store().track_record(500)
+    graded = [r for r in rows if r["evaluated"]]
+    expected = {"BUY": "boom", "SELL": "bust", "HOLD": "flat"}
+    hits = sum(expected.get(r["action"]) == r["outcome"] for r in graded)
+    return {"stats": get_store().prediction_stats(),
+            "hit_rate": round(hits / len(graded), 4) if graded else None,
+            "readings": rows}
+
+
+@router.get("/public/sample")
+async def public_sample(response: Response, request: Request):
+    """One example reading, refreshed at most every six hours, so people can judge it before signing up."""
+    _public(response, request)
+    if not _sample["reading"] or time.time() - _sample["at"] > 6 * 3600:
+        r = await expert.analyze(SAMPLE_TICKER, owner="public-sample")
+        _sample["reading"] = {k: r[k] for k in (
+            "label", "ticker", "company", "created_at", "price", "price_as_of", "price_note", "score",
+            "p_boom", "p_bust", "tremor", "definition", "causes", "decision", "sources", "partial",
+            "failed_sources", "experimental", "model_status", "show_probabilities", "backtest", "disclaimer")}
+        _sample["at"] = time.time()
+    return _sample["reading"]
 
 
 class DecisionRequest(BaseModel):

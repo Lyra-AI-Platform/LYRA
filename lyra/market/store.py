@@ -139,6 +139,12 @@ class MarketStore:
                             FROM predictions""")[0]
         return {k: (v or 0) for k, v in rows.items()}
 
+    def track_record(self, limit: int = 200) -> List[Dict]:
+        """Every saved reading, newest first. Rows are never deleted, so losing calls stay visible."""
+        return self._all("""SELECT id, ticker, created_at, price, horizon_days, p_boom, p_bust, action,
+                                   evaluated, outcome_return, outcome, evaluated_at
+                            FROM predictions ORDER BY created_at DESC LIMIT ?""", (limit,))
+
     def history(self, ticker: str, limit: int = 20) -> List[Dict]:
         return self._all("""SELECT id,created_at,price,p_boom,p_bust,action,evaluated,outcome_return,outcome
                             FROM predictions WHERE ticker=? ORDER BY created_at DESC LIMIT ?""", (ticker.upper(), limit))

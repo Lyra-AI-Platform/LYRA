@@ -5,7 +5,7 @@ import logging
 import time
 from typing import Dict, List, Optional
 
-from lyra.market import learner, news, peers, risk_guard, smart_money
+from lyra.market import backtest, learner, news, peers, risk_guard, smart_money
 from lyra.market.config import (BOOM_THRESHOLD, BUST_THRESHOLD, EXPERIMENTAL_UNTIL_GRADED, HORIZON_DAYS,
                                 INDEX_NAME, PERSONAL_SIZING)
 from lyra.market.market_data import get_history, get_vix, history_status, price_stats
@@ -86,6 +86,8 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         **money["sources"],
     }
     failed_core = [k for k in CORE_SOURCES if sources[k]["status"] in ("failed", "stale")]
+    bt = backtest.load_result()
+    proven = bool(bt) and bt.get("verdict", "").startswith("The price/VIX model beats")
     experimental = stats_db["evaluated"] < EXPERIMENTAL_UNTIL_GRADED
 
     reading = {
@@ -105,6 +107,10 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
                          "graded so far. Treat the percentages as unproven." if experimental else
                          f"{stats_db['evaluated']} readings graded."),
         "track_record": {"graded": stats_db["evaluated"], "correct": stats_db.get("correct", 0)},
+        # Until a backtest shows skill, readers see a lean and the causes, not exact percentages.
+        "show_probabilities": proven,
+        "backtest": {"verdict": bt.get("verdict"), "period": bt.get("period"),
+                     "url": "/tremor/#backtest"} if bt else None,
         "horizon_days": HORIZON_DAYS,
         "p_boom": round(p_boom, 4),
         "p_bust": round(p_bust, 4),

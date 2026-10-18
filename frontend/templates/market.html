@@ -73,6 +73,7 @@
 <header>
   <h1>✦ Tremor Index</h1>
   <a href="/dashboard/index.html">← Dashboard</a>
+  <a href="/tremor/">How it works · track record</a>
   <div class="vix" id="vix">VIX loading…</div>
 </header>
 
@@ -190,15 +191,18 @@ function renderReading(r) {
     ${r.partial ? `<div class="partial"><b>Partial reading.</b> These sources failed, so the result is incomplete:
       ${r.failed_sources.map(esc).join(", ")}. It has not been added to the track record.</div>` : ""}
     ${r.experimental ? `<p class="muted"><span class="tag partial">Experimental</span> ${esc(r.model_status)}</p>` : ""}
+    ${r.show_probabilities ? "" : `<p class="muted">The backtest found no forecasting skill yet, so exact percentages are hidden.
+      <a href="/tremor/#backtest">See the backtest</a>.</p>`}
     <div class="big">
-      <div><div class="score">${r.score}</div><div class="label">${esc(r.label)} / 100</div></div>
+      ${r.show_probabilities ? `<div><div class="score">${r.score}</div><div class="label">${esc(r.label)} / 100</div></div>`
+        : `<div><div style="font-size:20px;font-weight:700">${esc(r.label)}</div><div class="label">experimental reading</div></div>`}
       <div><span class="pill ${d.action}">${d.action === "BUY" ? "Leans bullish" : d.action === "SELL" ? "Leans bearish" : "Neutral"}</span>
         <div class="label">model confidence ${pct(d.confidence)}</div></div>
       <div><div style="font-size:20px">${r.price ?? "—"}</div><div class="label">${esc(r.company || r.ticker)}</div>
         <div class="label">${priceLine}</div></div>
     </div>
-    <div class="label">Boom ${pct(r.p_boom)} · Bust ${pct(r.p_bust)} · big-move chance ${pct(r.tremor)}</div>
-    <div class="bar"><div class="b" style="width:${r.p_boom * 100}%"></div><div class="s" style="width:${r.p_bust * 100}%"></div></div>
+    ${r.show_probabilities ? `<div class="label">Boom ${pct(r.p_boom)} · Bust ${pct(r.p_bust)} · big-move chance ${pct(r.tremor)}</div>
+    <div class="bar"><div class="b" style="width:${r.p_boom * 100}%"></div><div class="s" style="width:${r.p_bust * 100}%"></div></div>` : ""}
     <div class="muted">${esc(r.definition)}</div>
     <h2 style="margin-top:16px">Probable causes</h2>
     <ul class="causes">${r.causes.map(c => `<li class="${c.impact >= 0 ? "pos" : "neg"}"><span style="color:var(--text)">${esc(c.reason)}</span></li>`).join("") || "<li>No strong drivers</li>"}</ul>

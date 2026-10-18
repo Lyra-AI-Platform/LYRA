@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tremor Index — Methodology and Track Record</title>
+<meta name="description" content="How the Lyra Tremor Index works, its backtest, its live track record and its corrections log." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="stylesheet" href="../css/main.css" />
+<style>
+  :root { --boom: #2a78d6; --bust: #eb6834; --ref: #a8a5a0; --grid: rgba(20,18,14,0.08); }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 96px 24px 80px; }
+  .wrap h1 { margin-bottom: 10px; }
+  .wrap h2 { font-size: 1.5rem; margin: 56px 0 14px; scroll-margin-top: 80px; }
+  .wrap h3 { margin: 22px 0 8px; }
+  .wrap p, .wrap li { font-size: 15px; }
+  .wrap ul { padding-left: 20px; margin: 10px 0; color: var(--muted); }
+  .wrap li { margin-bottom: 6px; line-height: 1.7; }
+  .toc { display: flex; gap: 8px; flex-wrap: wrap; margin: 18px 0 8px; }
+  .toc a { border: 1px solid var(--border-hi); border-radius: 999px; padding: 5px 12px; font-size: 13px; }
+  .badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px;
+           background: #fef3c7; color: #92400e; vertical-align: middle; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin: 14px 0; }
+  .callout { background: var(--surface2); border-left: 3px solid var(--text); border-radius: 6px; padding: 14px 16px; margin: 14px 0; }
+  .callout p { color: var(--text); }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .stat .v { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.03em; color: var(--text); }
+  .stat .l { font-size: 13px; color: var(--muted); }
+  .table-wrap { overflow-x: auto; margin: 10px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .chart { position: relative; max-width: 520px; }
+  .chart svg { width: 100%; height: auto; display: block; }
+  .legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin: 6px 0; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+  .tip { position: absolute; pointer-events: none; background: var(--text); color: #faf9f7; font-size: 12px;
+         padding: 6px 8px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -120%); display: none; }
+  .tip b { color: #faf9f7; }
+  .lean-up { color: #15803d; font-weight: 600; } .lean-down { color: #b45309; font-weight: 600; } .lean-flat { color: var(--muted); font-weight: 600; }
+  details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 8px; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <div class="nav-cta">
+      <a href="/market" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Open Tremor Index</a>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <h1>Tremor Index <span class="badge">Experimental</span></h1>
+  <p>The Tremor Index reads a US stock from public data: its price trend, the market's fear gauge (VIX), news
+    headlines, company insiders' trades, large funds' holdings and politicians' disclosed trades. This page explains
+    how it works, shows how it has done so far, and lists every error we have found and fixed.</p>
+  <div class="callout"><p><b>General information, not financial advice.</b> The Tremor Index is not a recommendation to
+    buy or sell, does not take your circumstances into account, and has not been shown to forecast prices. See the
+    <a href="/pages/terms.html#market-data" style="text-decoration:underline">Terms</a>.</p></div>
+  <div class="toc">
+    <a href="#sample">Example reading</a><a href="#backtest">Backtest</a><a href="#track-record">Live track record</a>
+    <a href="#methodology">Methodology</a><a href="#about">About and contact</a><a href="#corrections">Corrections</a>
+  </div>
+
+  <h2 id="sample">Example reading</h2>
+  <p>A live reading for one stock, refreshed every few hours, so you can see what the tool shows before you sign up.</p>
+  <div class="card" id="sample-card"><p class="muted">Loading…</p></div>
+
+  <h2 id="backtest">Backtest</h2>
+  <div id="backtest-body"><p class="muted">Loading…</p></div>
+
+  <h2 id="track-record">Live track record</h2>
+  <p>Every reading the site saves is listed here with what the price actually did 30 days later. Nothing is removed,
+    so losing calls stay visible. At most one reading per stock per day is saved, and readings with a failed data
+    source are not saved at all.</p>
+  <div id="track-body"><p class="muted">Loading…</p></div>
+
+  <h2 id="methodology">Methodology</h2>
+  <h3>What a reading predicts</h3>
+  <ul>
+    <li><b>Horizon:</b> 30 calendar days, close to close.</li>
+    <li><b>Boom:</b> the price ends 5% or more higher. <b>Bust:</b> it ends 5% or more lower. Anything in between is flat.</li>
+    <li>Two small logistic models turn the inputs into a boom chance and a bust chance. The lean is
+      <b>bullish</b> when boom exceeds bust by at least 12 points and confidence is at least 30%, <b>bearish</b> in the
+      opposite case, and <b>neutral</b> otherwise.</li>
+    <li><b>Confidence</b> reflects how many input groups returned data (price 35%, VIX 15%, news 25%, filings 25%),
+      times a factor that grows from 0.6 to 1.0 as the first 50 readings are graded.</li>
+    <li>Exact percentages are hidden until a backtest shows the model beats simple baselines.</li>
+  </ul>
+  <h3>Inputs and starting weights</h3>
+  <p>Every input is scaled to roughly −1 to +1, where positive is bullish. These are the hand-set starting weights.
+    After each reading is graded at 30 days, the learner adjusts them slightly towards what happened.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Input</th><th>What it measures</th><th class="num">Boom weight</th><th class="num">Bust weight</th></tr>
+    <tr><td>Momentum</td><td>20-day price change</td><td class="num">+0.45</td><td class="num">−0.35</td></tr>
+    <tr><td>Trend</td><td>Price vs its 50-day average</td><td class="num">+0.35</td><td class="num">−0.35</td></tr>
+    <tr><td>Short term</td><td>5-day price change</td><td class="num">+0.10</td><td class="num">−0.10</td></tr>
+    <tr><td>Drawdown</td><td>Distance below the 52-week high</td><td class="num">+0.15</td><td class="num">−0.30</td></tr>
+    <tr><td>Volatility vs market</td><td>Stock's volatility compared with the VIX</td><td class="num">+0.10</td><td class="num">−0.30</td></tr>
+    <tr><td>Market fear</td><td>VIX level</td><td class="num">+0.30</td><td class="num">−0.50</td></tr>
+    <tr><td>Fear spike</td><td>VIX 5-day change</td><td class="num">+0.25</td><td class="num">−0.40</td></tr>
+    <tr><td>Volume surge</td><td>Unusual volume, signed by the week's direction</td><td class="num">+0.20</td><td class="num">−0.20</td></tr>
+    <tr><td>News sentiment</td><td>Word-list score of on-topic headlines and summaries, 2-day half-life</td><td class="num">+0.50</td><td class="num">−0.60</td></tr>
+    <tr><td>News volume</td><td>Number of on-topic articles in 7 days</td><td class="num">+0.20</td><td class="num">−0.20</td></tr>
+    <tr><td>Insider trades</td><td>SEC Form 4 open-market buys and sells, weighted by role; sales count 40%</td><td class="num">+0.80</td><td class="num">−0.60</td></tr>
+    <tr><td>Insider buying group</td><td>3 or more insiders bought in 90 days</td><td class="num">+0.40</td><td class="num">−0.20</td></tr>
+    <tr><td>Fund changes</td><td>Tracked funds' 13F holdings change vs the prior quarter</td><td class="num">+0.35</td><td class="num">−0.30</td></tr>
+    <tr><td>Politician trades</td><td>House and Senate disclosures</td><td class="num">+0.45</td><td class="num">−0.35</td></tr>
+    <tr><td>Buying while news is quiet</td><td>Insider or politician buying when coverage is low</td><td class="num">+0.50</td><td class="num">−0.40</td></tr>
+    <tr><td>Uncertainty</td><td>Realised volatility (raises both chances)</td><td class="num">+0.60</td><td class="num">+0.70</td></tr>
+  </table></div>
+  <h3>Data sources and delays</h3>
+  <div class="table-wrap"><table>
+    <tr><th>Data</th><th>Source</th><th>Delay</th></tr>
+    <tr><td>Prices, VIX</td><td>Yahoo Finance daily closes</td><td>Previous close; not a live quote</td></tr>
+    <tr><td>Insider trades</td><td>SEC EDGAR Form 4 (each row links to its filing)</td><td>Filed within 2 business days</td></tr>
+    <tr><td>Fund holdings</td><td>SEC EDGAR 13F (each row links to its filing)</td><td>Up to 45 days after quarter end</td></tr>
+    <tr><td>Politician trades</td><td>House and Senate disclosure feeds; currently unavailable</td><td>Up to 45 days after the trade</td></tr>
+    <tr><td>News</td><td>Yahoo Finance and Google News RSS headlines (headline, summary and link only)</td><td>Minutes to hours</td></tr>
+  </table></div>
+  <p class="muted">Every reading shows each source's status. If price, news or insider data fails, the reading is
+    marked partial and is not added to the track record.</p>
+
+  <h2 id="about">About and contact</h2>
+  <p>The Tremor Index is built and operated by Lyra Labs as part of Lyra AI. It is software that summarises public
+    data. Lyra Labs is not authorised or regulated by the Financial Conduct Authority and is not a registered
+    investment adviser.</p>
+  <ul>
+    <li><b>Contact:</b> <a href="mailto:legal@lyraauth.com" style="text-decoration:underline">legal@lyraauth.com</a></li>
+    <li><b>Conflicts of interest:</b> the operator has not yet published a conflicts statement. Until it does, assume
+      the operator may hold stocks the index covers.</li>
+    <li><b>Payment:</b> paying for Lyra never changes a reading.</li>
+  </ul>
+
+  <h2 id="corrections">Corrections log</h2>
+  <div class="table-wrap"><table>
+    <tr><th>Fixed</th><th>Problem</th><th>Fix</th></tr>
+    <tr><td>18 Oct 2026</td><td style="white-space:normal">Both politician-trade feeds returned HTTP 403, and the page
+      still said "None in the last 90 days".</td><td style="white-space:normal">Failed sources are now shown as
+      "Source unavailable" and listed on every reading. A live replacement source is being chosen.</td></tr>
+    <tr><td>18 Oct 2026</td><td style="white-space:normal">Articles that never mentioned the stock (for example, general
+      investing articles) moved its news score.</td><td style="white-space:normal">Only articles whose headline or
+      summary names the ticker or company are counted.</td></tr>
+    <tr><td>18 Oct 2026</td><td style="white-space:normal">Yahoo Finance rejected price requests (HTTP 429) and the
+      backup price source returned a browser-check page, so readings had no price.</td><td style="white-space:normal">
+      Price requests fixed; the dead backup was removed, and missing prices now mark the reading partial.</td></tr>
+    <tr><td>18 Oct 2026</td><td style="white-space:normal">Readings suggested portfolio-specific amounts to buy or
+      sell.</td><td style="white-space:normal">Removed. Readings show a general lean only.</td></tr>
+    <tr><td>18 Oct 2026</td><td style="white-space:normal">Probabilities were shown as exact percentages without any
+      test against history.</td><td style="white-space:normal">Backtest published above; percentages hidden while it
+      shows no skill.</td></tr>
+  </table></div>
+  <p class="muted">Found an error? Email <a href="mailto:legal@lyraauth.com" style="text-decoration:underline">legal@lyraauth.com</a>.</p>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pct = (x, d = 0) => x == null ? "—" : (x * 100).toFixed(d) + "%";
+const day = (ts) => new Date(ts * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+const fmtIso = (iso) => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
+const LEAN = { BUY: ["Leans bullish", "lean-up"], SELL: ["Leans bearish", "lean-down"], HOLD: ["Neutral", "lean-flat"] };
+const OUTCOME = { boom: "Rose 5%+", bust: "Fell 5%+", flat: "Within ±5%" };
+
+async function get(path) { const r = await fetch(path); if (!r.ok) throw new Error(r.status); return r.json(); }
+
+async function loadSample() {
+  try {
+    const r = await get("/api/market/public/sample");
+    const [lean, cls] = LEAN[r.decision.action] || LEAN.HOLD;
+    const src = Object.entries(r.sources).map(([k, v]) => `${esc(k)}: ${esc(v.status)}`).join(" · ");
+    $("sample-card").innerHTML = `
+      <h3>${esc(r.label)} · ${esc(r.company || r.ticker)}</h3>
+      <p><span class="${cls}">${lean}</span> · close ${esc(r.price)} on ${esc(fmtIso(r.price_as_of))} (delayed)
+        ${r.show_probabilities ? ` · boom ${pct(r.p_boom)} · bust ${pct(r.p_bust)}` : ""}</p>
+      ${r.partial ? `<p class="muted">Partial reading: ${r.failed_sources.map(esc).join(", ")} failed.</p>` : ""}
+      <ul>${r.causes.map(c => `<li>${esc(c.reason)}</li>`).join("")}</ul>
+      <p class="muted">Sources: ${src}. Read ${day(r.created_at)}.</p>
+      <p class="muted">${esc(r.disclaimer)}</p>`;
+  } catch { $("sample-card").innerHTML = `<p class="muted">The example reading is unavailable right now.</p>`; }
+}
+
+function calibrationChart(cal) {
+  // Reliability diagram: predicted chance (x) vs how often it happened (y). On the diagonal = calibrated.
+  const W = 520, H = 360, m = { l: 48, r: 16, t: 12, b: 40 }, iw = W - m.l - m.r, ih = H - m.t - m.b;
+  const x = (v) => m.l + v * iw, y = (v) => m.t + ih - v * ih;
+  const grid = [0, .25, .5, .75, 1].map(v => `
+    <line x1="${x(0)}" x2="${x(1)}" y1="${y(v)}" y2="${y(v)}" stroke="var(--grid)" />
+    <text x="${x(0) - 8}" y="${y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v * 100}%</text>
+    <text x="${x(v)}" y="${y(0) + 18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v * 100}%</text>`).join("");
+  const series = [["boom", "var(--boom)", "Boom"], ["bust", "var(--bust)", "Bust"]].map(([k, col, name]) => {
+    const pts = (cal[k] || []).filter(p => p.count >= 30);
+    const path = pts.map((p, i) => `${i ? "L" : "M"}${x(p.predicted).toFixed(1)},${y(p.observed).toFixed(1)}`).join("");
+    const dots = pts.map(p => `<circle cx="${x(p.predicted)}" cy="${y(p.observed)}" r="5" fill="${col}" stroke="var(--surface)" stroke-width="2"
+        data-tip="<b>${name}</b> · predicted ${pct(p.predicted)} · happened ${pct(p.observed)} · ${p.count.toLocaleString()} readings"></circle>
+      <circle cx="${x(p.predicted)}" cy="${y(p.observed)}" r="12" fill="transparent"
+        data-tip="<b>${name}</b> · predicted ${pct(p.predicted)} · happened ${pct(p.observed)} · ${p.count.toLocaleString()} readings"></circle>`).join("");
+    const last = pts[pts.length - 1];
+    const label = last ? `<text x="${x(last.predicted) + 8}" y="${y(last.observed) + 4}" font-size="12" fill="var(--text)">${name}</text>` : "";
+    return `<path d="${path}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" />${dots}${label}`;
+  }).join("");
+  return `<div class="chart" id="cal">
+    <div class="legend"><span><i style="background:var(--boom)"></i>Boom</span><span><i style="background:var(--bust)"></i>Bust</span>
+      <span><i style="background:var(--ref);border-radius:0;height:2px;width:14px"></i>Perfect calibration</span></div>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration: predicted chance versus how often the move happened">
+      ${grid}
+      <line x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}" stroke="var(--ref)" stroke-width="1.5" stroke-dasharray="4 4" />
+      <text x="${x(.5)}" y="${H - 4}" text-anchor="middle" font-size="12" fill="var(--muted)">Predicted chance</text>
+      <text transform="translate(12 ${m.t + ih / 2}) rotate(-90)" text-anchor="middle" font-size="12" fill="var(--muted)">How often it happened</text>
+      ${series}
+    </svg><div class="tip" id="tip"></div></div>`;
+}
+
+function wireTips() {
+  const box = $("cal"), tip = $("tip");
+  if (!box) return;
+  box.addEventListener("mousemove", (e) => {
+    const t = e.target.getAttribute && e.target.getAttribute("data-tip");
+    if (!t) { tip.style.display = "none"; return; }
+    const r = box.getBoundingClientRect();
+    tip.innerHTML = t; tip.style.display = "block";
+    tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px";
+  });
+  box.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+}
+
+async function loadBacktest() {
+  try {
+    const b = await get("/api/market/public/backtest");
+    if (!b.summary) { $("backtest-body").innerHTML = `<p class="muted">No backtest has been run yet.</p>`; return; }
+    const s = b.summary, a = s.by_action;
+    const row = (k, label) => a[k] ? `<tr><td>${label}</td><td class="num">${a[k].count.toLocaleString()}</td>
+      <td class="num">${pct(a[k].hit_rate, 1)}</td><td class="num">${pct(a[k].avg_30d_return, 1)}</td></tr>` : "";
+    const calRows = (k, name) => (s.calibration[k] || []).map(p => `<tr><td>${name}</td><td>${esc(p.bin)}</td>
+      <td class="num">${pct(p.predicted, 1)}</td><td class="num">${pct(p.observed, 1)}</td><td class="num">${p.count.toLocaleString()}</td></tr>`).join("");
+    $("backtest-body").innerHTML = `
+      <div class="callout"><p><b>Result:</b> ${esc(b.verdict)}</p></div>
+      <p>We replayed ${s.readings.toLocaleString()} readings across ${b.tickers_used.length} large US stocks from
+        ${esc(fmtIso(b.period.from))} to ${esc(fmtIso(b.period.to))}, ${esc(b.sampling)}. Each reading used only data
+        available on its date and was graded on the close ${b.horizon_days} days later (${esc(b.definition)}).</p>
+      <div class="stats">
+        <div class="stat"><div class="v">${pct(s.hit_rate, 1)}</div><div class="l">Calls that matched the outcome</div></div>
+        <div class="stat"><div class="v">${pct(s.hit_rate_random_same_mix, 1)}</div><div class="l">Same calls made at random</div></div>
+        <div class="stat"><div class="v">${pct(s.hit_rate_always_hold, 1)}</div><div class="l">Always saying "neutral"</div></div>
+        <div class="stat"><div class="v">${pct(s.avg_30d_return_all, 1)}</div><div class="l">Average 30-day return, all readings (buy and hold)</div></div>
+      </div>
+      <div class="table-wrap"><table>
+        <tr><th>Lean</th><th class="num">Readings</th><th class="num">Matched outcome</th><th class="num">Avg 30-day return</th></tr>
+        ${row("BUY", "Leans bullish")}${row("SELL", "Leans bearish")}${row("HOLD", "Neutral")}
+      </table></div>
+      <h3>Accuracy of the chances (Brier score, lower is better)</h3>
+      <div class="table-wrap"><table>
+        <tr><th>Forecast</th><th class="num">Model</th><th class="num">Base rate only</th></tr>
+        <tr><td>Boom (base rate ${pct(s.base_rates.boom)})</td><td class="num">${s.brier.boom}</td><td class="num">${s.brier.boom_baseline}</td></tr>
+        <tr><td>Bust (base rate ${pct(s.base_rates.bust)})</td><td class="num">${s.brier.bust}</td><td class="num">${s.brier.bust_baseline}</td></tr>
+      </table></div>
+      <h3>Calibration</h3>
+      <p class="muted">If the model were calibrated, points would sit on the dashed line: of readings that said 40%, about
+        40% would have happened. Bins with fewer than 30 readings are left out of the chart.</p>
+      ${calibrationChart(s.calibration)}
+      <details><summary>Calibration as a table</summary><div class="table-wrap"><table>
+        <tr><th>Forecast</th><th>Bin</th><th class="num">Predicted</th><th class="num">Happened</th><th class="num">Readings</th></tr>
+        ${calRows("boom", "Boom")}${calRows("bust", "Bust")}</table></div></details>
+      <h3>What this test does not cover</h3>
+      <ul>${b.limitations.map(l => `<li>${esc(l)}</li>`).join("")}</ul>
+      <p class="muted">Inputs tested: ${b.inputs_tested.map(esc).join(", ")}. Weights: ${esc(b.weights)}.
+        Run ${day(b.generated_at)}.</p>`;
+    wireTips();
+  } catch { $("backtest-body").innerHTML = `<p class="muted">The backtest results are unavailable right now.</p>`; }
+}
+
+async function loadTrack() {
+  try {
+    const t = await get("/api/market/public/track-record");
+    const s = t.stats;
+    const rows = t.readings.slice(0, 100).map(r => {
+      const [lean, cls] = LEAN[r.action] || LEAN.HOLD;
+      const due = r.created_at + r.horizon_days * 86400;
+      return `<tr><td>${day(r.created_at)}</td><td>${esc(r.ticker)}</td><td class="${cls}">${lean}</td>
+        <td>${r.evaluated ? OUTCOME[r.outcome] || esc(r.outcome) : `Pending until ${day(due)}`}</td>
+        <td class="num">${r.evaluated ? pct(r.outcome_return, 1) : ""}</td></tr>`;
+    }).join("");
+    $("track-body").innerHTML = `
+      <div class="stats">
+        <div class="stat"><div class="v">${(s.total || 0).toLocaleString()}</div><div class="l">Readings saved</div></div>
+        <div class="stat"><div class="v">${(s.evaluated || 0).toLocaleString()}</div><div class="l">Graded so far</div></div>
+        <div class="stat"><div class="v">${t.hit_rate == null ? "—" : pct(t.hit_rate, 1)}</div><div class="l">Matched the outcome</div></div>
+      </div>
+      ${s.evaluated < 200 ? `<p class="muted">Fewer than 200 readings have been graded, so the live hit rate says little yet.</p>` : ""}
+      <div class="table-wrap"><table>
+        <tr><th>Read</th><th>Stock</th><th>Lean</th><th>What happened in 30 days</th><th class="num">Return</th></tr>
+        ${rows || `<tr><td colspan="5" class="muted">No readings saved yet.</td></tr>`}
+      </table></div>`;
+  } catch { $("track-body").innerHTML = `<p class="muted">The track record is unavailable right now.</p>`; }
+}
+
+loadSample(); loadBacktest(); loadTrack();
+</script>
+</body>
+</html>
