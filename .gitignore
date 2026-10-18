@@ -26,3 +26,6 @@ data/.fp
 data/self_model.json
 data/auth/
 data/market/
+
+# NAS deployment: secrets and live data stay on the NAS
+deploy/nas/.env

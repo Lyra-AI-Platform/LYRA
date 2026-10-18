@@ -1,0 +1,34 @@
+# lyraauth.com on a NAS (Synology, QNAP, Unraid, TrueNAS, any Docker host).
+# Cloudflare Tunnel connects outward to Cloudflare, so no router ports need
+# opening and your home IP stays hidden. Put TUNNEL_TOKEN in a .env file
+# next to this one (see .env.example), then: docker compose up -d --build
+name: lyra
+
+services:
+  lyra:
+    build:
+      context: ../..
+    image: lyra-site:latest
+    restart: unless-stopped
+    environment:
+      LYRA_SEC_USER_AGENT: ${LYRA_SEC_USER_AGENT:-Lyra Market Expert legal@lyraauth.com}
+      LYRA_PEER_KEY: ${LYRA_PEER_KEY:-}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      STRIPE_STARTER_PRICE_ID: ${STRIPE_STARTER_PRICE_ID:-}
+      STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID:-}
+    volumes:
+      - lyra-data:/app/data       # accounts, login secret, market history
+    # No ports published: only the tunnel can reach the site.
+
+  tunnel:
+    image: cloudflare/cloudflared:2024.12.2
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?Set TUNNEL_TOKEN in .env (Cloudflare → Networking → Tunnels → lyraauth.com)}
+    depends_on:
+      - lyra
+
+volumes:
+  lyra-data:

@@ -44,6 +44,9 @@ ROOT = Path(__file__).parent.parent
 FRONTEND_DIR = ROOT / "frontend"
 STATIC_DIR = FRONTEND_DIR / "static"
 DATA_DIR = ROOT / "data"
+WEBSITE_DIR = ROOT / "website"
+# On a VPS nginx serves website/; in the Docker/NAS setup the app serves it itself.
+SERVE_WEBSITE = os.environ.get("LYRA_SERVE_WEBSITE") == "1"
 
 for d in [DATA_DIR / "models", DATA_DIR / "uploads", DATA_DIR / "memory", DATA_DIR / "logs"]:
     d.mkdir(parents=True, exist_ok=True)
@@ -85,6 +88,8 @@ app.include_router(market_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_ui():
+    if SERVE_WEBSITE:
+        return FileResponse(str(WEBSITE_DIR / "index.html"))
     index_path = FRONTEND_DIR / "templates" / "index.html"
     if index_path.exists():
         return FileResponse(str(index_path))
@@ -232,6 +237,24 @@ async def on_shutdown():
     from lyra.market.expert import learning_loop
     learning_loop.stop()
     await engine.unload_model()
+
+
+if SERVE_WEBSITE:
+    @app.get("/widget.js")
+    async def serve_widget():
+        return FileResponse(str(ROOT / "lyra" / "authenticator" / "frontend" / "lyraauth.js"),
+                            media_type="application/javascript", headers={"Cache-Control": "public, max-age=3600"})
+
+    @app.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        return response
+
+    # Mounted last so every API route above takes priority over static files.
+    app.mount("/", StaticFiles(directory=str(WEBSITE_DIR), html=True), name="website")
 
 
 def main():
