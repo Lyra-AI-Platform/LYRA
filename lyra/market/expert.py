@@ -6,15 +6,22 @@ import time
 from typing import Dict, List, Optional
 
 from lyra.market import learner, news, peers, risk_guard, smart_money
-from lyra.market.config import BOOM_THRESHOLD, BUST_THRESHOLD, HORIZON_DAYS, INDEX_NAME
-from lyra.market.market_data import get_history, get_vix, price_stats
+from lyra.market.config import (BOOM_THRESHOLD, BUST_THRESHOLD, EXPERIMENTAL_UNTIL_GRADED, HORIZON_DAYS,
+                                INDEX_NAME, PERSONAL_SIZING)
+from lyra.market.market_data import get_history, get_vix, history_status, price_stats
 from lyra.market.store import get_store
 from lyra.market.tremor_index import build_features, decide, explain, label
 
 logger = logging.getLogger(__name__)
 
-DISCLAIMER = ("Probabilistic estimate from public data, not financial advice. "
-              "It can and will be wrong; size positions accordingly.")
+DISCLAIMER = ("General market information, not financial advice and not a recommendation to buy or "
+              "sell. Probabilities come from an experimental model that has not been validated against "
+              "historical data. It can and will be wrong. Prices are delayed daily closes.")
+# A reading missing any of these is marked partial instead of being presented as complete.
+CORE_SOURCES = ("price", "news", "insiders")
+# Fields that size a trade to one person's portfolio (personal advice; see config.PERSONAL_SIZING).
+SIZING_FIELDS = ("portfolio_fraction", "fraction_of_holding", "amount", "shares", "stop_loss",
+                 "take_profit", "stop_distance")
 
 
 def _confidence(avail: Dict[str, bool], peer_info: Dict, graded: int) -> float:
@@ -29,18 +36,25 @@ def _confidence(avail: Dict[str, bool], peer_info: Dict, graded: int) -> float:
     return max(0.0, coverage * maturity * (1 - peer_info.get("disagreement", 0.0)))
 
 
+def _day_start(ts: float) -> float:
+    return ts - ts % 86400
+
+
 async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_held: float = 0.0,
-                  save: bool = True, fetch_full_articles: bool = True, owner: str = "local") -> Dict:
+                  save: bool = True, owner: str = "local") -> Dict:
     ticker = ticker.upper().strip()
+    if not PERSONAL_SIZING:
+        portfolio_value, shares_held = None, 0.0
     company = await smart_money.lookup_company(ticker)
     company_name = company["name"] if company else ""
-    bars, vix, articles, money, peer_info = await asyncio.gather(
+    bars, vix, news_report, money, peer_info = await asyncio.gather(
         get_history(ticker, "1y"),
         get_vix(),
-        news.collect_news(ticker, company_name, fetch_full=fetch_full_articles),
+        news.collect_news_report(ticker, company_name),
         smart_money.gather(ticker, company),
         peers.consult(ticker),
     )
+    articles = news_report["articles"]
     stats = price_stats(bars)
     news_info = news.news_features(articles)
     feats = build_features(stats, vix, news_info, money, peer_info)
@@ -59,6 +73,20 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "ticker": ticker, "price": price, "last_ts": stats.get("last_ts"),
         "realized_vol": stats.get("realized_vol"), "p_boom": p_boom, "p_bust": p_bust,
         "equity": portfolio_value, "shares_held": shares_held}, owner=owner)
+    if not PERSONAL_SIZING:
+        for k in SIZING_FIELDS:
+            decision.pop(k, None)
+
+    sources = {
+        "price": history_status(bars),
+        "vix": vix.get("source") or {"status": "ok" if vix.get("available") else "failed"},
+        "news": {"status": news_report["status"], "provider": "RSS (Yahoo Finance, Google News)",
+                 "feeds": news_report["feeds"], "articles_counted": len(articles),
+                 "off_topic_dropped": news_report["off_topic_dropped"]},
+        **money["sources"],
+    }
+    failed_core = [k for k in CORE_SOURCES if sources[k]["status"] in ("failed", "stale")]
+    experimental = stats_db["evaluated"] < EXPERIMENTAL_UNTIL_GRADED
 
     reading = {
         "index": INDEX_NAME,
@@ -67,6 +95,16 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "company": company_name,
         "created_at": time.time(),
         "price": round(price, 4) if price else None,
+        "price_as_of": sources["price"].get("as_of"),
+        "price_note": "daily close, delayed" if price else "price unavailable",
+        "sources": sources,
+        "partial": bool(failed_core),
+        "failed_sources": failed_core,
+        "experimental": experimental,
+        "model_status": (f"Experimental: {stats_db['evaluated']} of {EXPERIMENTAL_UNTIL_GRADED} readings "
+                         "graded so far. Treat the percentages as unproven." if experimental else
+                         f"{stats_db['evaluated']} readings graded."),
+        "track_record": {"graded": stats_db["evaluated"], "correct": stats_db.get("correct", 0)},
         "horizon_days": HORIZON_DAYS,
         "p_boom": round(p_boom, 4),
         "p_bust": round(p_bust, 4),
@@ -78,9 +116,11 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "features": x,
         "market": {k: v for k, v in vix.items() if k != "history"},
         "price_stats": {k: round(v, 4) for k, v in stats.items()},
-        "news": {**news_info, "headlines": [
-            {"id": a["id"], "title": a["title"], "source": a["source"], "sentiment": a["sentiment"],
-             "published": a["published"]} for a in articles[:10]]},
+        "news": {**news_info, "scoring": "word-list sentiment (lyra/market/sentiment.py) on headline and "
+                 "summary; only articles naming the ticker or company are counted",
+                 "headlines": [
+            {"id": a["id"], "title": a["title"], "source": a["source"], "url": a["url"],
+             "sentiment": a["sentiment"], "published": a["published"]} for a in articles[:25]]},
         "smart_money": {
             "insider_flow": money["insider_flow"], "congress_flow": money["congress_flow"],
             "fund_score": round(money["fund_score"], 4),
@@ -91,7 +131,9 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "peers": peer_info,
         "disclaimer": DISCLAIMER,
     }
-    if save and price:
+    # One graded reading per ticker per day, so a popular ticker can't dominate the track record.
+    if save and price and not failed_core and not get_store().prediction_saved_since(
+            ticker, _day_start(reading["created_at"])):
         reading["prediction_id"] = get_store().save_prediction({
             "ticker": ticker, "created_at": reading["created_at"], "price": price,
             "horizon_days": HORIZON_DAYS, "features": x, "p_boom": p_boom, "p_bust": p_bust,
@@ -104,7 +146,7 @@ async def scan(tickers: List[str], portfolio_value: Optional[float] = None, owne
     out = []
     for t in tickers:
         try:
-            out.append(await analyze(t, portfolio_value, fetch_full_articles=False, owner=owner))
+            out.append(await analyze(t, portfolio_value, owner=owner))
         except Exception as e:
             logger.warning(f"Tremor scan failed for {t}: {e}")
     out.sort(key=lambda r: r["decision"]["edge"], reverse=True)
@@ -116,7 +158,7 @@ def ai_brief(reading: Dict) -> str:
     d = reading["decision"]
     lines = [
         f"{reading['label']} ({reading['company'] or reading['ticker']}) — {INDEX_NAME} reading",
-        f"Price {reading['price']} | score {reading['score']}/100 | P(boom) {reading['p_boom']:.0%} | "
+        f"Price {reading['price']} ({reading['price_note']}, {reading.get('price_as_of') or 'n/a'}) | score {reading['score']}/100 | P(boom) {reading['p_boom']:.0%} | "
         f"P(bust) {reading['p_bust']:.0%} | {reading['definition']}",
         f"Market: VIX {reading['market'].get('level', 'n/a')} ({reading['market'].get('regime', 'unknown')})",
         f"Suggested action: {d['action']} (edge {d['edge']:+.2f}, confidence {d['confidence']:.0%})"
@@ -129,6 +171,10 @@ def ai_brief(reading: Dict) -> str:
     vetoes = [c["detail"] for c in d.get("risk", {}).get("checks", []) if c["status"] == "block"]
     if vetoes:
         lines.append(f"Risk guard overrode {d['original_action']} -> HOLD: " + "; ".join(vetoes))
+    if reading.get("partial"):
+        lines.append("PARTIAL READING — sources failed: " + ", ".join(reading["failed_sources"]))
+    if reading.get("experimental"):
+        lines.append(reading["model_status"])
     lines.append("Why:")
     lines += [f"  - {c['reason']} ({c['impact']:+.3f})" for c in reading["causes"]]
     lines.append(reading["disclaimer"])

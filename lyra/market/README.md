@@ -21,11 +21,12 @@ Each stock gets its own reading, labelled `TRX-<TICKER>` (e.g. `TRX-NVDA`).
 1. **Market fear** — the CBOE VIX level, 5-day change and regime (calm → panic).
 2. **The stock itself** — momentum, trend vs. 50-day average, drawdown, its own
    volatility compared with the VIX, unusual volume.
-3. **All the news in one place** — Yahoo Finance and Google News feeds per ticker,
-   plus CNBC/MarketWatch market feeds. Full article text is fetched where the
-   site allows it and stored locally, so you can read everything at
-   `/market` without opening another site. Each article gets a sentiment score.
-4. **Smart money** — pure maths misses trades made on better information, so it follows:
+3. **News** — Yahoo Finance and Google News feeds per ticker, plus CNBC/MarketWatch
+   market feeds. Only articles whose headline or summary names the ticker or the
+   company are counted. Headline, a short summary and a link to the publisher are
+   kept; full article text is never fetched or shown (copyright). Each counted
+   article gets a word-list sentiment score.
+4. **Insider, fund and politician trades** — pure price maths can't see these, so it follows:
    - **Company insiders** (SEC Form 4): open-market buys and sells, weighted by
      role (a CEO's purchase counts more than a director's sale; sales are
      discounted because most are scheduled).
@@ -34,8 +35,8 @@ Each stock gets its own reading, labelled `TRX-<TICKER>` (e.g. `TRX-NVDA`).
    - **Politicians** (House/Senate disclosures).
    - **Your own list** of notable trades in `data/market/notable_trades.json`
      (e.g. a tech leader's reported buy).
-   - **Quiet accumulation** — insiders/politicians buying while the news is
-     silent, the closest public proxy for someone knowing something early.
+   - **Buying while news is quiet** — insiders or politicians buying while news
+     coverage is low.
 5. **The network ("neurolink")** — other Lyra nodes, or signal files other
    projects publish on GitHub, listed in `data/market/peers.json`. Their
    consensus is a feature; disagreement lowers confidence.
@@ -94,8 +95,11 @@ every 6 hours in the background, or on demand.
 POST /api/market/decision
 {"ticker": "NVDA", "portfolio_value": 10000, "shares_held": 0}
 ```
-returns the action, size (`portfolio_fraction`, `amount`, `shares`), the causes,
-and a `brief` text block to drop into the model's context.
+returns the lean (BUY/SELL/HOLD), the causes and a `brief` text block to drop
+into the model's context. Portfolio sizing (`portfolio_fraction`, `amount`,
+`shares`, stops) is only returned when `LYRA_MARKET_PERSONAL_SIZING=1`, which is
+for the operator's own private use: sizing tailored to one person's holdings is
+regulated personal advice, so it is off on the public site.
 
 | Endpoint | Purpose |
 |---|---|
@@ -104,7 +108,7 @@ and a `brief` text block to drop into the model's context.
 | `POST /api/market/decision` | AI trade decision with sizing |
 | `POST /api/market/scan` | rank up to 25 tickers |
 | `GET /api/market/news?ticker=&q=&refresh=` | stored articles |
-| `GET /api/market/news/{id}` | one article with full text |
+| `GET /api/market/news/{id}` | one headline with summary and publisher link |
 | `GET /api/market/signal/{ticker}` | lightweight signal for peer nodes |
 | `GET /api/market/signals.json?tickers=NVDA,AAPL` | publishable signal file |
 | `POST /api/market/account` | report equity / amount invested |
@@ -130,7 +134,14 @@ python -m lyra.market export NVDA AAPL --out signals.json   # commit to GitHub f
 | `LYRA_MARKET_HORIZON_DAYS` | 30 | grading horizon |
 | `LYRA_MARKET_BOOM` / `LYRA_MARKET_BUST` | 0.05 | move that counts as boom/bust |
 | `LYRA_MARKET_MAX_POSITION` | 0.05 | max fraction of portfolio in one stock |
-| `LYRA_HOUSE_TRADES_URL` / `LYRA_SENATE_TRADES_URL` | stock-watcher S3 files | swap if those feeds move |
+| `LYRA_HOUSE_TRADES_URL` / `LYRA_SENATE_TRADES_URL` | stock-watcher S3 files | **both return 403 as of Oct 2026** — point at a live source |
+| `LYRA_MARKET_PERSONAL_SIZING` | off | `1` returns portfolio-specific sizing (private use only) |
+| `LYRA_MARKET_EXPERIMENTAL_UNTIL` | 200 | graded readings before the "experimental" label is dropped |
+
+Every reading carries `sources` (status `ok` / `partial` / `stale` / `failed`
+per source). If price, news or insider data fails, the reading is marked
+`partial`, the page says which source failed, and it is not added to the track
+record. At most one reading per ticker per day is saved for grading.
 
 Sizing is deliberately conservative: never more than `MAX_POSITION`, scaled by
 confidence, and shrunk further when the VIX is above 20. Low-confidence
@@ -138,8 +149,11 @@ readings always come back as `HOLD`.
 
 ## Limits
 
-- Free public data only: Yahoo/Stooq prices, SEC EDGAR, RSS feeds. Some sites
-  block full-text fetching; those articles show their summary.
+- Free public data only: Yahoo Finance prices (unofficial API, personal-use
+  terms — a public or paid site needs a licensed feed), SEC EDGAR, RSS feeds.
+- Funds are matched to the company by the first two words of the issuer name,
+  not by CUSIP, so similar names can mismatch.
+- The probabilities have not been backtested; treat them as unproven.
 - Insider and politician filings arrive days to weeks after the trade.
 - The models start from hand-set priors and need dozens of graded readings
   before the learned weights mean much. Confidence reflects that.

@@ -55,10 +55,18 @@
   .muted { color: var(--muted); font-size: 13px; }
   .full { grid-column: 1 / -1; }
   .empty { color: var(--muted); padding: 20px 0; text-align: center; }
-  main { -webkit-user-select: none; user-select: none; }
-  main input { -webkit-user-select: text; user-select: text; }
-  .watermark { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
-  @media print { body { display: none; } }
+  a { color: var(--accent); }
+  .warn { background: rgba(234,179,8,.10); border: 1px solid rgba(234,179,8,.35); border-radius: 8px;
+          padding: 10px 12px; font-size: 13px; margin: 0 20px; }
+  .partial { background: rgba(239,68,68,.10); border: 1px solid rgba(239,68,68,.35); border-radius: 8px;
+             padding: 8px 12px; font-size: 13px; margin: 10px 0; }
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin: 2px 4px 2px 0;
+         background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); }
+  .tag.ok { color: var(--boom); } .tag.failed, .tag.stale { color: var(--bust); } .tag.partial { color: var(--hold); }
+  .gate { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center;
+          justify-content: center; z-index: 100; padding: 16px; }
+  .gate > div { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+                max-width: 560px; }
 </style>
 </head>
 <body>
@@ -68,19 +76,35 @@
   <div class="vix" id="vix">VIX loading…</div>
 </header>
 
+<p class="warn"><b>Risk warning.</b> The Tremor Index is general market information, not financial advice
+  and not a recommendation to buy or sell any security. Its probabilities come from an experimental model that has
+  not been validated on historical data. Investments can fall as well as rise and you may lose money. Prices are
+  delayed daily closes. See the <a href="/pages/terms.html#market-data">Terms (Market data)</a>.</p>
+
+<div class="gate" id="gate" hidden>
+  <div>
+    <h2 style="color:var(--text)">Before you use the Tremor Index</h2>
+    <p>Readings are general information produced by an experimental model. They are not personal advice, they do not
+      take your circumstances into account, and they have not been proven accurate. Do your own research or speak to a
+      regulated adviser before investing.</p>
+    <p class="muted">Data: delayed daily prices, public SEC filings, public congressional disclosures and news
+      headlines. Sources can fail; failed sources are shown on each reading.</p>
+    <button id="accept">I understand</button>
+  </div>
+</div>
+
 <main>
   <section>
     <h2>Stock reading</h2>
     <form id="lookup">
       <input id="ticker" placeholder="Ticker, e.g. NVDA" autocomplete="off" required>
-      <input id="portfolio" type="number" min="0" step="any" placeholder="Portfolio £/$ (optional)">
       <button type="submit">Analyse</button>
     </form>
     <div id="reading"><p class="empty">Enter a ticker to get its Tremor reading.</p></div>
   </section>
 
   <section>
-    <h2>News reader</h2>
+    <h2>News</h2>
     <form id="newsform">
       <input id="newsq" placeholder="Ticker in CAPS (e.g. AAPL) or any words">
       <button type="submit" class="ghost">Search</button>
@@ -90,12 +114,12 @@
   </section>
 
   <section class="full" id="readerbox" hidden>
-    <h2>Article <button class="ghost" id="closereader" style="float:right;padding:2px 10px">Close</button></h2>
+    <h2>Headline <button class="ghost" id="closereader" style="float:right;padding:2px 10px">Close</button></h2>
     <div class="reader" id="reader"></div>
   </section>
 
   <section class="full">
-    <h2>Smart money</h2>
+    <h2>Insider, fund and politician trades</h2>
     <div id="money"><p class="empty">Insider, fund and politician trades appear after an analysis.</p></div>
   </section>
 
@@ -131,85 +155,90 @@ async function api(path, opts = {}) {
   return r.json();
 }
 
-// Copy deterrents. Anything shown on a screen can ultimately be captured, so
-// the real protection is server-side (login + rate limits); this just stops
-// casual select-all / right-click copying and stamps every view with who saw it.
-(function protect() {
-  const stamp = (viewer.email || "signed-in user") + " · " + new Date().toISOString().slice(0, 16).replace("T", " ");
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='360' height='200'><text x='10' y='110' transform='rotate(-22 180 100)'
-    fill='rgba(139,92,246,0.10)' font-family='sans-serif' font-size='15'>${stamp.replace(/[<&>'"]/g, "")}</text></svg>`;
-  const mark = document.createElement("div");
-  mark.className = "watermark";
-  mark.style.backgroundImage = `url("data:image/svg+xml;utf8,${encodeURIComponent(svg)}")`;
-  document.body.appendChild(mark);
-  const guarded = (e) => e.target.closest && e.target.closest("main") && !e.target.closest("input");
-  ["copy", "cut", "contextmenu", "dragstart"].forEach(ev =>
-    document.addEventListener(ev, (e) => { if (guarded(e)) e.preventDefault(); }));
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && ["a", "c", "s", "p", "u"].includes(e.key.toLowerCase()) && !e.target.closest("input")) e.preventDefault();
-  });
+const TERMS_KEY = "lyra_market_terms_v1";
+(function gate() {
+  let accepted = false;
+  try { accepted = localStorage.getItem(TERMS_KEY) === "1"; } catch {}
+  if (accepted) return;
+  $("gate").hidden = false;
+  $("accept").onclick = () => { try { localStorage.setItem(TERMS_KEY, "1"); } catch {} $("gate").hidden = true; };
 })();
+
+const STATUS_TEXT = { ok: "ok", partial: "partly failed", failed: "unavailable", stale: "out of date" };
+function sourceTags(sources) {
+  const names = { price: "Price", vix: "VIX", news: "News", insiders: "SEC Form 4", funds: "SEC 13F", congress: "Politicians" };
+  return Object.entries(sources || {}).map(([k, v]) =>
+    `<span class="tag ${esc(v.status)}" title="${esc(v.provider || "")} ${esc(v.detail || "")}">${esc(names[k] || k)}: ${esc(STATUS_TEXT[v.status] || v.status)}</span>`).join("");
+}
+const fmtDate = (iso) => iso ? new Date(iso + "T12:00:00Z").toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" }) : "";
 
 async function loadVix() {
   try {
     const v = await api("/api/market/vix");
     $("vix").innerHTML = v.available
-      ? `VIX <b>${v.level}</b> · ${esc(v.regime)} · 5d ${(v.change_5d * 100).toFixed(1)}%`
+      ? `VIX <b>${v.level}</b> · ${esc(v.regime)} · 5d ${(v.change_5d * 100).toFixed(1)}% · close ${esc(fmtDate(v.as_of))}, delayed`
       : "VIX unavailable";
   } catch { $("vix").textContent = "VIX unavailable"; }
 }
 
 function renderReading(r) {
   const d = r.decision;
-  let sizing = "";
-  if (d.portfolio_fraction) sizing = `Put ${(d.portfolio_fraction * 100).toFixed(2)}% of portfolio in` + (d.amount ? ` (${money(d.amount)}, ~${d.shares} shares)` : "");
-  if (d.fraction_of_holding) sizing = `Sell ${pct(d.fraction_of_holding)} of your holding`;
+  const priceLine = r.price != null
+    ? `Close ${esc(fmtDate(r.price_as_of))} · delayed · ${esc((r.sources.price || {}).provider || "")}`
+    : "Price unavailable";
   $("reading").innerHTML = `
+    ${r.partial ? `<div class="partial"><b>Partial reading.</b> These sources failed, so the result is incomplete:
+      ${r.failed_sources.map(esc).join(", ")}. It has not been added to the track record.</div>` : ""}
+    ${r.experimental ? `<p class="muted"><span class="tag partial">Experimental</span> ${esc(r.model_status)}</p>` : ""}
     <div class="big">
       <div><div class="score">${r.score}</div><div class="label">${esc(r.label)} / 100</div></div>
-      <div><span class="pill ${d.action}">${d.action}</span>
-        <div class="label">confidence ${pct(d.confidence)} · edge ${d.edge >= 0 ? "+" : ""}${d.edge}</div></div>
-      <div><div style="font-size:20px">${r.price ?? "—"}</div><div class="label">${esc(r.company || r.ticker)}</div></div>
+      <div><span class="pill ${d.action}">${d.action === "BUY" ? "Leans bullish" : d.action === "SELL" ? "Leans bearish" : "Neutral"}</span>
+        <div class="label">model confidence ${pct(d.confidence)}</div></div>
+      <div><div style="font-size:20px">${r.price ?? "—"}</div><div class="label">${esc(r.company || r.ticker)}</div>
+        <div class="label">${priceLine}</div></div>
     </div>
     <div class="label">Boom ${pct(r.p_boom)} · Bust ${pct(r.p_bust)} · big-move chance ${pct(r.tremor)}</div>
     <div class="bar"><div class="b" style="width:${r.p_boom * 100}%"></div><div class="s" style="width:${r.p_bust * 100}%"></div></div>
     <div class="muted">${esc(r.definition)}</div>
-    ${sizing ? `<p><b>${esc(sizing)}</b></p>` : ""}
-    ${d.stop_loss ? `<p class="muted">Stop-loss <b style="color:var(--bust)">${d.stop_loss}</b> · take-profit <b style="color:var(--boom)">${d.take_profit}</b></p>` : ""}
-    ${riskBlock(d)}
     <h2 style="margin-top:16px">Probable causes</h2>
     <ul class="causes">${r.causes.map(c => `<li class="${c.impact >= 0 ? "pos" : "neg"}"><span style="color:var(--text)">${esc(c.reason)}</span></li>`).join("") || "<li>No strong drivers</li>"}</ul>
+    <h2 style="margin-top:16px">Sources</h2>
+    <div>${sourceTags(r.sources)}</div>
+    <p class="muted">News: ${r.sources.news.articles_counted} articles counted, ${r.sources.news.off_topic_dropped} off-topic
+      articles ignored. Sentiment is scored with a word list on each headline and summary.</p>
     <p class="muted">${esc(r.disclaimer)}</p>`;
 }
 
-function riskBlock(d) {
-  const checks = (d.risk && d.risk.checks) || [];
-  if (!checks.length) return "";
-  const icon = { pass: "✓", adjust: "↓", block: "✕" };
-  const cls = { pass: "pos", adjust: "", block: "neg" };
-  const head = d.original_action ? `<p><b class="neg">Risk guard overrode ${esc(d.original_action)} → HOLD</b></p>` : "";
-  return `<h2 style="margin-top:16px">Risk guard</h2>${head}<ul class="causes" style="list-style:none;padding-left:0">${checks.map(c =>
-    `<li><span class="${cls[c.status]}">${icon[c.status]}</span> ${esc(c.detail)}</li>`).join("")}</ul>`;
-}
-
-function tradeRows(trades) {
-  if (!trades.length) return `<tr><td colspan="5" class="muted">None in the last 90 days</td></tr>`;
+function tradeRows(trades, status) {
+  if (!trades.length) {
+    const msg = status && status.status === "failed" ? "Source unavailable — this data could not be checked"
+      : status && status.status === "partial" ? "None found, but part of the source failed" : "None in the last 90 days";
+    return `<tr><td colspan="6" class="muted">${msg}</td></tr>`;
+  }
   return trades.map(t => `<tr><td>${esc(t.date)}</td><td>${esc(t.person)}</td><td>${esc(t.role)}</td>
-    <td class="${t.side === "buy" ? "pos" : "neg"}">${esc(t.side)}</td><td>${money(t.value)}</td></tr>`).join("");
+    <td class="${t.side === "buy" ? "pos" : "neg"}">${esc(t.side)}</td>
+    <td>${t.amount_range ? esc(t.amount_range) : money(t.value)}</td>
+    <td>${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.source || "filing")}</a>` : esc(t.source || "")}</td></tr>`).join("");
 }
 
-function renderMoney(sm) {
-  const head = `<tr><th>Date</th><th>Who</th><th>Role</th><th>Side</th><th>Value</th></tr>`;
+function renderMoney(sm, sources) {
+  const head = `<tr><th>Date</th><th>Who</th><th>Role</th><th>Side</th><th>Value</th><th>Source</th></tr>`;
   const funds = sm.funds.length ? sm.funds.map(f => `<tr><td>${esc(f.fund)}</td><td>${Number(f.shares).toLocaleString()}</td>
-      <td class="${f.change >= 0 ? "pos" : "neg"}">${(f.change * 100).toFixed(1)}%</td><td>${esc(f.as_of)}</td></tr>`).join("")
-    : `<tr><td colspan="4" class="muted">No tracked fund holds it</td></tr>`;
+      <td class="${f.change >= 0 ? "pos" : "neg"}">${(f.change * 100).toFixed(1)}%</td>
+      <td>${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.as_of)}</a>` : esc(f.as_of)}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="muted">${sources.funds.status === "failed" ? "Source unavailable" : "No tracked fund holds it"}</td></tr>`;
+  const ins = sm.insider_flow;
   $("money").innerHTML = `
-    <p class="muted">Insider flow ${sm.insider_flow.score.toFixed(2)}${sm.insider_flow.cluster_buying ? " · cluster buying!" : ""}
-      · Politician flow ${sm.congress_flow.score.toFixed(2)} · Fund flow ${sm.fund_score.toFixed(2)}</p>
-    <h2>Company insiders</h2><div class="table-wrap"><table>${head}${tradeRows(sm.insiders)}</table></div>
-    <h2 style="margin-top:16px">Politicians</h2><div class="table-wrap"><table>${head}${tradeRows(sm.congress)}</table></div>
-    <h2 style="margin-top:16px">Famous funds (13F)</h2><div class="table-wrap"><table>
-      <tr><th>Fund</th><th>Shares</th><th>Change vs prior quarter</th><th>Filed</th></tr>${funds}</table></div>`;
+    <p class="muted">Insider trades in 90 days: ${ins.trades}${ins.buyers ? `, ${ins.buyers} ${ins.buyers === 1 ? "person" : "people"} buying` : ""}
+      · Politician trades: ${sm.congress_flow.trades}</p>
+    <h2>Company insiders (SEC Form 4)</h2><div class="table-wrap"><table>${head}${tradeRows(sm.insiders, sources.insiders)}</table></div>
+    <h2 style="margin-top:16px">Politicians (House and Senate disclosures)</h2>
+    <p class="muted">Amounts are the reported ranges; disclosures can be filed up to 45 days after a trade.</p>
+    <div class="table-wrap"><table>${head}${tradeRows(sm.congress, sources.congress)}</table></div>
+    <h2 style="margin-top:16px">Tracked funds (SEC 13F)</h2>
+    <p class="muted">13F holdings are filed up to 45 days after each quarter ends, so they can be months old.</p>
+    <div class="table-wrap"><table>
+      <tr><th>Fund</th><th>Shares</th><th>Change vs prior quarter</th><th>Filing</th></tr>${funds}</table></div>`;
 }
 
 async function loadArticles(params) {
@@ -218,7 +247,7 @@ async function loadArticles(params) {
     <div class="article" data-id="${esc(a.id)}">
       <div>${esc(a.title)}</div>
       <div class="meta">${esc(a.source)} · ${when(a.published)} · <span class="${a.sentiment >= 0 ? "pos" : "neg"}">sentiment ${a.sentiment}</span>
-        ${a.text_length ? " · full text" : " · summary only"}</div>
+        · <a href="${esc(a.url)}" target="_blank" rel="noopener">read at ${esc(a.source)}</a></div>
     </div>`).join("") : `<p class="empty">No articles found.</p>`;
 }
 
@@ -227,7 +256,8 @@ async function openArticle(id) {
   $("readerbox").hidden = false;
   $("reader").innerHTML = `<h3>${esc(a.title)}</h3>
     <div class="muted">${esc(a.source)} · ${when(a.published)} · <a href="${esc(a.url)}" target="_blank" rel="noopener" style="color:var(--accent)">original</a></div>
-    <p>${esc(a.full_text || a.summary || "This site doesn't allow the full text to be fetched; only the summary is available.")}</p>`;
+    <p>${esc(a.summary || "No summary provided by the publisher.")}</p>
+    <p><a href="${esc(a.url)}" target="_blank" rel="noopener">Read the full article at ${esc(a.source)} →</a></p>`;
   $("readerbox").scrollIntoView({ behavior: "smooth" });
 }
 
@@ -236,7 +266,7 @@ async function loadLearning() {
   const s = l.stats;
   const acc = s.evaluated ? pct(s.correct / s.evaluated) : "—";
   $("learning").innerHTML = `
-    <p>${s.total} readings made · ${s.evaluated} graded · hit rate ${acc}
+    <p>${s.total} readings saved (at most one per ticker per day) · ${s.evaluated} graded · hit rate ${acc}
       <button class="ghost" id="grade" style="margin-left:8px;padding:4px 10px">Grade now</button></p>
     <div class="table-wrap"><table><tr><th>Ticker</th><th>Called</th><th>Actual</th><th>Return</th><th>What misled it</th></tr>
     ${l.mistakes.map(m => `<tr><td>${esc(m.ticker)}</td><td>${esc(m.predicted)}</td><td>${esc(m.actual)}</td>
@@ -253,13 +283,8 @@ $("lookup").onsubmit = async (e) => {
   $("reading").innerHTML = `<p class="empty">Reading ${esc(currentTicker)}: prices, news, insiders, funds, politicians…</p>`;
   try {
     const r = await api("/api/market/index/" + encodeURIComponent(currentTicker));
-    const pv = parseFloat($("portfolio").value);
-    if (pv > 0 && r.decision.portfolio_fraction && r.price) {
-      r.decision.amount = pv * r.decision.portfolio_fraction;
-      r.decision.shares = Math.floor(r.decision.amount / r.price);
-    }
     renderReading(r);
-    renderMoney(r.smart_money);
+    renderMoney(r.smart_money, r.sources);
     loadArticles({ ticker: currentTicker });
     loadLearning();
   } catch (err) {

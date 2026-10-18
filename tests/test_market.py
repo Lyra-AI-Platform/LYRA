@@ -140,11 +140,16 @@ def test_flow_score_weights_buys_over_sells():
     assert buy["score"] > 0 > sell["score"] and abs(buy["score"]) > abs(sell["score"])
 
 
-def test_feed_and_article_extraction():
+def test_feed_parsing_and_relevance_filter():
     items = news.parse_feed(RSS)
     assert len(items) == 2 and items[0]["url"] == "https://example.com/a1"
-    text = news.extract_article_text(ARTICLE_HTML)
-    assert "record revenue" in text and "menu" not in text
+    assert news.mentions(items[0], "NVDA", "NVIDIA CORP")          # names the company
+    assert not news.mentions(items[1], "NVDA", "NVIDIA CORP")      # generic article
+    assert news.mentions({"title": "Why $NVDA is rallying", "summary": ""}, "NVDA")
+    assert not news.mentions({"title": "NVDAX fund launches", "summary": ""}, "NVDA")
+    assert news.mentions({"title": "Amazon raises prices", "summary": ""}, "AMZN", "AMAZON COM INC")
+    assert not news.mentions({"title": "United Airlines cuts routes", "summary": ""}, "UPS",
+                             "UNITED PARCEL SERVICE INC")
 
 
 def test_decision_sizing_is_capped_and_scaled_by_fear():
@@ -194,10 +199,22 @@ def test_end_to_end_analyze_offline(monkeypatch):
     assert r["smart_money"]["funds"][0]["change"] == 1.0  # 1000 -> 2000 shares
     assert r["features"]["insider_flow"] > 0 and r["features"]["news_sentiment"] > 0
     assert r["causes"] and r["prediction_id"]
-    # Articles are stored with their full text for the in-app reader.
+    # Only on-topic articles are counted, and full article text is never kept.
+    assert r["sources"]["news"]["articles_counted"] == 1 and r["sources"]["news"]["off_topic_dropped"] == 1
     stored = get_store().get_article(news.article_id("https://example.com/a1"))
-    assert "record revenue" in stored["full_text"]
+    assert stored["full_text"] == ""
+    assert get_store().get_article(news.article_id("https://example.com/a2")) is None
+    # Every source reports a status; the price carries its date; the reading is complete.
+    assert r["sources"]["price"]["status"] == "ok" and r["price_as_of"]
+    assert r["sources"]["insiders"]["status"] == "ok" and not r["partial"]
+    assert r["smart_money"]["congress"][0]["amount_range"] == "$15,001 - $50,000"
+    assert r["smart_money"]["funds"][0]["url"].startswith("https://www.sec.gov/Archives/")
+    # Personal sizing is off by default even though a portfolio was passed in.
+    assert not {"portfolio_fraction", "amount", "shares", "stop_loss"} & set(r["decision"])
+    assert r["experimental"]
     assert "TRX-NVDA" in expert.ai_brief(r)
+    # A second reading the same day is not saved again for grading.
+    assert "prediction_id" not in asyncio.run(expert.analyze("NVDA"))
 
     # Pretend the horizon has passed and the stock crashed: the learner should grade it.
     store = get_store()
@@ -297,3 +314,22 @@ def test_account_state_tracks_pnl_and_losing_streak(monkeypatch, tmp_path):
     # Another user's account is completely separate.
     bob = risk_guard.account_state("bob", NOW)
     assert bob["equity"] == 999999 and bob["loss_streak"] == 0 and bob["trades_today"] == 0
+
+
+def test_failed_sources_are_reported_not_hidden(monkeypatch):
+    install_fake_fetch(monkeypatch)
+
+    async def broken(url, max_age=0, timeout=0):
+        if "finance/chart/NVDA" in url or "stock-watcher" in url:
+            return None  # price source and both politician feeds down
+        return fake_routes(url)
+    for mod in (news, smart_money):
+        monkeypatch.setattr(mod, "fetch_text", broken)
+    import lyra.market.market_data as md
+    monkeypatch.setattr(md, "fetch_text", broken)
+    r = asyncio.run(expert.analyze("NVDA"))
+    assert r["partial"] and "price" in r["failed_sources"]
+    assert r["sources"]["congress"]["status"] == "failed"
+    assert r["smart_money"]["congress"] == []
+    assert "prediction_id" not in r            # partial readings never enter the track record
+    assert "PARTIAL READING" in expert.ai_brief(r)

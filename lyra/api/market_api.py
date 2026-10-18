@@ -1,6 +1,6 @@
 """
 Lyra Market Expert API
-Tremor Index readings, AI trade decisions, the news reader and the learning log.
+Tremor Index readings, AI trade decisions, news headlines and the learning log.
 
 Everything here is for signed-in users only and rate limited per account, so
 the data can't be scraped anonymously or pulled out in bulk. Peer endpoints
@@ -137,7 +137,7 @@ async def scan(request: ScanRequest, response: Response, user: User = Depends(ge
 @router.get("/signal/{ticker}")
 async def signal(ticker: str, _: None = Depends(peer)):
     """Lightweight signal for peer nodes in the network (not saved as a prediction)."""
-    r = await expert.analyze(ticker, save=False, fetch_full_articles=False)
+    r = await expert.analyze(ticker, save=False)
     return {"ticker": r["ticker"], "p_boom": r["p_boom"], "p_bust": r["p_bust"], "score": r["score"],
             "ts": r["created_at"]}
 
@@ -161,11 +161,12 @@ async def news_list(ticker: str = "", q: str = "", limit: int = 50, refresh: boo
 
 @router.get("/news/{article_id}")
 async def news_article(article_id: str, user: User = Depends(reader)):
-    """One article with its full text, so it can be read without leaving Lyra."""
+    """Headline, short summary and a link to the publisher. Full article text is never served."""
     a = get_store().get_article(article_id)
     if not a:
         raise HTTPException(404, "Article not found")
-    return a
+    return {k: a[k] for k in ("id", "ticker", "title", "source", "url", "published", "sentiment")} | {
+        "summary": (a.get("summary") or "")[:news.SUMMARY_CHARS]}
 
 
 @router.get("/history/{ticker}")

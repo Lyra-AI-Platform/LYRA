@@ -54,6 +54,8 @@ class MarketStore:
             if cols and "owner" not in cols:
                 self._conn.execute(f"ALTER TABLE {table} ADD COLUMN owner TEXT DEFAULT 'local'")
         self._conn.executescript(SCHEMA)
+        # Full article text was stored by earlier versions; it is no longer kept or shown.
+        self._conn.execute("UPDATE articles SET full_text='' WHERE full_text IS NOT NULL AND full_text!=''")
         self._conn.commit()
 
     def _exec(self, sql: str, params=()) -> sqlite3.Cursor:
@@ -92,14 +94,14 @@ class MarketStore:
         return rows[0] if rows else None
 
     def list_articles(self, ticker: str = "", query: str = "", since: float = 0, limit: int = 50) -> List[Dict]:
-        sql = "SELECT id,ticker,title,source,url,published,summary,sentiment, length(full_text) AS text_length FROM articles WHERE published>=?"
+        sql = "SELECT id,ticker,title,source,url,published,summary,sentiment FROM articles WHERE published>=?"
         params: list = [since]
         if ticker:
             sql += " AND ticker=?"
             params.append(ticker.upper())
         if query:
-            sql += " AND (title LIKE ? OR summary LIKE ? OR full_text LIKE ?)"
-            params += [f"%{query}%"] * 3
+            sql += " AND (title LIKE ? OR summary LIKE ?)"
+            params += [f"%{query}%"] * 2
         sql += " ORDER BY published DESC LIMIT ?"
         params.append(limit)
         return self._all(sql, params)
@@ -113,6 +115,10 @@ class MarketStore:
              json.dumps(p["features"]), p["p_boom"], p["p_bust"], p["action"]),
         )
         return cur.lastrowid
+
+    def prediction_saved_since(self, ticker: str, since: float) -> bool:
+        return bool(self._all("SELECT 1 FROM predictions WHERE ticker=? AND created_at>=? LIMIT 1",
+                              (ticker.upper(), since)))
 
     def due_predictions(self, now: Optional[float] = None) -> List[Dict]:
         now = now or time.time()

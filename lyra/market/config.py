@@ -25,6 +25,12 @@ HORIZON_DAYS = int(os.environ.get("LYRA_MARKET_HORIZON_DAYS", 30))
 # Move (as a fraction) that counts as a boom or a bust over the horizon.
 BOOM_THRESHOLD = float(os.environ.get("LYRA_MARKET_BOOM", 0.05))
 BUST_THRESHOLD = float(os.environ.get("LYRA_MARKET_BUST", 0.05))
+# Portfolio-specific sizing ("put 2% of your portfolio in", "sell 40% of your holding") is
+# personal advice, which is regulated (FCA in the UK, investment-adviser rules in the US).
+# It is off unless the operator switches it on for their own private use.
+PERSONAL_SIZING = os.environ.get("LYRA_MARKET_PERSONAL_SIZING", "") == "1"
+# Until this many readings have been graded, the model is labelled experimental.
+EXPERIMENTAL_UNTIL_GRADED = int(os.environ.get("LYRA_MARKET_EXPERIMENTAL_UNTIL", 200))
 # Never suggest putting more than this fraction of a portfolio into one name.
 MAX_POSITION = float(os.environ.get("LYRA_MARKET_MAX_POSITION", 0.05))
 

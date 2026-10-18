@@ -12,7 +12,7 @@ import re
 import time
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from lyra.market.config import (CONGRESS_SOURCES, LOOKBACK_DAYS_CONGRESS, LOOKBACK_DAYS_INSIDERS,
                                 NOTABLE_FUNDS, ROLE_WEIGHTS, SELL_DISCOUNT, load_notable_trades)
@@ -24,6 +24,7 @@ SEC_TICKERS = "https://www.sec.gov/files/company_tickers.json"
 SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
 SEC_ARCHIVE = "https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/{doc}"
 SEC_INDEX = "https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/index.json"
+SEC_FILING = "https://www.sec.gov/Archives/edgar/data/{cik}/{acc}/"
 
 
 def _days_ago(date_str: str) -> float:
@@ -103,10 +104,11 @@ def parse_form4(xml_text: str) -> List[Dict]:
     return trades
 
 
-async def insider_trades(cik: str, max_filings: int = 30) -> List[Dict]:
+async def insider_trades(cik: str, max_filings: int = 30) -> Tuple[List[Dict], Dict]:
     body = await fetch_text(SEC_SUBMISSIONS.format(cik=cik), max_age=6 * 3600)
     if not body:
-        return []
+        logger.warning(f"SEC submissions unavailable for CIK {cik}")
+        return [], {"status": "failed", "provider": "SEC EDGAR (Form 4)", "detail": "filing list unavailable"}
     recent = json.loads(body).get("filings", {}).get("recent", {})
     docs = []
     for form, acc, date, doc in zip(recent.get("form", []), recent.get("accessionNumber", []),
@@ -122,7 +124,12 @@ async def insider_trades(cik: str, max_filings: int = 30) -> List[Dict]:
         for t in parse_form4(xml_text or ""):
             t["url"] = url
             trades.append(t)
-    return trades
+    missing = sum(b is None for b in bodies)
+    status = {"status": "ok" if not missing else "partial", "provider": "SEC EDGAR (Form 4)",
+              "filings": len(docs)}
+    if missing:
+        status["detail"] = f"{missing} of {len(docs)} filings could not be read"
+    return trades, status
 
 
 # ── Notable funds (13F) ─────────────────────────────────────────────────────
@@ -159,7 +166,7 @@ def parse_13f_infotable(xml_text: str) -> List[Dict]:
 async def _fund_filings(cik: str, count: int = 2) -> List[Dict]:
     body = await fetch_text(SEC_SUBMISSIONS.format(cik=cik), max_age=86400)
     if not body:
-        return []
+        raise RuntimeError("filing list unavailable")
     recent = json.loads(body).get("filings", {}).get("recent", {})
     out = []
     for form, acc, date in zip(recent.get("form", []), recent.get("accessionNumber", []), recent.get("filingDate", [])):
@@ -196,7 +203,7 @@ def _match_position(holdings: List[Dict], company: str) -> Dict:
     return {"shares": shares, "value": value}
 
 
-async def notable_fund_positions(company: str) -> List[Dict]:
+async def notable_fund_positions(company: str) -> Tuple[List[Dict], Dict]:
     """Which famous funds hold the company, and whether they added or trimmed last quarter."""
     async def one(fund):
         filings = await _fund_filings(fund["cik"])
@@ -210,9 +217,21 @@ async def notable_fund_positions(company: str) -> List[Dict]:
         change = ((latest["shares"] - prior["shares"]) / prior["shares"] if prior["shares"]
                   else 1.0)
         return {"fund": fund["name"], "weight": fund["weight"], "shares": latest["shares"],
-                "value": latest["value"], "change": round(change, 4), "as_of": filings[0]["date"]}
-    results = await asyncio.gather(*(one(f) for f in NOTABLE_FUNDS), return_exceptions=True)
-    return [r for r in results if isinstance(r, dict)]
+                "value": latest["value"], "change": round(change, 4), "as_of": filings[0]["date"],
+                "url": SEC_FILING.format(cik=int(fund["cik"]), acc=filings[0]["acc"])}
+
+    async def checked(fund):
+        try:
+            return await one(fund), True
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"13F lookup failed for {fund['name']}: {e}")
+            return None, False
+    results = await asyncio.gather(*(checked(f) for f in NOTABLE_FUNDS))
+    failed = sum(not ok for _, ok in results)
+    status = {"status": "ok" if not failed else "partial" if failed < len(NOTABLE_FUNDS) else "failed",
+              "provider": "SEC EDGAR (13F)",
+              "detail": "13F holdings are filed up to 45 days after each quarter ends"}
+    return [r for r, _ in results if isinstance(r, dict)], status
 
 
 # ── Politicians (House/Senate disclosures) ──────────────────────────────────
@@ -246,21 +265,28 @@ def parse_congress(rows: List[Dict], ticker: str, chamber: str) -> List[Dict]:
         out.append({
             "person": r.get("representative") or r.get("senator") or "Member of Congress",
             "role": f"Politician ({chamber.title()})", "side": side,
-            "value": _amount_low(r.get("amount", "")), "date": date,
+            "value": _amount_low(r.get("amount", "")), "amount_range": (r.get("amount") or "").strip(),
+            "date": date,
             "source": f"{chamber.title()} disclosure", "url": r.get("ptr_link", ""),
         })
     return out
 
 
-async def congress_trades(ticker: str) -> List[Dict]:
-    trades = []
+async def congress_trades(ticker: str) -> Tuple[List[Dict], Dict]:
+    trades, chambers = [], {}
     for src in CONGRESS_SOURCES:
         body = await fetch_text(src["url"], max_age=12 * 3600, timeout=30)
         try:
-            trades += parse_congress(json.loads(body) if body else [], ticker, src["chamber"])
+            trades += parse_congress(json.loads(body), ticker, src["chamber"]) if body else []
+            chambers[src["chamber"]] = "ok" if body else "failed"
         except (ValueError, TypeError):
-            continue
-    return trades
+            chambers[src["chamber"]] = "failed"
+        if chambers[src["chamber"]] == "failed":
+            logger.warning(f"{src['chamber'].title()} trade disclosures unavailable from {src['url']}")
+    ok = sum(v == "ok" for v in chambers.values())
+    status = {"status": "ok" if ok == len(chambers) else "failed" if ok == 0 else "partial",
+              "provider": "House/Senate disclosure feeds", "chambers": chambers}
+    return trades, status
 
 
 # ── Scoring ─────────────────────────────────────────────────────────────────
@@ -288,13 +314,19 @@ def fund_score(positions: List[Dict]) -> float:
 
 async def gather(ticker: str, company: Optional[Dict]) -> Dict:
     """All smart-money activity for one ticker."""
-    insider_task = insider_trades(company["cik"]) if company else asyncio.sleep(0, result=[])
-    fund_task = notable_fund_positions(company["name"]) if company else asyncio.sleep(0, result=[])
-    insiders, funds, congress = await asyncio.gather(insider_task, fund_task, congress_trades(ticker),
-                                                     return_exceptions=True)
-    insiders = insiders if isinstance(insiders, list) else []
-    funds = funds if isinstance(funds, list) else []
-    congress = congress if isinstance(congress, list) else []
+    unknown = ([], {"status": "failed", "detail": "ticker not found in the SEC company list"})
+    insider_task = insider_trades(company["cik"]) if company else asyncio.sleep(0, result=unknown)
+    fund_task = notable_fund_positions(company["name"]) if company else asyncio.sleep(0, result=unknown)
+    results = await asyncio.gather(insider_task, fund_task, congress_trades(ticker), return_exceptions=True)
+
+    def unpack(r, provider):
+        if isinstance(r, tuple):
+            return r
+        logger.warning(f"{provider} lookup failed: {r}")
+        return [], {"status": "failed", "provider": provider, "detail": "lookup error"}
+    (insiders, s_ins), (funds, s_funds), (congress, s_con) = (
+        unpack(results[0], "SEC EDGAR (Form 4)"), unpack(results[1], "SEC EDGAR (13F)"),
+        unpack(results[2], "House/Senate disclosure feeds"))
     manual = [t for t in load_notable_trades() if t.get("ticker", "").upper() == ticker.upper()
               and _days_ago(t.get("date", "")) <= LOOKBACK_DAYS_INSIDERS]
     return {
@@ -304,4 +336,5 @@ async def gather(ticker: str, company: Optional[Dict]) -> Dict:
         "insider_flow": flow_score(insiders + manual),
         "congress_flow": flow_score(congress),
         "fund_score": fund_score(funds),
+        "sources": {"insiders": s_ins, "funds": s_funds, "congress": s_con},
     }

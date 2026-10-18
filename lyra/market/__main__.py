@@ -12,7 +12,7 @@ import asyncio
 import json
 import time
 
-from lyra.market import expert, learner, news, peers
+from lyra.market import expert, learner, news, peers, smart_money
 from lyra.market.market_data import get_vix
 
 
@@ -29,7 +29,8 @@ async def _main(args):
         v = await get_vix()
         print(json.dumps({k: v[k] for k in v if k != "history"}, indent=2))
     elif args.cmd == "news":
-        for a in await news.collect_news(args.tickers[0]):
+        company = await smart_money.lookup_company(args.tickers[0])
+        for a in await news.collect_news(args.tickers[0], company["name"] if company else ""):
             print(f"[{time.strftime('%Y-%m-%d', time.localtime(a['published']))}] {a['sentiment']:+.2f} "
                   f"{a['title']} — {a['source']}")
     elif args.cmd == "learn":

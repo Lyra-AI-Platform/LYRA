@@ -1,15 +1,19 @@
 """Price history for tickers and the CBOE VIX, plus the derived
 volatility/momentum statistics the Tremor Index feeds on."""
-import csv
-import io
 import json
+import logging
 import math
+import time
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
+from lyra.market.config import MAX_DATA_AGE_DAYS
 from lyra.market.fetch import fetch_text
 
+logger = logging.getLogger(__name__)
+
 YAHOO_CHART = "https://query1.finance.yahoo.com/v8/finance/chart/{s}?range={r}&interval=1d"
-STOOQ_CSV = "https://stooq.com/q/d/l/?s={s}&i=d"
+PRICE_PROVIDER = "Yahoo Finance (daily close, delayed)"
 
 
 def parse_yahoo_chart(body: str) -> List[Dict]:
@@ -22,20 +26,8 @@ def parse_yahoo_chart(body: str) -> List[Dict]:
     return bars
 
 
-def parse_stooq_csv(body: str) -> List[Dict]:
-    from datetime import datetime, timezone
-    bars = []
-    for row in csv.DictReader(io.StringIO(body)):
-        try:
-            ts = datetime.strptime(row["Date"], "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
-            bars.append({"ts": ts, "close": float(row["Close"]), "volume": float(row.get("Volume") or 0)})
-        except (KeyError, ValueError):
-            continue
-    return bars
-
-
 async def get_history(symbol: str, range_: str = "1y") -> List[Dict]:
-    """Daily bars, oldest first: [{"ts", "close", "volume"}]. Yahoo first, Stooq as a fallback."""
+    """Daily bars, oldest first: [{"ts", "close", "volume"}]. Empty (and logged) if the source fails."""
     body = await fetch_text(YAHOO_CHART.format(s=symbol.replace("^", "%5E"), r=range_), max_age=1800)
     if body:
         try:
@@ -44,9 +36,21 @@ async def get_history(symbol: str, range_: str = "1y") -> List[Dict]:
                 return bars
         except (KeyError, IndexError, TypeError, ValueError):
             pass
-    stooq = symbol.lower() if symbol.startswith("^") else f"{symbol.lower()}.us"
-    body = await fetch_text(STOOQ_CSV.format(s=stooq), max_age=1800)
-    return parse_stooq_csv(body) if body else []
+    logger.warning(f"Price history for {symbol} unavailable from {PRICE_PROVIDER}")
+    return []
+
+
+def _day(ts: float) -> str:
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+
+
+def history_status(bars: List[Dict], now: Optional[float] = None) -> Dict:
+    """ok / stale / failed for a price series, with the date of the latest close."""
+    if not bars:
+        return {"status": "failed", "provider": PRICE_PROVIDER, "detail": "no price data returned"}
+    age_days = ((now or time.time()) - bars[-1]["ts"]) / 86400
+    return {"status": "stale" if age_days > MAX_DATA_AGE_DAYS else "ok", "provider": PRICE_PROVIDER,
+            "as_of": _day(bars[-1]["ts"]), "delayed": True}
 
 
 def _returns(closes: List[float]) -> List[float]:
@@ -90,7 +94,7 @@ async def get_vix() -> Dict:
     """Current VIX level with its 5-day and 20-day context."""
     bars = await get_history("^VIX", "6mo")
     if len(bars) < 21:
-        return {"available": False}
+        return {"available": False, "source": history_status(bars)}
     closes = [b["close"] for b in bars]
     level = closes[-1]
     avg = sum(closes[-20:]) / 20
@@ -103,6 +107,8 @@ async def get_vix() -> Dict:
         "avg_20d": round(avg, 2),
         "percentile_6m": round(sum(1 for c in closes if c <= level) / len(closes), 3),
         "regime": regime,
+        "as_of": _day(bars[-1]["ts"]),
+        "source": history_status(bars),
         "history": [{"ts": b["ts"], "close": round(b["close"], 2)} for b in bars[-60:]],
     }
 

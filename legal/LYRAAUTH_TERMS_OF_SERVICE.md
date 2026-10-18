@@ -83,6 +83,26 @@ You may NOT use LyraAuth to:
 
 ---
 
+## 6A. Market Data and the Tremor Index
+
+**Information only.** The Tremor Index and everything on the /market pages (scores, boom and bust probabilities, the bullish/bearish/neutral lean, causes, insider, fund and politician trades, and news headlines) is general market information. It is not financial, investment, tax or legal advice, and it is not a recommendation or offer to buy or sell any security.
+
+**Not personalised.** Readings do not take your objectives, financial situation, holdings or risk tolerance into account. Lyra Labs is not authorised or regulated by the Financial Conduct Authority or registered as an investment adviser with the US Securities and Exchange Commission or any state.
+
+**Experimental and unproven.** The probabilities come from a model whose weights were set by hand and are being adjusted as readings are graded. It has not been validated against historical data. Readings can and will be wrong. Past readings, hit rates or performance do not predict future results.
+
+**Data sources.** Prices and the VIX are delayed daily closes from third-party sources. Insider trades and fund holdings come from public SEC filings; 13F holdings are filed up to 45 days after each quarter ends. Politician trades come from public disclosures, which are reported as value ranges and can be filed up to 45 days after the trade. Sources can be late, incomplete, wrong or unavailable; each reading shows which sources responded. We do not guarantee accuracy, completeness or timeliness.
+
+**News.** We show headlines, short summaries and links to the publisher. Articles belong to their publishers.
+
+**Your decisions.** You are solely responsible for any investment decision you make. Investments can fall as well as rise and you may lose some or all of the money you invest. Consider speaking to an independent, regulated financial adviser.
+
+**Liability.** To the fullest extent permitted by law, Lyra Labs is not liable for any loss arising from use of, or reliance on, market information on the Service.
+
+*Draft pending review by a financial-services lawyer.*
+
+---
+
 ## 7. Disclaimer of Warranties
 
 THE SERVICE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND. WE DO NOT GUARANTEE
