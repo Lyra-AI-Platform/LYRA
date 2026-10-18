@@ -132,12 +132,15 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(400, f"Webhook error: {e}")
 
+    # Newer stripe-python objects aren't dicts; work on plain dicts below.
+    event = event.to_dict() if hasattr(event, "to_dict") else event
     et = event["type"]
     data = event["data"]["object"]
 
     if et == "checkout.session.completed" and data.get("subscription"):
         # Upgrade as soon as checkout finishes rather than waiting for the subscription event.
-        et, data = "customer.subscription.updated", stripe.Subscription.retrieve(data["subscription"])
+        sub = stripe.Subscription.retrieve(data["subscription"])
+        et, data = "customer.subscription.updated", (sub.to_dict() if hasattr(sub, "to_dict") else sub)
 
     if et in ("customer.subscription.created", "customer.subscription.updated"):
         customer_id     = data.get("customer")
