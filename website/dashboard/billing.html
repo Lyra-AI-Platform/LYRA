@@ -84,8 +84,12 @@
 <div class="dash-body">
   <div class="page-head">
     <h1>Billing &amp; Plan</h1>
-    <p>Manage your subscription. Upgrade, downgrade, or cancel anytime.</p>
+    <p>Every paid plan includes LyraAuth, the Tremor Index and Lyra chat. Upgrade, downgrade or cancel anytime;
+      payments are handled securely by Stripe.</p>
   </div>
+  <div id="msg-test" class="alert alert-info" style="display:none;"><b>Test mode.</b> Payments use Stripe test cards
+    (for example 4242 4242 4242 4242); no real money is charged.</div>
+  <div id="msg-error" class="alert alert-info" style="display:none;"></div>
 
   <div id="msg-success" class="alert alert-success" style="display:none;">Payment successful — your account has been upgraded!</div>
   <div id="msg-cancel"  class="alert alert-info"    style="display:none;">No charge was made. You're still on your current plan.</div>
@@ -172,7 +176,8 @@
         <li>Dedicated manager</li>
         <li>Custom contracts</li>
       </ul>
-      <a href="mailto:support@lyraauth.com" class="plan-btn" id="btn-enterprise">Contact sales</a>
+      <button class="plan-btn" id="btn-enterprise" onclick="checkout('enterprise')">Subscribe — $249/mo</button>
+      <a href="mailto:support@lyraauth.com" style="display:block;text-align:center;font-size:.8125rem;color:var(--muted);margin-top:8px;">or contact sales</a>
     </div>
 
   </div>
@@ -224,6 +229,7 @@
           ? 'Your trial has ended. Choose a plan to keep using Lyra.'
           : `${t.days_left} day${t.days_left === 1 ? '' : 's'} left · ${r.market ?? 0} Tremor readings and ${r.chat ?? 0} chat messages remaining`;
       }
+      if (bil.payments_configured && bil.payments_mode === 'test') document.getElementById('msg-test').style.display = '';
       if (bil.payments_configured === false) {
         document.querySelectorAll('.plan-btn[id^=btn-]:not(#btn-free):not(#btn-enterprise)').forEach(b => {
           b.disabled = true; b.textContent = 'Payments opening soon'; });
@@ -262,7 +268,7 @@
       if (!res.ok) throw new Error(d.detail || 'Checkout failed');
       window.location.href = d.checkout_url;
     } catch(ex) {
-      alert(ex.message);
+      showError(ex.message);
       btn.disabled = false; btn.textContent = orig;
     }
   }
@@ -273,10 +279,21 @@
       const d = await res.json();
       if (!res.ok) throw new Error(d.detail);
       window.location.href = d.portal_url;
-    } catch(ex) { alert(ex.message); }
+    } catch(ex) { showError(ex.message); }
+  }
+
+  function showError(m) {
+    const el = document.getElementById('msg-error');
+    el.textContent = m || 'Something went wrong. Please try again.'; el.style.display = '';
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   load();
+  // After Stripe sends people back, the upgrade arrives by webhook a moment later; refresh until it shows.
+  if (new URLSearchParams(location.search).has('success')) {
+    let tries = 0;
+    const t = setInterval(() => { tries++; load(); if (tries >= 6) clearInterval(t); }, 2500);
+  }
 </script>
 </body>
 </html>

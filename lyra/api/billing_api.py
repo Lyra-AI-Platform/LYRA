@@ -51,6 +51,7 @@ def billing_status(user: User = Depends(get_current_user), db: Session = Depends
         "stripe_customer_id": user.stripe_customer_id,
         "has_subscription": bool(user.stripe_subscription_id),
         "payments_configured": bool(os.getenv("STRIPE_SECRET_KEY")) and any(PRICE_IDS.values()),
+        "payments_mode": "live" if os.getenv("STRIPE_SECRET_KEY", "").startswith(("sk_live_", "rk_live_")) else "test",
     }
 
 
@@ -86,9 +87,10 @@ def create_checkout(
 
     session = stripe.checkout.Session.create(
         customer=user.stripe_customer_id,
-        payment_method_types=["card"],
         line_items=[{"price": price_id, "quantity": 1}],
         mode="subscription",
+        allow_promotion_codes=True,
+        client_reference_id=str(user.id),
         success_url=f"{APP_URL}/dashboard/billing.html?success=1",
         cancel_url=f"{APP_URL}/dashboard/billing.html?cancelled=1",
         metadata={"lyra_user_id": str(user.id), "plan": plan},
@@ -132,6 +134,10 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
 
     et = event["type"]
     data = event["data"]["object"]
+
+    if et == "checkout.session.completed" and data.get("subscription"):
+        # Upgrade as soon as checkout finishes rather than waiting for the subscription event.
+        et, data = "customer.subscription.updated", stripe.Subscription.retrieve(data["subscription"])
 
     if et in ("customer.subscription.created", "customer.subscription.updated"):
         customer_id     = data.get("customer")
