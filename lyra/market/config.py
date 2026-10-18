@@ -14,6 +14,7 @@ NOTABLE_TRADES_FILE = DATA_DIR / "notable_trades.json"
 # The SEC asks every client to identify itself with a contact address.
 SEC_USER_AGENT = os.environ.get("LYRA_SEC_USER_AGENT", "Lyra Market Expert lyra@example.com")
 BROWSER_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+YAHOO_USER_AGENT = "Mozilla/5.0"
 
 # Name of the index. Each ticker's reading is labelled "TRX-<TICKER>".
 INDEX_NAME = "Tremor Index"

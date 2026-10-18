@@ -6,7 +6,7 @@ from typing import Optional
 
 import httpx
 
-from lyra.market.config import BROWSER_USER_AGENT, SEC_USER_AGENT
+from lyra.market.config import BROWSER_USER_AGENT, SEC_USER_AGENT, YAHOO_USER_AGENT
 from lyra.market.store import get_store
 
 logger = logging.getLogger(__name__)
@@ -16,7 +16,13 @@ _sec_gate = asyncio.Semaphore(4)
 
 
 def _headers(url: str) -> dict:
-    ua = SEC_USER_AGENT if "sec.gov" in url else BROWSER_USER_AGENT
+    if "sec.gov" in url:
+        ua = SEC_USER_AGENT
+    elif "finance.yahoo.com" in url:
+        # Yahoo answers 429 to a full browser user agent sent without browser cookies.
+        ua = YAHOO_USER_AGENT
+    else:
+        ua = BROWSER_USER_AGENT
     return {"User-Agent": ua, "Accept-Encoding": "gzip, deflate"}
 
 
