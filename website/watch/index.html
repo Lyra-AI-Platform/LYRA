@@ -58,6 +58,14 @@
   .src { font-size: 13px; } .src li { margin: 4px 0 4px 18px; color: var(--muted); }
   .ok { color: var(--buy); } .bad { color: var(--sell); }
   details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .pop { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .pop .meter { width: 54px; height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .pop .meter span { display: block; height: 100%; background: var(--bar); border-radius: 3px; }
+  .pop b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .tone-positive { color: var(--buy); } .tone-negative { color: var(--sell); } .tone-neutral { color: var(--muted); }
+  .people-tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin: 10px 0 6px; }
+  .people-tools .tabs { margin: 0; }
+  #peopleTable td:first-child { min-width: 9em; }
   [hidden] { display: none !important; }
 </style>
 </head>
@@ -92,6 +100,25 @@
         <ul class="feed" id="feed"></ul>
       </aside>
     </div>
+
+    <h2>People in the news</h2>
+    <p class="muted" style="max-width:720px;">Everyone the coverage names, not only the watchlist: their job, the companies
+      they're linked to, the tone of their headlines and a popularity rating (Wikipedia readership plus how often the
+      media names them). Someone off the watchlist is listed once two or more headlines name them and Wikipedia has an
+      article about them, so private individuals who appear in a story aren't listed.</p>
+    <div class="people-tools">
+      <input class="search" id="peopleSearch" type="search" placeholder="Search people, jobs or companies" aria-label="Search people" />
+      <div class="tabs" id="peopleTabs" role="group" aria-label="Filter people">
+        <button data-w="" aria-pressed="true">Everyone</button>
+        <button data-w="false" aria-pressed="false">Not on the watchlist</button>
+        <button data-w="true" aria-pressed="false">Watchlist</button>
+      </div>
+    </div>
+    <div class="table-wrap"><table id="peopleTable">
+      <thead><tr><th>Person</th><th>Job</th><th>Popularity</th><th>Companies</th><th>Tone</th><th class="num">Headlines</th><th>Seen with</th></tr></thead>
+      <tbody id="peopleRows"></tbody>
+    </table></div>
+    <p class="muted" id="peopleNote"></p>
   </section>
 
   <!-- Profile -->
@@ -120,6 +147,9 @@
       <aside>
         <h2>Political affiliation</h2>
         <div id="pStance"></div>
+
+        <h2>People in their coverage</h2>
+        <ul class="feed" id="pPeople"></ul>
 
         <h2>Companies they trade</h2>
         <ul class="feed" id="pTraded"></ul>
@@ -150,6 +180,12 @@
         of a person's own accounts where they publish one. X/Twitter and Facebook aren't read: their terms forbid
         scraping and their data APIs are paid. Company mentions, power-move labels, issues and tone are keyword rules
         over the headline text. They're a starting point for reading the source, not a verdict.</p>
+      <p style="margin-top:8px;"><b>People and popularity.</b> Names are found in headlines by rule: a run of capitalised
+        words that starts with a known given name, or, in sentence-case headlines, two rare capitalised words. A lone
+        surname counts once the full name appears elsewhere in the coverage. Job comes from the watchlist, then from
+        how headlines describe the person ("Nvidia CEO"), then from Wikipedia's one-line description. Popularity is 0 to
+        100: 70% Wikipedia page views over the last 30 days (log scale, so 1,000 a day is about 60 and 100,000 a day is
+        100) and 30% headline count. Someone with no Wikipedia article scores on coverage alone, capped at 30.</p>
       <p style="margin-top:8px;"><b>Political affiliation</b> is shown only when it's documented: a party
         membership or office, with a link to the source. Lyra doesn't infer anyone's politics from their words, and
         doesn't record religion or other sensitive personal traits.</p>
@@ -175,7 +211,10 @@
   const ago = (ts) => { if (!ts) return "never"; const h = (Date.now() / 1000 - ts) / 3600; return h < 1 ? "under an hour ago" : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
   const api = (p) => fetch(`/api/watch/${p}`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
 
-  let figures = [], category = "", feedKind = "";
+  const popBadge = (pop) => pop ? el("span", { class: "pop", title: `${pop.basis}${pop.daily_views != null ? ` · ${pop.daily_views.toLocaleString()} Wikipedia views a day` : ""}` },
+    el("span", { class: "meter" }, el("span", { style: `width:${pop.score}%` })), el("b", { text: String(pop.score) }), ` ${pop.tier}`) : null;
+
+  let figures = [], category = "", feedKind = "", peopleWatched = "", peopleTimer = null, peopleCache = null;
 
   function renderGrid() {
     const q = $("search").value.trim().toLowerCase();
@@ -184,6 +223,7 @@
     $("grid").replaceChildren(...rows.map((f) => el("a", { class: "card", href: `#${f.slug}` },
       el("div", { class: "name", text: f.name }),
       el("div", { class: "role", text: `${f.role} · ${f.country}` }),
+      popBadge(f.popularity),
       el("div", { class: "chips" },
         f.stance.basis === "documented" ? el("span", { class: "chip aff", text: f.stance.label }) : null,
         ...f.top_companies.map((c) => el("span", { class: "chip", text: c }))),
@@ -202,6 +242,26 @@
         ...m.labels.map((l) => el("span", { class: "chip move", text: l })))));
       if (!moves.length) $("feed").replaceChildren(el("li", { class: "muted", text: "Nothing collected yet." }));
     } catch { $("feed").replaceChildren(el("li", { class: "muted", text: "Couldn't load the feed." })); }
+  }
+
+  async function loadPeople() {
+    const q = $("peopleSearch").value.trim();
+    try {
+      const data = await api(`people?limit=150&q=${encodeURIComponent(q)}${peopleWatched ? `&watched=${peopleWatched}` : ""}`);
+      $("peopleRows").replaceChildren(...data.people.map((r) => el("tr", {},
+        el("td", {}, r.slug ? el("a", { class: "who", href: `#${r.slug}`, text: r.name }) : el("b", { text: r.name }),
+          r.wiki && r.wiki.url ? el("div", { class: "meta" }, link(r.wiki.url, "Wikipedia")) : null),
+        el("td", {}, el("span", { text: r.job || "—" }),
+          r.job_source && r.job_source !== "watchlist" ? el("div", { class: "meta", text: `from ${r.job_source}` }) : null),
+        el("td", {}, popBadge(r.popularity)),
+        el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.companies.slice(0, 3).map((c) => el("span", { class: "chip", text: c.name })))),
+        el("td", { class: `tone-${r.tone.label}`, text: r.tone.label }),
+        el("td", { class: "num", text: String(r.mentions) }),
+        el("td", { class: "meta", text: r.seen_with.filter((n) => n !== r.name).slice(0, 3).join(", ") }))));
+      if (!data.people.length) $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "7", class: "muted",
+        text: data.built_at ? "Nobody matches that search." : "The people index hasn't been built yet. It refreshes with the watchlist." })));
+      $("peopleNote").textContent = data.built_at ? `${data.total} people · updated ${ago(data.built_at)}` : "";
+    } catch { $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "7", class: "muted", text: "Couldn't load people." }))); }
   }
 
   function bars(target, rows, label, value) {
@@ -235,7 +295,9 @@
     const s = p.summary || {};
     $("pChips").replaceChildren(...(s.move_kinds || []).map((m) => el("span", { class: "chip move", text: `${m.label} · ${m.count}` })));
     const trades = p.trades || [];
+    const card = figures.find((f) => f.slug === slug) || {};
     $("pStats").replaceChildren(...[
+      [card.popularity ? `${card.popularity.score}` : "—", card.popularity ? `Popularity · ${card.popularity.tier}` : "Popularity"],
       [trades.filter((t) => t.side !== "filed").length, "Disclosed trades"],
       [(p.moves || []).length, "Power moves"],
       [(p.statements || []).length, `Headlines (${30} days)`],
@@ -263,6 +325,15 @@
     $("pStance").replaceChildren(st.basis === "documented"
       ? el("p", {}, el("b", { text: st.label }), " · ", link(st.source, "source"))
       : el("p", { text: "Not publicly declared. Lyra only shows documented affiliations and doesn't infer anyone's politics." }));
+
+    try {
+      peopleCache = peopleCache || (await api("people?limit=500")).people;
+      const near = peopleCache.filter((r) => r.name !== p.name && r.seen_with.includes(p.name)).slice(0, 10);
+      $("pPeople").replaceChildren(...near.map((r) => el("li", {},
+        r.slug ? el("a", { class: "who", href: `#${r.slug}`, text: r.name }) : el("span", { class: "who", text: r.name }), " ",
+        popBadge(r.popularity), el("br"), el("span", { class: "meta", text: r.job || "" }))));
+      if (!near.length) $("pPeople").replaceChildren(el("li", { class: "muted", text: "Nobody else named often enough yet." }));
+    } catch { $("pPeople").replaceChildren(el("li", { class: "muted", text: "Couldn't load people." })); }
 
     $("pTraded").replaceChildren(...(s.traded || []).slice(0, 8).map((c) => el("li", {},
       el("span", { class: "who", text: c.name }), c.ticker ? el("span", { class: "meta", text: ` ${c.ticker}` }) : null, el("br"),
@@ -304,9 +375,14 @@
       renderGrid();
     } catch { $("grid").replaceChildren(el("p", { text: "Couldn't load the watchlist. Try again in a minute." })); }
     loadFeed();
+    loadPeople();
   }
 
   $("search").addEventListener("input", renderGrid);
+  $("peopleSearch").addEventListener("input", () => { clearTimeout(peopleTimer); peopleTimer = setTimeout(loadPeople, 250); });
+  [...$("peopleTabs").children].forEach((b) => b.onclick = () => {
+    peopleWatched = b.dataset.w; [...$("peopleTabs").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); loadPeople();
+  });
   [...$("feedTabs").children].forEach((b) => b.onclick = () => {
     feedKind = b.dataset.kind; [...$("feedTabs").children].forEach((c) => c.setAttribute("aria-pressed", String(c === b))); loadFeed();
   });

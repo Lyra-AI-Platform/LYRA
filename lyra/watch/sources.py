@@ -306,3 +306,60 @@ async def statements(person: Dict) -> Tuple[List[Dict], Dict]:
               "provider": "Google News RSS" + (" + own feeds" if len(urls) > 1 else ""),
               "items": len(items)}
     return items[:80], status
+
+
+# ── Wikipedia: who someone is and how many people read about them ──────────
+
+WIKI_SUMMARY = "https://en.wikipedia.org/api/rest_v1/page/summary/{title}"
+WIKI_VIEWS = ("https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/"
+              "{title}/daily/{start}/{end}")
+_PERSON_DESC = re.compile(
+    r"\b(born|\(\d{4}|politician|business(?:man|woman|person)|executive|entrepreneur|investor|actor|actress|"
+    r"singer|rapper|musician|songwriter|footballer|player|athlete|coach|journalist|author|writer|novelist|"
+    r"president|minister|lawyer|judge|director|filmmaker|producer|presenter|host|economist|engineer|scientist|"
+    r"activist|model|comedian|official|diplomat|monarch|king|queen|prince|princess|personality|billionaire|"
+    r"philanthropist|banker|financier|commentator|influencer|youtuber|strategist|civil servant|cleric|"
+    r"senator|congress(?:man|woman)|governor|mayor|member of)\b", re.I)
+
+
+def _wiki_title(person: Dict) -> str:
+    if person.get("wiki"):
+        return person["wiki"]
+    src = (person.get("affiliation") or {}).get("source", "")
+    if "wikipedia.org/wiki/" in src:
+        return src.rsplit("/wiki/", 1)[1]
+    return re.sub(r"\s*\(.*?\)", "", person["name"]).strip().replace(" ", "_")
+
+
+async def wiki_person(person: Dict) -> Dict:
+    """{"status": "ok"|"none"|"unavailable", "title", "description", "url", "daily_views"} for a person.
+    "none" means Wikipedia has no article about a person by that name."""
+    title = _wiki_title(person)
+    body = await fetch_text(WIKI_SUMMARY.format(title=quote_plus(title, safe="_%")), max_age=7 * 86400,
+                            headers={"User-Agent": SEC_USER_AGENT})
+    if body is None:
+        # fetch_text gives None for a 404 and for an outage alike; a page that always exists tells them apart.
+        probe = await fetch_text("https://en.wikipedia.org/api/rest_v1/page/summary/Wikipedia", max_age=3600,
+                                 headers={"User-Agent": SEC_USER_AGENT})
+        return {"status": "none" if probe else "unavailable"}
+    try:
+        page = json.loads(body)
+    except ValueError:
+        return {"status": "unavailable"}
+    desc = page.get("description") or ""
+    if page.get("type") != "standard" or not _PERSON_DESC.search(desc + " " + (page.get("extract") or "")[:200]):
+        return {"status": "none"}
+    canonical = (page.get("titles") or {}).get("canonical") or page.get("title", title).replace(" ", "_")
+    end = datetime.now(timezone.utc)
+    start = end.fromtimestamp(end.timestamp() - 30 * 86400, timezone.utc)
+    views_body = await fetch_text(WIKI_VIEWS.format(title=quote_plus(canonical, safe="_%"),
+                                                    start=start.strftime("%Y%m%d"), end=end.strftime("%Y%m%d")),
+                                  max_age=86400, headers={"User-Agent": SEC_USER_AGENT})
+    daily = None
+    try:
+        rows = json.loads(views_body)["items"] if views_body else []
+        daily = sum(r["views"] for r in rows) / max(len(rows), 1) if rows else None
+    except (ValueError, KeyError):
+        pass
+    return {"status": "ok", "title": canonical, "description": desc,
+            "url": (page.get("content_urls") or {}).get("desktop", {}).get("page", ""), "daily_views": daily}

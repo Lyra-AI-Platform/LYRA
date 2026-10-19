@@ -34,7 +34,8 @@ def _public(response: Response, request: Request):
 async def figures(response: Response, request: Request, category: str = ""):
     _public(response, request)
     roster = [p for p in load_roster() if not category or p.get("category") == category]
-    return {"categories": CATEGORIES, "figures": [service.card(p) for p in roster]}
+    index = service.load_people()
+    return {"categories": CATEGORIES, "figures": [service.card(p, index) for p in roster]}
 
 
 @router.get("/figures/{slug}")
@@ -44,6 +45,14 @@ async def figure(slug: str, response: Response, request: Request):
     if not person:
         raise HTTPException(404, "Not on the watchlist")
     return service.load_profile(slug) or {**service.card(person), "pending": True}
+
+
+@router.get("/people")
+async def people(response: Response, request: Request, q: str = "", watched: str = "", limit: int = 100):
+    """Everyone named in the coverage: job, linked companies, tone and a popularity rating."""
+    _public(response, request)
+    flag = {"": None, "true": True, "false": False}.get(watched.lower())
+    return service.people_list(q[:80], flag, min(max(limit, 1), 500))
 
 
 @router.get("/feed")

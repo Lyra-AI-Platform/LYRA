@@ -7,12 +7,13 @@ import logging
 import time
 from typing import Dict, List, Optional
 
-from lyra.watch import analysis, sources
-from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, load_roster
+from lyra.watch import analysis, people, sources
+from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
 
 PUBLIC_FIELDS = ("slug", "name", "category", "country", "role")
+PEOPLE_FILE = WATCH_DIR / "people.json"
 
 
 def _stance(person: Dict) -> Dict:
@@ -42,8 +43,22 @@ def _trade_moves(trades: List[Dict]) -> List[Dict]:
     return out
 
 
+def _media(items: List[Dict], person: Dict) -> List[Dict]:
+    """Annotated headlines in the compact form the people index is built from."""
+    out = []
+    for it in items:
+        title = people.headline(it)
+        # Google News summaries are just the title and the outlet again; only real summaries are read.
+        summary = "" if it.get("summary", "").startswith(title[:40]) else it.get("summary", "")
+        out.append({"title": title, "summary": summary, "url": it["url"], "source": it.get("source", ""),
+                    "date": time.strftime("%Y-%m-%d", time.gmtime(it["published"])), "sentiment": it["sentiment"],
+                    "companies": it["companies"], "people": people.names_in(f"{title}. {summary}" if summary else title),
+                    "feed": person["name"]})
+    return out
+
+
 async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
-    tasks = {"statements": sources.statements(person)}
+    tasks = {"statements": sources.statements(person), "wiki": sources.wiki_person(person)}
     if person.get("sec_cik"):
         tasks["insider"] = sources.form4_trades(person["sec_cik"])
     if person.get("fund_cik"):
@@ -52,7 +67,10 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         tasks["congress"] = sources.house_trades(person["house"]["last"], person["house"]["state"])
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     data, status = {}, {}
+    wiki = results[1] if not isinstance(results[1], Exception) else {"status": "unavailable"}
     for key, r in zip(tasks, results):
+        if key == "wiki":
+            continue
         if isinstance(r, Exception):
             logger.warning(f"Watch {person['slug']} {key} failed: {r}")
             data[key], status[key] = [], {"status": "failed", "detail": "lookup error"}
@@ -76,6 +94,8 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         "trades": trades[:60],
         "moves": moves[:60],
         "statements": items[:40],
+        "media": _media(items, person),
+        "wiki": wiki,
         "sources": status,
     }
 
@@ -97,17 +117,20 @@ def save_profile(profile: Dict):
     tmp.replace(_path(profile["slug"]))
 
 
-def card(person: Dict) -> Dict:
+def card(person: Dict, index: Optional[Dict] = None) -> Dict:
     """The roster entry plus headline numbers from its stored profile."""
     p = load_profile(person["slug"]) or {}
     s = p.get("summary", {})
+    rated = next((r for r in (index if index is not None else load_people()).get("people", [])
+                  if r.get("slug") == person["slug"]), {})
     return {**{k: person.get(k, "") for k in PUBLIC_FIELDS},
             "category_label": CATEGORIES.get(person.get("category", ""), "Other"),
             "stance": _stance(person), "built_at": p.get("built_at"),
             "trades": len(p.get("trades", [])), "moves": len(p.get("moves", [])),
             "top_companies": [c["name"] for c in s.get("companies", [])[:3]],
             "top_topics": [t["topic"] for t in s.get("topics", [])[:3]],
-            "latest": (p.get("moves") or [{}])[0].get("title", "")}
+            "latest": (p.get("moves") or [{}])[0].get("title", ""),
+            "popularity": rated.get("popularity"), "media_mentions": rated.get("mentions", 0)}
 
 
 def feed(limit: int = 80, kind: str = "") -> List[Dict]:
@@ -124,14 +147,87 @@ def feed(limit: int = 80, kind: str = "") -> List[Dict]:
     return rows[:limit]
 
 
+def load_people() -> Dict:
+    try:
+        return json.loads(PEOPLE_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+async def build_people(roster: List[Dict]) -> Dict:
+    """Everyone the coverage names, rated for popularity. Watched people reuse the Wikipedia
+    lookup from their profile; everyone else is looked up here (cached for days)."""
+    profiles = {p["slug"]: load_profile(p["slug"]) or {} for p in roster}
+    index = people.build_index([m for pr in profiles.values() for m in pr.get("media", [])], roster)
+    gate = asyncio.Semaphore(4)
+
+    async def wiki(rec):
+        if rec["watched"]:
+            return profiles[rec["slug"]].get("wiki") or {"status": "unavailable"}
+        async with gate:
+            try:
+                return await sources.wiki_person({"name": rec["name"]})
+            except Exception:  # noqa: BLE001
+                return {"status": "unavailable"}
+    records = list(index.values())
+    views = {}
+    for rec, w in zip(records, await asyncio.gather(*(wiki(r) for r in records))):
+        rec["wiki"] = {k: w.get(k) for k in ("status", "title", "description", "url")}
+        views[rec["name"]] = w.get("daily_views")
+    # Spellings that lead to the same article are one person ("Zelensky", "Zelenskyy").
+    groups: Dict[str, List[Dict]] = {}
+    for rec in records:
+        key = rec["wiki"]["title"] if rec["wiki"]["status"] == "ok" else people.fold(rec["name"])
+        groups.setdefault(key, []).append(rec)
+    records = [people.merge(g) for g in groups.values()]
+    for rec in records:
+        w = rec["wiki"]
+        rec["popularity"] = people.popularity(views.get(rec["name"]), rec["mentions"], w.get("status") or "unavailable")
+        # Wikipedia's one-line description beats a phrase lifted from a headline.
+        if not rec["watched"] and w.get("description"):
+            rec["job"], rec["job_source"] = w["description"], "wikipedia"
+    # A name built from two rare words, with no known first name, needs backing: a Wikipedia
+    # article about a person, or a headline that gives them a job title.
+    records = [r for r in records if r["watched"] or r["known_first_name"] or r["wiki"]["status"] == "ok"
+               or r["job_source"] == "headline"]
+    records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
+    return {"built_at": time.time(), "people": records}
+
+
+def save_people(data: Dict):
+    tmp = PEOPLE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data))
+    tmp.replace(PEOPLE_FILE)
+
+
+def is_public_figure(rec: Dict) -> bool:
+    """Shown publicly: the watchlist, plus people with a Wikipedia article about them. Private
+    individuals who turn up in a headline (a witness, a defendant) stay in the local index only."""
+    return rec.get("watched") or (rec.get("wiki") or {}).get("status") == "ok"
+
+
+def people_list(q: str = "", watched: Optional[bool] = None, limit: int = 100, public: bool = True) -> Dict:
+    data = load_people()
+    q = q.lower().strip()
+    rows = [r for r in data.get("people", [])
+            if (not public or is_public_figure(r)) and (not q or q in f"{r['name']} {r['job']} {r.get('described_as', '')} {' '.join(c['name'] for c in r['companies'])}".lower())
+            and (watched is None or r["watched"] == watched)]
+    return {"built_at": data.get("built_at"), "total": len(rows), "people": rows[:limit]}
+
+
 async def refresh_all():
     tickers = await sources.known_tickers()
-    for person in load_roster():
+    roster = load_roster()
+    for person in roster:
         try:
             save_profile(await build_profile(person, tickers))
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Watch profile {person['slug']} failed: {e}")
         await asyncio.sleep(1)  # stay polite to the SEC and the House Clerk
+    try:
+        save_people(await build_people(roster))
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Watch people index failed: {e}")
 
 
 class RefreshLoop:
