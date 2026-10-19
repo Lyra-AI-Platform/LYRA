@@ -70,7 +70,7 @@ class Hub:
 
     def status(self) -> Dict:
         day = time.time() - 86400
-        return {"live": loop.running, "viewers": len(self.viewers),
+        return {"live": loop.running and loop.alive(), "viewers": len(self.viewers),
                 "events_today": sum(e["ts"] >= day for e in self.history),
                 "last_event": self.history[-1]["ts"] if self.history else None,
                 "cycle_minutes": LIVE_CYCLE_MINUTES}
@@ -101,6 +101,7 @@ def make_event(item: Dict, person: Dict, lookup: Dict[str, Dict], tickers=frozen
         if not rec and n not in watched:
             continue
         cast.append({"name": n, "slug": rec.get("slug") or watched.get(n, {}).get("slug", ""),
+                     "id": rec.get("id") or watched.get(n, {}).get("slug", ""),
                      "job": rec.get("job") or watched.get(n, {}).get("role", ""),
                      "popularity": rec.get("popularity")})
     return {"id": item["url"], "ts": time.time(), "published": item.get("published"),
@@ -116,6 +117,7 @@ class LiveLoop:
     def __init__(self):
         self._task: Optional[asyncio.Task] = None
         self.running = False
+        self.last_check: Optional[float] = None
         self.seen: Set[str] = set()
         try:
             self.seen = set(json.loads(SEEN_FILE.read_text()))
@@ -138,25 +140,40 @@ class LiveLoop:
                 hub.publish(make_event(it, person, lookup, tickers))
         return len(new)
 
+    async def _cycle(self, tickers, announce: bool):
+        roster = load_roster()
+        pause = LIVE_CYCLE_MINUTES * 60 / max(len(roster), 1)
+        lookup = _people_lookup()
+        for person in roster:
+            try:
+                await self.check(person, lookup, tickers, announce=announce)
+                self.last_check = time.time()
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"Live check {person['slug']} failed: {e}")
+            await asyncio.sleep(pause)
+        self._save_seen()
+
     async def _run(self):
+        """Runs until the service stops. Any failure is logged and the loop carries on a minute
+        later, so a bad feed or a network outage can't end the live feed."""
         self.running = True
-        tickers = await sources.known_tickers()
         first_pass = not self.seen
         while True:
-            roster = load_roster()
-            pause = LIVE_CYCLE_MINUTES * 60 / max(len(roster), 1)
-            lookup = _people_lookup()
-            for person in roster:
-                try:
-                    await self.check(person, lookup, tickers, announce=not first_pass)
-                except Exception as e:  # noqa: BLE001
-                    logger.warning(f"Live check {person['slug']} failed: {e}")
-                await asyncio.sleep(pause)
-            first_pass = False
-            self._save_seen()
+            try:
+                tickers = await sources.known_tickers()
+                await self._cycle(tickers, announce=not first_pass)
+                first_pass = False
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"Live loop error, retrying in a minute: {e}")
+                await asyncio.sleep(60)
+
+    def alive(self) -> bool:
+        return self._task is not None and not self._task.done()
 
     def start(self):
-        if self._task is None or self._task.done():
+        if not self.alive():
             self._task = asyncio.get_event_loop().create_task(self._run())
 
     def stop(self):

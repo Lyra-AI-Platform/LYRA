@@ -4,15 +4,14 @@ Lyra Watch API — public figures' disclosed trades, power moves and statements.
 Read-only and public: everything comes from public records and is rebuilt in the
 background, so requests only read stored profiles. Rate limited per IP.
 """
+import asyncio
+import json
 import time
 from collections import defaultdict, deque
 from typing import Deque, Dict
 
-import asyncio
-import json
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 
 from lyra.api.entitlements import require_paid
 from lyra.db.models import User
@@ -61,6 +60,54 @@ async def people(response: Response, request: Request, q: str = "", watched: str
     return service.people_list(q[:80], flag, min(max(limit, 1), 500))
 
 
+@router.get("/people/{pid}")
+async def person(pid: str, response: Response, request: Request):
+    """One person as JSON: job, popularity, documented politics, interests, companies, recent headlines.
+    Stable URL, meant for linking and for AI agents."""
+    _public(response, request)
+    rec = service.person_record(pid[:120])
+    if not rec:
+        raise HTTPException(404, "No public figure with that id")
+    return {**rec, "links": _links(rec)}
+
+
+def _links(rec):
+    base = "https://lyraauth.com"
+    return {"self": f"{base}/api/watch/people/{rec['id']}",
+            "page": f"{base}/watch/#person/{rec['id']}",
+            "profile": f"{base}/watch/#{rec['slug']}" if rec.get("slug") else None,
+            "wikipedia": (rec.get("wiki") or {}).get("url") or None}
+
+
+@router.get("/feed.json")
+async def json_feed(response: Response, request: Request):
+    """JSON Feed 1.1 of the latest stories, an hour behind the live (subscriber) stream. Each item
+    names the public figures in it, with links to their JSON records."""
+    _public(response, request)
+    base = "https://lyraauth.com"
+    items = []
+    for e in live.hub.recent(100, delay=live.TEASER_DELAY):
+        named = [p for p in e.get("people", [])]
+        items.append({
+            "id": e["id"], "url": e["url"], "title": e["title"],
+            "content_text": f"{e['title']} ({e.get('source') or 'news'}). People: "
+                            + (", ".join(p["name"] for p in named) or "none named")
+                            + (". Companies: " + ", ".join(c["name"] for c in e.get("companies", [])) if e.get("companies") else ""),
+            "date_published": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(e.get("published") or e["ts"])),
+            "tags": e.get("topics", []) + e.get("moves", []),
+            "_lyra": {"tone": e.get("tone"), "feed": e.get("feed"),
+                      "people": [{"name": p["name"], "job": p.get("job"), "popularity": (p.get("popularity") or {}).get("score"),
+                                  "url": f"{base}/api/watch/people/{p['id']}" if p.get("id") else None} for p in named],
+                      "companies": e.get("companies", [])},
+        })
+    return JSONResponse(media_type="application/feed+json", headers=dict(response.headers), content={
+            "version": "https://jsonfeed.org/version/1.1", "title": "Lyra Watch",
+            "home_page_url": f"{base}/watch/", "feed_url": f"{base}/api/watch/feed.json",
+            "description": "What the media says about politicians, investors, executives and public figures. "
+                           "Stories appear here an hour after subscribers see them live.",
+            "items": items})
+
+
 @router.get("/feed")
 async def feed(response: Response, request: Request, kind: str = "", limit: int = 80):
     _public(response, request)
@@ -70,6 +117,15 @@ async def feed(response: Response, request: Request, kind: str = "", limit: int 
 
 
 # ── Live (subscribers) ─────────────────────────────────────────────────────
+
+@router.get("/health")
+async def watch_health(response: Response):
+    """For monitors: 200 when everything is updating, 503 with the problems when it isn't."""
+    h = service.health()
+    response.status_code = 200 if h["ok"] else 503
+    response.headers["Cache-Control"] = "no-store"
+    return h
+
 
 @router.get("/live/status")
 async def live_status(response: Response, request: Request):

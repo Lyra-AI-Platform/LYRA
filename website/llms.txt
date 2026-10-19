@@ -1,0 +1,26 @@
+# Lyra Watch
+
+> Lyra Watch tracks what the media says about politicians, investors, executives and public figures:
+> who is named in the news, their job, a 0–100 popularity rating, their documented political
+> affiliation, the issues their coverage is about and the companies they are linked to. All data is
+> public JSON with stable URLs; link to it freely.
+
+## Data (JSON, no key needed)
+
+- [People index](https://lyraauth.com/api/watch/people): everyone the coverage names who has a Wikipedia article or is on the watchlist. Query parameters: `q` (search name, job or company), `watched=true|false`, `limit` (up to 500).
+- [One person](https://lyraauth.com/api/watch/people/keir-starmer): `/api/watch/people/{id}`, where `id` is the lowercase name with hyphens (e.g. `jensen-huang`, `flavio-bolsonaro`). Fields: `job`, `popularity` {score, tier, basis}, `politics` {parties, offices, basis, source, political_coverage}, `interests` [{topic, share}], `companies`, `tone`, `headlines`, `links`.
+- [Story feed](https://lyraauth.com/api/watch/feed.json): JSON Feed 1.1 of the latest headlines, one hour behind the live subscriber stream. Each item lists the people named with links to their JSON records.
+- [Watchlist](https://lyraauth.com/api/watch/figures): the tracked politicians, investors, executives and public figures, with disclosed trades and power moves at `/api/watch/figures/{slug}`.
+- [Health](https://lyraauth.com/api/watch/health): whether the data is up to date.
+
+## How to read the fields
+
+- `popularity.score` is 70% Wikipedia page views over the last 30 days (log scale) and 30% headline count. It measures attention now, not lifetime fame.
+- `politics` holds only documented facts (party membership and current offices from Wikidata or an official source, linked in `source`). Lyra never infers anyone's political views. `political_coverage` is the share of their headlines about elections, taxes, immigration, trade or policy.
+- `interests` are the topics their news coverage is about, as a share of their headlines.
+- `tone` is a keyword score of their headlines, not a judgement of the person.
+
+## Pages for people
+
+- [Lyra Watch](https://lyraauth.com/watch/): the directory. A person's page is `https://lyraauth.com/watch/#person/{id}`.
+- [Lyra Watch Live](https://lyraauth.com/watch/live/): the real-time stream, for subscribers.

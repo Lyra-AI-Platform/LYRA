@@ -115,3 +115,37 @@ def test_stream_sends_status_then_items(monkeypatch):
     assert first.startswith("event: status") and '"viewers": 1' in first
     assert second.startswith("event: item") and '"s1"' in second
     assert live.hub.status()["viewers"] == 0  # leaving unsubscribes
+
+
+def test_live_loop_survives_errors(monkeypatch):
+    calls = {"n": 0}
+
+    async def flaky_tickers():
+        calls["n"] += 1
+        if calls["n"] == 1:
+            raise RuntimeError("SEC is down")
+        raise asyncio.CancelledError  # stop the test after the retry
+
+    async def no_sleep(_):
+        return None
+    monkeypatch.setattr(sources, "known_tickers", flaky_tickers)
+    monkeypatch.setattr(live.asyncio, "sleep", no_sleep)
+    with pytest.raises(asyncio.CancelledError):
+        asyncio.run(live.LiveLoop()._run())
+    assert calls["n"] == 2  # it retried instead of dying
+
+
+def test_health_reports_stale_data(monkeypatch):
+    from lyra.api import watch_api as api
+    monkeypatch.setattr(service.refresh_loop, "alive", lambda: True)
+    monkeypatch.setattr(live.loop, "alive", lambda: True)
+    monkeypatch.setattr(live.loop, "last_check", time.time() - 60)
+    service.save_people({"built_at": time.time() - 600, "people": []})
+    assert service.health()["ok"]
+    service.save_people({"built_at": time.time() - 3 * 86400, "people": []})
+    monkeypatch.setattr(live.loop, "last_check", time.time() - 7200)
+    h = service.health()
+    assert not h["ok"] and "people index is stale" in h["problems"] and len(h["problems"]) == 2
+    app = FastAPI()
+    app.include_router(api.router)
+    assert TestClient(app).get("/api/watch/health").status_code == 503

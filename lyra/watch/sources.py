@@ -362,5 +362,47 @@ async def wiki_person(person: Dict) -> Dict:
         daily = sum(r["views"] for r in rows) / max(len(rows), 1) if rows else None
     except (ValueError, KeyError):
         pass
-    return {"status": "ok", "title": canonical, "description": desc,
+    return {"status": "ok", "title": canonical, "description": desc, "qid": page.get("wikibase_item", ""),
             "url": (page.get("content_urls") or {}).get("desktop", {}).get("page", ""), "daily_views": daily}
+
+
+WIKIDATA_ENTITY = "https://www.wikidata.org/wiki/Special:EntityData/{qid}.json"
+WIKIDATA_LABELS = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids={ids}&props=labels&languages=en&format=json"
+
+
+def _claims(entity: Dict, prop: str, current_only: bool) -> List[str]:
+    """Item ids for a property, skipping deprecated statements and (optionally) ones with an end date."""
+    out = []
+    for st in entity.get("claims", {}).get(prop, []):
+        if st.get("rank") == "deprecated" or (current_only and "P582" in st.get("qualifiers", {})):
+            continue
+        value = st.get("mainsnak", {}).get("datavalue", {}).get("value", {})
+        if isinstance(value, dict) and value.get("id"):
+            out.append(value["id"])
+    return list(dict.fromkeys(out))
+
+
+async def wikidata_profile(qid: str) -> Dict:
+    """Documented public facts from Wikidata: current party membership (P102), offices held
+    now (P39) and occupations (P106). Nothing here is inferred; every item is a sourced statement."""
+    if not re.fullmatch(r"Q\d+", qid or ""):
+        return {}
+    body = await fetch_text(WIKIDATA_ENTITY.format(qid=qid), max_age=7 * 86400, headers={"User-Agent": SEC_USER_AGENT})
+    try:
+        entity = next(iter(json.loads(body)["entities"].values())) if body else {}
+    except (ValueError, KeyError, StopIteration):
+        return {}
+    ids = {"parties": _claims(entity, "P102", True)[:3], "offices": _claims(entity, "P39", True)[:4],
+           "occupations": _claims(entity, "P106", False)[:4]}
+    wanted = sorted({i for v in ids.values() for i in v})
+    labels: Dict[str, str] = {}
+    if wanted:
+        lb = await fetch_text(WIKIDATA_LABELS.format(ids="|".join(wanted)), max_age=30 * 86400,
+                              headers={"User-Agent": SEC_USER_AGENT})
+        try:
+            labels = {k: v["labels"]["en"]["value"] for k, v in json.loads(lb)["entities"].items()
+                      if v.get("labels", {}).get("en")} if lb else {}
+        except (ValueError, KeyError):
+            labels = {}
+    return {k: [labels[i] for i in v if i in labels] for k, v in ids.items()} | {
+        "source": f"https://www.wikidata.org/wiki/{qid}"}

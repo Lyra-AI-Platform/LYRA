@@ -250,3 +250,85 @@ def test_spellings_of_one_person_merge(monkeypatch):
     assert z["mentions"] == 4 and z["also_known_as"] == ["Volodymyr Zelenskyy"] and "Volodymyr Zelenskyy" not in by_name
     assert z["tone"]["avg"] == 0.1 and z["job"] == "President of Ukraine"
     assert by_name["Flávio Bolsonaro"]["mentions"] == 3 and "Flavio Bolsonaro" not in by_name
+
+
+def test_wikidata_profile_reads_documented_facts_only(monkeypatch):
+    entity = {"entities": {"Q1": {"claims": {
+        "P102": [{"mainsnak": {"datavalue": {"value": {"id": "Q9630"}}}, "rank": "normal"},
+                 {"mainsnak": {"datavalue": {"value": {"id": "Q9626"}}}, "rank": "normal",
+                  "qualifiers": {"P582": [{}]}}],  # a party they left
+        "P39": [{"mainsnak": {"datavalue": {"value": {"id": "Q14211"}}}, "rank": "normal"},
+                {"mainsnak": {"datavalue": {"value": {"id": "Q1"}}}, "rank": "deprecated"}],
+        "P106": [{"mainsnak": {"datavalue": {"value": {"id": "Q808967"}}}, "rank": "normal"}]}}}}
+    labels = {"entities": {"Q9630": {"labels": {"en": {"value": "Labour Party"}}},
+                           "Q14211": {"labels": {"en": {"value": "Prime Minister of the United Kingdom"}}},
+                           "Q808967": {"labels": {"en": {"value": "barrister"}}}}}
+
+    async def fake_fetch(url, **kw):
+        import json as _json
+        return _json.dumps(entity if "EntityData" in url else labels)
+    monkeypatch.setattr(sources, "fetch_text", fake_fetch)
+    wd = asyncio.run(sources.wikidata_profile("Q1"))
+    assert wd["parties"] == ["Labour Party"] and wd["offices"] == ["Prime Minister of the United Kingdom"]
+    assert wd["occupations"] == ["barrister"] and wd["source"] == "https://www.wikidata.org/wiki/Q1"
+    assert asyncio.run(sources.wikidata_profile("not-a-qid")) == {}
+
+
+def test_politics_is_documented_or_none():
+    roster_person = {"affiliation": {"label": "Labour Party", "source": "https://labour.org.uk"}}
+    p = service.politics({"political_coverage": 0.6}, {"parties": ["Other"], "offices": ["MP"], "source": "w"}, roster_person)
+    assert p["parties"] == ["Labour Party"] and p["source"] == "https://labour.org.uk" and p["offices"] == ["MP"]
+    p = service.politics({"political_coverage": 0.1}, {"parties": [], "offices": []}, None)
+    assert p == {"parties": [], "offices": [], "basis": "none", "source": "", "political_coverage": 0.1}
+
+
+def test_index_records_interests_and_political_coverage():
+    media = [dict(_item("Andy Burnham sets out tax plan", "Keir Starmer", "p1"), topics=["Taxes & spending"]),
+             dict(_item("Andy Burnham on AI chips", "Keir Starmer", "p2"), topics=["AI & tech"]),
+             dict(_item("Andy Burnham signs trade deal", "Keir Starmer", "p3"), topics=["Trade & tariffs"],
+                  moves=["policy"])]
+    rec = people.build_index(media, [])["Andy Burnham"]
+    assert rec["id"] == "andy-burnham" and rec["political_coverage"] == 0.67
+    assert {t["topic"] for t in rec["interests"]} == {"Taxes & spending", "AI & tech", "Trade & tariffs"}
+    assert people.person_id("Flávio Bolsonaro") == "flavio-bolsonaro"
+
+
+def test_person_json_and_ai_feed(monkeypatch):
+    from fastapi import FastAPI
+    from fastapi.testclient import TestClient
+    from lyra.api import watch_api
+    from lyra.watch import live
+    service.save_people({"built_at": 1.0, "people": [
+        {"name": "Andy Burnham", "id": "andy-burnham", "slug": "", "watched": False, "also_known_as": [],
+         "wiki": {"status": "ok", "url": "https://en.wikipedia.org/wiki/Andy_Burnham"}, "job": "PM",
+         "politics": {"parties": ["Labour Party"], "basis": "documented"}, "popularity": {"score": 80}},
+        {"name": "Private Person", "id": "private-person", "slug": "", "watched": False, "wiki": {"status": "none"}}]})
+    monkeypatch.setattr(live, "hub", live.Hub())
+    monkeypatch.setattr(live.hub, "history", live.deque(maxlen=live.HISTORY))
+    import time as _t
+    live.hub.publish({"id": "https://bbc/1", "url": "https://bbc/1", "ts": _t.time() - 7200, "title": "Burnham speaks",
+                      "source": "BBC", "people": [{"name": "Andy Burnham", "id": "andy-burnham", "job": "PM",
+                                                   "popularity": {"score": 80}}], "companies": [], "topics": ["Elections"],
+                      "moves": [], "tone": "neutral", "feed": "Keir Starmer"})
+    app = FastAPI()
+    app.include_router(watch_api.router)
+    c = TestClient(app)
+    r = c.get("/api/watch/people/andy-burnham").json()
+    assert r["politics"]["parties"] == ["Labour Party"]
+    assert r["links"]["self"] == "https://lyraauth.com/api/watch/people/andy-burnham"
+    assert r["links"]["page"] == "https://lyraauth.com/watch/#person/andy-burnham"
+    assert c.get("/api/watch/people/private-person").status_code == 404  # private individuals aren't published
+    feed = c.get("/api/watch/feed.json")
+    assert feed.headers["content-type"].startswith("application/feed+json")
+    item = feed.json()["items"][0]
+    assert item["_lyra"]["people"][0]["url"] == "https://lyraauth.com/api/watch/people/andy-burnham"
+    assert "Andy Burnham" in item["content_text"]
+
+
+def test_corporate_positions_are_not_politics():
+    p = service.politics({"political_coverage": 0}, {"parties": [], "offices": ["chief executive officer",
+                                                     "chairperson of the executive board"]}, None)
+    assert p["basis"] == "none" and p["offices"] == []
+    p = service.politics({"political_coverage": 0}, {"parties": [], "offices": ["Crown Prince of Saudi Arabia",
+                                                     "chief executive officer"], "source": "w"}, None)
+    assert p["offices"] == ["Crown Prince of Saudi Arabia"] and p["basis"] == "documented" and p["source"] == "w"

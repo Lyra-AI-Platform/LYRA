@@ -4,6 +4,7 @@ visits never trigger fetches against the SEC, the House Clerk or news sites."""
 import asyncio
 import json
 import logging
+import re
 import time
 from typing import Dict, List, Optional
 
@@ -52,7 +53,8 @@ def _media(items: List[Dict], person: Dict) -> List[Dict]:
         summary = "" if it.get("summary", "").startswith(title[:40]) else it.get("summary", "")
         out.append({"title": title, "summary": summary, "url": it["url"], "source": it.get("source", ""),
                     "date": time.strftime("%Y-%m-%d", time.gmtime(it["published"])), "sentiment": it["sentiment"],
-                    "companies": it["companies"], "people": people.names_in(f"{title}. {summary}" if summary else title),
+                    "companies": it["companies"], "topics": it.get("topics", []),
+                    "moves": [m["kind"] for m in it.get("moves", [])], "people": people.names_in(f"{title}. {summary}" if summary else title),
                     "feed": person["name"]})
     return out
 
@@ -172,7 +174,7 @@ async def build_people(roster: List[Dict]) -> Dict:
     records = list(index.values())
     views = {}
     for rec, w in zip(records, await asyncio.gather(*(wiki(r) for r in records))):
-        rec["wiki"] = {k: w.get(k) for k in ("status", "title", "description", "url")}
+        rec["wiki"] = {k: w.get(k) for k in ("status", "title", "description", "url", "qid")}
         views[rec["name"]] = w.get("daily_views")
     # Spellings that lead to the same article are one person ("Zelensky", "Zelenskyy").
     groups: Dict[str, List[Dict]] = {}
@@ -190,8 +192,46 @@ async def build_people(roster: List[Dict]) -> Dict:
     # article about a person, or a headline that gives them a job title.
     records = [r for r in records if r["watched"] or r["known_first_name"] or r["wiki"]["status"] == "ok"
                or r["job_source"] == "headline"]
+    facts = await asyncio.gather(*(_wikidata(r, gate) for r in records))
+    for rec, wd in zip(records, facts):
+        rec["politics"] = politics(rec, wd, next((p for p in roster if p["slug"] == rec["slug"]), None))
+        rec["occupations"] = wd.get("occupations", [])
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
     return {"built_at": time.time(), "people": records}
+
+
+async def _wikidata(rec: Dict, gate: asyncio.Semaphore) -> Dict:
+    if (rec.get("wiki") or {}).get("status") != "ok":
+        return {}
+    async with gate:
+        try:
+            return await sources.wikidata_profile(rec["wiki"].get("qid", ""))
+        except Exception:  # noqa: BLE001
+            return {}
+
+
+# Wikidata "positions held" also lists corporate roles; only public office counts here.
+_POLITICAL_OFFICE = re.compile(
+    r"president|prime minister|minister|chancellor|member of|senator|representative|governor|mayor|"
+    r"secretary|speaker|parliament|congress|senate|assembly|council|lok sabha|bundestag|crown prince|"
+    r"monarch|king of|queen of|ambassador|judge|justice|leader of|party|vice president|press secretary|"
+    r"\bMP\b|\bMEP\b", re.I)
+
+
+def politics(rec: Dict, wd: Dict, person: Optional[Dict]) -> Dict:
+    """A political profile built only from documented facts: the sourced roster affiliation or
+    Wikidata's party membership and current offices, plus how much of their coverage is political.
+    Lyra never infers where someone stands from their words."""
+    stance = _stance(person) if person else {"basis": "none"}
+    if stance["basis"] == "documented":
+        parties, source = [stance["label"]], stance["source"]
+    else:
+        parties, source = wd.get("parties", []), wd.get("source", "")
+    offices = [o for o in wd.get("offices", []) if _POLITICAL_OFFICE.search(o)]
+    return {"parties": parties, "offices": offices,
+            "basis": "documented" if parties or offices else "none",
+            "source": (source or wd.get("source", "")) if parties or offices else "",
+            "political_coverage": rec.get("political_coverage", 0.0)}
 
 
 def save_people(data: Dict):
@@ -204,6 +244,14 @@ def is_public_figure(rec: Dict) -> bool:
     """Shown publicly: the watchlist, plus people with a Wikipedia article about them. Private
     individuals who turn up in a headline (a witness, a defendant) stay in the local index only."""
     return rec.get("watched") or (rec.get("wiki") or {}).get("status") == "ok"
+
+
+def person_record(pid: str) -> Optional[Dict]:
+    """One public person by id (or a former spelling's id)."""
+    for r in load_people().get("people", []):
+        if is_public_figure(r) and (r.get("id") == pid or pid in {people.person_id(n) for n in r.get("also_known_as", [])}):
+            return r
+    return None
 
 
 def people_list(q: str = "", watched: Optional[bool] = None, limit: int = 100, public: bool = True) -> Dict:
@@ -236,17 +284,24 @@ class RefreshLoop:
     def __init__(self, interval_hours: float = REFRESH_HOURS):
         self.interval = interval_hours * 3600
         self._task: Optional[asyncio.Task] = None
+        self.last_run: Optional[float] = None
 
     async def _run(self):
         while True:
             try:
                 await refresh_all()
+                self.last_run = time.time()
+            except asyncio.CancelledError:
+                raise
             except Exception as e:  # noqa: BLE001
                 logger.warning(f"Watch refresh error: {e}")
             await asyncio.sleep(self.interval)
 
+    def alive(self) -> bool:
+        return self._task is not None and not self._task.done()
+
     def start(self):
-        if self._task is None or self._task.done():
+        if not self.alive():
             self._task = asyncio.get_event_loop().create_task(self._run())
 
     def stop(self):
@@ -255,3 +310,26 @@ class RefreshLoop:
 
 
 refresh_loop = RefreshLoop()
+
+
+def health() -> Dict:
+    """Is everything still updating? `ok` is false when a loop has stopped or the data is stale:
+    the people index older than two refresh intervals, or no live check for 30 minutes."""
+    from lyra.watch import live
+    now = time.time()
+    built = load_people().get("built_at")
+    people_age = now - built if built else None
+    live_age = now - live.loop.last_check if live.loop.last_check else None
+    problems = []
+    if not refresh_loop.alive():
+        problems.append("refresh loop stopped")
+    if not live.loop.alive():
+        problems.append("live loop stopped")
+    if people_age is None or people_age > 2 * refresh_loop.interval + 3600:
+        problems.append("people index is stale")
+    if live_age is not None and live_age > 1800:
+        problems.append("live feed hasn't checked a source in 30 minutes")
+    return {"ok": not problems, "problems": problems,
+            "people_index_age_minutes": round(people_age / 60) if people_age is not None else None,
+            "last_live_check_minutes": round(live_age / 60, 1) if live_age is not None else None,
+            "refresh_every_hours": refresh_loop.interval / 3600, "live_cycle_minutes": live.LIVE_CYCLE_MINUTES}

@@ -115,7 +115,7 @@
       </div>
     </div>
     <div class="table-wrap"><table id="peopleTable">
-      <thead><tr><th>Person</th><th>Job</th><th>Popularity</th><th>Companies</th><th>Tone</th><th class="num">Headlines</th><th>Seen with</th></tr></thead>
+      <thead><tr><th>Person</th><th>Job</th><th>Popularity</th><th>Politics</th><th>Interests</th><th>Companies</th><th>Tone</th><th class="num">Headlines</th></tr></thead>
       <tbody id="peopleRows"></tbody>
     </table></div>
     <p class="muted" id="peopleNote"></p>
@@ -169,6 +169,14 @@
     </div>
   </section>
 
+  <!-- One person (anyone in the people index) -->
+  <section id="person" hidden>
+    <a href="#" class="back">&larr; All people</a>
+    <h1 id="xName"></h1>
+    <p id="xJob"></p>
+    <div id="xBody"></div>
+  </section>
+
   <details style="margin-top:48px;">
     <summary>How Lyra Watch works</summary>
     <div class="card" style="margin-top:10px;">
@@ -186,6 +194,13 @@
         how headlines describe the person ("Nvidia CEO"), then from Wikipedia's one-line description. Popularity is 0 to
         100: 70% Wikipedia page views over the last 30 days (log scale, so 1,000 a day is about 60 and 100,000 a day is
         100) and 30% headline count. Someone with no Wikipedia article scores on coverage alone, capped at 30.</p>
+      <p style="margin-top:8px;"><b>Politics and interests.</b> Party membership and current offices come from
+        Wikidata or an official source and are linked; Lyra never rates or infers anyone's political views.
+        "Political coverage" is the share of a person's headlines about elections, taxes, immigration, trade or
+        policy. Interests are the topics their coverage is about.</p>
+      <p style="margin-top:8px;"><b>For AI agents.</b> Every person has a stable JSON record at
+        <code>/api/watch/people/{id}</code>, the latest stories are a JSON Feed at <code>/api/watch/feed.json</code>,
+        and <a href="/llms.txt"><u>/llms.txt</u></a> describes it all.</p>
       <p style="margin-top:8px;"><b>Political affiliation</b> is shown only when it's documented: a party
         membership or office, with a link to the source. Lyra doesn't infer anyone's politics from their words, and
         doesn't record religion or other sensitive personal traits.</p>
@@ -244,24 +259,64 @@
     } catch { $("feed").replaceChildren(el("li", { class: "muted", text: "Couldn't load the feed." })); }
   }
 
+  function politicsCell(pol) {
+    if (!pol || pol.basis !== "documented") return el("span", { class: "meta", text: "None on record" });
+    return el("div", {}, ...pol.parties.slice(0, 1).map((p) => el("span", { class: "chip aff", text: p })),
+      pol.offices.length ? el("div", { class: "meta", text: pol.offices[0] }) : null);
+  }
+
+  async function showPerson(pid) {
+    $("directory").hidden = true; $("profile").hidden = true; $("person").hidden = false; window.scrollTo(0, 0);
+    let r;
+    try { r = await api(`people/${encodeURIComponent(pid)}`); }
+    catch { $("xName").textContent = "Not found"; $("xJob").textContent = "No public figure with that id."; $("xBody").replaceChildren(); return; }
+    document.title = `${r.name} — Lyra Watch`;
+    $("xName").textContent = r.name;
+    $("xJob").textContent = r.job || "";
+    const pol = r.politics || {}, ai = r.links.self;
+    const copy = el("button", { class: "chip-btn", type: "button", text: "Copy AI link" });
+    copy.onclick = async () => { try { await navigator.clipboard.writeText(ai); copy.textContent = "Copied"; } catch { copy.textContent = ai; } };
+    const sect = (title, ...kids) => el("div", { class: "card", style: "margin-top:12px" }, el("h3", { style: "margin:0 0 8px;font-size:15px", text: title }), ...kids);
+    $("xBody").replaceChildren(
+      el("div", { class: "chips" }, popBadge(r.popularity), " ", copy, " ", el("a", { class: "meta", href: ai, text: "JSON" }),
+        r.wiki && r.wiki.url ? el("span", { class: "meta" }, " · ", link(r.wiki.url, "Wikipedia")) : null,
+        r.slug ? el("span", { class: "meta" }, " · ", el("a", { href: `#${r.slug}`, text: "Trades & power moves" })) : null),
+      sect("Politics",
+        pol.basis === "documented"
+          ? el("p", {}, ...[...pol.parties.map((p) => el("span", { class: "chip aff", text: p })), " ", pol.offices.join(" · ")], " ", pol.source ? link(pol.source, "source") : null)
+          : el("p", { class: "muted", text: "No party membership or office on record. Lyra doesn't infer anyone's politics." }),
+        el("p", { class: "muted", text: `${Math.round((pol.political_coverage || 0) * 100)}% of their headlines are about elections, taxes, immigration, trade or policy.` })),
+      sect("Interests", el("ul", { class: "bars" }, ...(r.interests || []).map((t) => el("li", {},
+        el("span", { text: t.topic }),
+        el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${Math.round(t.share * 100)}%` })),
+        el("span", { class: "n", text: `${Math.round(t.share * 100)}%` })))),
+        (r.interests || []).length ? null : el("p", { class: "muted", text: "No clear topics yet." })),
+      sect("Companies in their coverage", el("div", { class: "chips" }, ...r.companies.map((c) => el("span", { class: "chip", text: `${c.name} · ${c.mentions}` }))),
+        r.companies.length ? null : el("p", { class: "muted", text: "None named." })),
+      sect("Recent headlines", el("ul", { class: "feed" }, ...r.headlines.map((h) => el("li", {},
+        el("span", { class: "when", text: h.date }), " ", link(h.url, h.title), el("span", { class: "meta", text: ` · ${h.source}` })))),
+        el("p", { class: "muted", text: `${r.mentions} headlines in the last 30 days · tone ${r.tone.label}` })));
+  }
+
   async function loadPeople() {
     const q = $("peopleSearch").value.trim();
     try {
       const data = await api(`people?limit=150&q=${encodeURIComponent(q)}${peopleWatched ? `&watched=${peopleWatched}` : ""}`);
       $("peopleRows").replaceChildren(...data.people.map((r) => el("tr", {},
-        el("td", {}, r.slug ? el("a", { class: "who", href: `#${r.slug}`, text: r.name }) : el("b", { text: r.name }),
-          r.wiki && r.wiki.url ? el("div", { class: "meta" }, link(r.wiki.url, "Wikipedia")) : null),
+        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }),
+          r.slug ? el("div", { class: "meta" }, el("a", { href: `#${r.slug}`, text: "Trades & moves" })) : null),
         el("td", {}, el("span", { text: r.job || "—" }),
           r.job_source && r.job_source !== "watchlist" ? el("div", { class: "meta", text: `from ${r.job_source}` }) : null),
         el("td", {}, popBadge(r.popularity)),
+        el("td", {}, politicsCell(r.politics)),
+        el("td", { class: "meta", text: (r.interests || []).slice(0, 2).map((t) => t.topic).join(", ") }),
         el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.companies.slice(0, 3).map((c) => el("span", { class: "chip", text: c.name })))),
         el("td", { class: `tone-${r.tone.label}`, text: r.tone.label }),
-        el("td", { class: "num", text: String(r.mentions) }),
-        el("td", { class: "meta", text: r.seen_with.filter((n) => n !== r.name).slice(0, 3).join(", ") }))));
-      if (!data.people.length) $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "7", class: "muted",
+        el("td", { class: "num", text: String(r.mentions) }))));
+      if (!data.people.length) $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "8", class: "muted",
         text: data.built_at ? "Nobody matches that search." : "The people index hasn't been built yet. It refreshes with the watchlist." })));
       $("peopleNote").textContent = data.built_at ? `${data.total} people · updated ${ago(data.built_at)}` : "";
-    } catch { $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "7", class: "muted", text: "Couldn't load people." }))); }
+    } catch { $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "8", class: "muted", text: "Couldn't load people." }))); }
   }
 
   function bars(target, rows, label, value) {
@@ -358,6 +413,8 @@
 
   function route() {
     const slug = location.hash.slice(1);
+    if (slug.startsWith("person/")) return showPerson(slug.slice(7));
+    $("person").hidden = true;
     if (slug) return showProfile(slug);
     document.title = "Lyra Watch — Power Moves of Public Figures";
     $("profile").hidden = true; $("directory").hidden = false;

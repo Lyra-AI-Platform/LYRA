@@ -258,6 +258,16 @@ def job_hint(text: str, name: str) -> str:
     return ""
 
 
+# Coverage counts as political when it's about these issues or matches a policy/endorsement rule.
+POLITICAL_TOPICS = {"Elections", "Taxes & spending", "Immigration", "Trade & tariffs"}
+POLITICAL_MOVES = {"policy", "political"}
+
+
+def person_id(name: str) -> str:
+    """Stable URL id: "Flávio Bolsonaro" -> "flavio-bolsonaro"."""
+    return re.sub(r"[^a-z0-9]+", "-", fold(name)).strip("-")
+
+
 def _strip_accents(text: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
 
@@ -280,7 +290,13 @@ def merge(records: List[Dict]) -> Dict:
         for c in r["companies"]:
             key = c.get("ticker") or c["name"]
             companies.setdefault(key, {**c, "mentions": 0})["mentions"] += c["mentions"]
+    topics: Counter = Counter()
+    for r in records:
+        for t in r.get("interests", []):
+            topics[t["topic"]] += t["share"] * r["mentions"]
     main.update(
+        interests=[{"topic": t, "share": round(n / total, 2)} for t, n in topics.most_common(5)],
+        political_coverage=round(sum(r.get("political_coverage", 0) * r["mentions"] for r in records) / total, 2),
         mentions=total, also_known_as=[r["name"] for r in records[1:]],
         tone={"avg": round(avg, 3), "label": _tone(avg)},
         companies=sorted(companies.values(), key=lambda c: c["mentions"], reverse=True)[:6],
@@ -372,6 +388,7 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
                             + r")(?:[’']s?)?(?![\w])") if surname else None
 
     found: Dict[str, Dict] = defaultdict(lambda: {"items": [], "jobs": Counter(), "companies": Counter(),
+                                                  "topics": Counter(), "political": 0,
                                                   "company_meta": {}, "feeds": Counter(),
                                                   "job_spelling": {}})
     for it in items:
@@ -397,6 +414,9 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
                 rec["company_meta"].setdefault(key, c)
             if it.get("feed"):
                 rec["feeds"][it["feed"]] += 1
+            rec["topics"].update(it.get("topics", []))
+            if POLITICAL_TOPICS & set(it.get("topics", [])) or POLITICAL_MOVES & set(it.get("moves", [])):
+                rec["political"] += 1
 
     out = {}
     for name, rec in found.items():
@@ -412,7 +432,11 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
             "known_first_name": _strip_accents(name.split()[0]) in GIVEN or name.split()[0] in GIVEN,
             "job": (person or {}).get("role") or hint, "job_source": "watchlist" if person else ("headline" if hint else ""),
             "described_as": hint,
+            "id": person["slug"] if person else person_id(name),
             "mentions": mentions,
+            # What their coverage is about: topics as a share of their headlines.
+            "interests": [{"topic": t, "share": round(n / mentions, 2)} for t, n in rec["topics"].most_common(5)],
+            "political_coverage": round(rec["political"] / mentions, 2),
             "companies": [{**rec["company_meta"][k], "mentions": n} for k, n in rec["companies"].most_common(6)],
             "tone": {"avg": round(avg, 3), "label": _tone(avg)},
             "seen_with": [s for s, _ in rec["feeds"].most_common(5)],

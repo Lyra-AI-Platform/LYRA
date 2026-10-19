@@ -170,7 +170,7 @@
     $("sKicker").textContent = `${e.feed} · ${e.source || "News"} · ${ago(e.ts)}`;
     $("sHeadline").replaceChildren(link(e.url, e.title));
     $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
-      p.slug ? el("a", { class: "n", href: `/watch/#${p.slug}`, text: p.name }) : el("div", { class: "n", text: p.name }),
+      p.id ? el("a", { class: "n", href: `/watch/#person/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
       el("div", { class: "j", text: p.job || "" }), meter(p.popularity))));
     $("sTags").replaceChildren(
       ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
