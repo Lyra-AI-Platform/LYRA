@@ -55,11 +55,13 @@ async def figure(slug: str, response: Response, request: Request):
 
 
 @router.get("/people")
-async def people(response: Response, request: Request, q: str = "", watched: str = "", limit: int = 100):
-    """Everyone named in the coverage: job, linked companies, tone and a popularity rating."""
+async def people(response: Response, request: Request, q: str = "", watched: str = "", limit: int = 100,
+                 ticker: str = ""):
+    """Everyone named in the coverage: job, linked companies, tone and a popularity rating.
+    `ticker` (e.g. NVDA) keeps the people whose coverage names that company."""
     _public(response, request)
     flag = {"": None, "true": True, "false": False}.get(watched.lower())
-    return service.people_list(q[:80], flag, min(max(limit, 1), 500))
+    return service.people_list(q[:80], flag, min(max(limit, 1), 500), ticker=ticker[:10])
 
 
 @router.get("/people/{pid}")

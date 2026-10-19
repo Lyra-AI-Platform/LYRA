@@ -324,12 +324,16 @@ def person_record(pid: str) -> Optional[Dict]:
     return None
 
 
-def people_list(q: str = "", watched: Optional[bool] = None, limit: int = 100, public: bool = True) -> Dict:
+def people_list(q: str = "", watched: Optional[bool] = None, limit: int = 100, public: bool = True,
+                ticker: str = "") -> Dict:
+    """`ticker` keeps the people whose coverage names that company (used by the market page)."""
     data = load_people()
     q = q.lower().strip()
+    ticker = ticker.upper().strip()
     rows = [r for r in data.get("people", [])
             if (not public or is_public_figure(r)) and (not q or q in f"{r['name']} {r['job']} {r.get('described_as', '')} {' '.join(c['name'] for c in r['companies'])}".lower())
-            and (watched is None or r["watched"] == watched)]
+            and (watched is None or r["watched"] == watched)
+            and (not ticker or any((c.get("ticker") or "").upper() == ticker for c in r["companies"]))]
     return {"built_at": data.get("built_at"), "total": len(rows), "people": rows[:limit]}
 
 

@@ -7,7 +7,7 @@
 
 ## Data (JSON, no key needed)
 
-- [People index](https://lyraauth.com/api/watch/people): everyone the coverage names who has a Wikipedia article or is on the watchlist. Query parameters: `q` (search name, job or company), `watched=true|false`, `limit` (up to 500).
+- [People index](https://lyraauth.com/api/watch/people): everyone the coverage names who has a Wikipedia article or is on the watchlist. Query parameters: `q` (search name, job or company), `watched=true|false`, `ticker` (e.g. `NVDA`: people whose coverage names that listed company), `limit` (up to 500).
 - [One person](https://lyraauth.com/api/watch/people/keir-starmer): `/api/watch/people/{id}`, where `id` is the lowercase name with hyphens (e.g. `jensen-huang`, `flavio-bolsonaro`). Fields: `job`, `popularity` {score, tier, basis}, `politics` {parties, offices, basis, source, political_coverage}, `interests` [{topic, share}], `companies`, `tone`, `headlines`, `links`.
 - [Story feed](https://lyraauth.com/api/watch/feed.json): JSON Feed 1.1 of the latest headlines, one hour behind the live subscriber stream. Each item lists the people named with links to their JSON records.
 - [Watchlist](https://lyraauth.com/api/watch/figures): the tracked politicians, investors, executives and public figures, with disclosed trades and power moves at `/api/watch/figures/{slug}`.

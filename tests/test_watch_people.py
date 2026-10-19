@@ -332,3 +332,13 @@ def test_corporate_positions_are_not_politics():
     p = service.politics({"political_coverage": 0}, {"parties": [], "offices": ["Crown Prince of Saudi Arabia",
                                                      "chief executive officer"], "source": "w"}, None)
     assert p["offices"] == ["Crown Prince of Saudi Arabia"] and p["basis"] == "documented" and p["source"] == "w"
+
+
+def test_people_list_filters_by_ticker():
+    rec = lambda name, companies: {"name": name, "id": name.lower().replace(" ", "-"), "job": "", "watched": True,
+                                   "companies": companies}
+    service.save_people({"people": [rec("Jensen Huang", [{"name": "Nvidia", "ticker": "NVDA", "mentions": 4}]),
+                                    rec("Tim Cook", [{"name": "Apple", "ticker": "AAPL", "mentions": 2}]),
+                                    rec("Ann Smith", [{"name": "Nvidia Foundation", "mentions": 1}])]})
+    assert [r["name"] for r in service.people_list(ticker="nvda")["people"]] == ["Jensen Huang"]
+    assert service.people_list(ticker="XYZ")["total"] == 0

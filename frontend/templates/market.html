@@ -63,6 +63,9 @@
   .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; margin: 2px 4px 2px 0;
          background: var(--panel-2); border: 1px solid var(--border); color: var(--muted); }
   .tag.ok { color: var(--boom); } .tag.failed, .tag.stale { color: var(--bust); } .tag.partial { color: var(--hold); }
+  .people { list-style: none; padding: 0; margin: 0; }
+  .people li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .people a { text-decoration: none; font-weight: 600; }
   .gate[hidden] { display: none; }
   .gate { position: fixed; inset: 0; background: rgba(0,0,0,.75); display: flex; align-items: center;
           justify-content: center; z-index: 100; padding: 16px; }
@@ -75,6 +78,8 @@
   <h1>✦ Tremor Index</h1>
   <a href="/dashboard/index.html">← Dashboard</a>
   <a href="/tremor/">How it works · track record</a>
+  <a href="/watch/">Lyra Watch · people</a>
+  <a href="/watch/live/" style="color:#ef4444">● Live</a>
   <div class="vix" id="vix">VIX loading…</div>
 </header>
 
@@ -121,6 +126,11 @@
   </section>
 
   <section class="full">
+    <h2>People in the news <a href="/watch/" style="float:right;font-size:13px;font-weight:400">Lyra Watch →</a></h2>
+    <div id="people"><p class="empty">People named alongside the company appear after an analysis.</p></div>
+  </section>
+
+  <section class="full">
     <h2>Insider, fund and politician trades</h2>
     <div id="money"><p class="empty">Insider, fund and politician trades appear after an analysis.</p></div>
   </section>
@@ -144,7 +154,7 @@ let token = null, viewer = {};
 try { token = localStorage.getItem("lyra_token"); viewer = JSON.parse(localStorage.getItem("lyra_user") || "{}"); } catch {}
 
 function toLogin() {
-  try { localStorage.setItem("lyra_next", "/market"); localStorage.removeItem("lyra_token"); } catch {}
+  try { localStorage.setItem("lyra_next", location.pathname + location.search); localStorage.removeItem("lyra_token"); } catch {}
   location.href = LOGIN_URL;
 }
 if (!token) toLogin();
@@ -217,6 +227,25 @@ function renderReading(r) {
     <p class="muted">News: ${r.sources.news.articles_counted} articles counted, ${r.sources.news.off_topic_dropped} off-topic
       articles ignored. Sentiment is scored with a word list on each headline and summary.</p>
     <p class="muted">${esc(r.disclaimer)}</p>`;
+}
+
+// Public figures whose recent coverage names this company, from Lyra Watch.
+async function loadPeople(ticker, company) {
+  $("people").innerHTML = `<p class="empty">Looking for people in ${esc(company || ticker)} news…</p>`;
+  try {
+    let d = await fetch("/api/watch/people?limit=8&ticker=" + encodeURIComponent(ticker)).then(r => r.json());
+    const short = (company || "").replace(/[,.]|\b(inc|corp|corporation|co|ltd|plc|holdings|group|company|sa|ag|nv)\b/gi, "").trim();
+    if (!d.people.length && short.length > 2)
+      d = await fetch("/api/watch/people?limit=8&q=" + encodeURIComponent(short)).then(r => r.json());
+    $("people").innerHTML = d.people.length ? `<ul class="people">${d.people.map(p => `<li>
+      <a href="/watch/#person/${encodeURIComponent(p.id)}">${esc(p.name)}</a>
+      <span class="muted">${esc(p.job || "")}</span>
+      ${p.popularity ? `<span class="tag">${esc(p.popularity.tier)} · ${p.popularity.score}</span>` : ""}
+      <span class="tag ${p.tone.label === "positive" ? "ok" : p.tone.label === "negative" ? "failed" : ""}">tone ${esc(p.tone.label)}</span>
+      <span class="muted">${p.mentions} headlines</span></li>`).join("")}</ul>
+      <p class="muted">From Lyra Watch's last 30 days of headlines. <a href="/watch/live/">Follow them live →</a></p>`
+      : `<p class="empty">No tracked public figures named with ${esc(company || ticker)} recently.</p>`;
+  } catch { $("people").innerHTML = `<p class="empty">Lyra Watch is unavailable right now.</p>`; }
 }
 
 function tradeRows(trades, status) {
@@ -295,6 +324,7 @@ $("lookup").onsubmit = async (e) => {
     const r = await api("/api/market/index/" + encodeURIComponent(currentTicker));
     renderReading(r);
     renderMoney(r.smart_money, r.sources);
+    loadPeople(currentTicker, r.company);
     loadArticles({ ticker: currentTicker });
     loadLearning();
   } catch (err) {
@@ -315,6 +345,11 @@ $("closereader").onclick = () => { $("readerbox").hidden = true; };
 
 loadVix();
 loadLearning();
+// /market?t=NVDA opens straight onto a reading (links from Lyra Watch use this).
+(function deepLink() {
+  const t = (new URLSearchParams(location.search).get("t") || "").trim().toUpperCase();
+  if (/^[A-Z0-9.\-]{1,10}$/.test(t)) { $("ticker").value = t; $("lookup").requestSubmit(); }
+})();
 </script>
 </body>
 </html>

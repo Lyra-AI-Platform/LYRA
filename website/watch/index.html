@@ -44,6 +44,7 @@
   .meta { font-size: 12px; color: var(--muted); }
   .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
   .chip { font-size: 11.5px; background: var(--chip); color: #1e3a5f; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+  a.chip { text-decoration: none; } a.chip:hover { text-decoration: underline; }
   .chip.move { background: #fef3c7; color: #92400e; }
   .chip.aff { background: var(--surface2); color: var(--text); }
   .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; }
@@ -89,7 +90,8 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
-    <div class="nav-cta"><a href="/watch/live/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">● Watch live</a></div>
+    <div class="nav-cta"><a href="/market" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Markets</a>
+      <a href="/watch/live/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">● Watch live</a></div>
   </div>
 </nav>
 
@@ -347,11 +349,18 @@
         el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${Math.round(t.share * 100)}%` })),
         el("span", { class: "n", text: `${Math.round(t.share * 100)}%` })))),
         (r.interests || []).length ? null : el("p", { class: "muted", text: "No clear topics yet." })),
-      sect("Companies in their coverage", el("div", { class: "chips" }, ...r.companies.map((c) => el("span", { class: "chip", text: `${c.name} · ${c.mentions}` }))),
+      sect("Companies in their coverage", el("div", { class: "chips" }, ...r.companies.map((c) => companyChip(c, `${c.name} · ${c.mentions}`))),
         r.companies.length ? null : el("p", { class: "muted", text: "None named." })),
       sect("Recent headlines", el("ul", { class: "feed" }, ...r.headlines.map((h) => el("li", {},
         el("span", { class: "when", text: h.date }), " ", link(h.url, h.title), el("span", { class: "meta", text: ` · ${h.source}` })))),
         el("p", { class: "muted", text: `${r.mentions} headlines in the last 30 days · tone ${r.tone.label}` })));
+  }
+
+  // Listed companies open their Tremor reading on the market page.
+  function marketLink(ticker) { return `/market?t=${encodeURIComponent(ticker)}`; }
+  function companyChip(c, text) {
+    return c.ticker ? el("a", { class: "chip", href: marketLink(c.ticker), title: `${c.ticker} on Lyra Markets`, text })
+      : el("span", { class: "chip", text });
   }
 
   async function loadPeople() {
@@ -366,7 +375,7 @@
         el("td", {}, popBadge(r.popularity)),
         el("td", {}, politicsCell(r.politics)),
         el("td", { class: "meta", text: (r.interests || []).slice(0, 2).map((t) => t.topic).join(", ") }),
-        el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.companies.slice(0, 3).map((c) => el("span", { class: "chip", text: c.name })))),
+        el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.companies.slice(0, 3).map((c) => companyChip(c, c.name)))),
         el("td", { class: `tone-${r.tone.label}`, text: r.tone.label }),
         el("td", { class: "num", text: String(r.mentions) }))));
       if (!data.people.length) $("peopleRows").replaceChildren(el("tr", {}, el("td", { colspan: "8", class: "muted",
@@ -460,7 +469,7 @@
     } catch { $("pPeople").replaceChildren(el("li", { class: "muted", text: "Couldn't load people." })); }
 
     $("pTraded").replaceChildren(...(s.traded || []).slice(0, 8).map((c) => el("li", {},
-      el("span", { class: "who", text: c.name }), c.ticker ? el("span", { class: "meta", text: ` ${c.ticker}` }) : null, el("br"),
+      el("span", { class: "who", text: c.name }), c.ticker ? el("a", { class: "meta", href: marketLink(c.ticker), title: "Tremor reading", text: ` ${c.ticker} ↗` }) : null, el("br"),
       el("span", { class: "buy", text: `${c.buys} buy${c.buys === 1 ? "" : "s"}` }), " · ",
       el("span", { class: "sell", text: `${c.sells} sell${c.sells === 1 ? "" : "s"}` }),
       el("span", { class: "meta", text: ` · ${money(c.value)} · last ${c.last}` }))));

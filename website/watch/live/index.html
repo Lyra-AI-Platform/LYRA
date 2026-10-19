@@ -60,6 +60,7 @@
   .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
   .tag { font-size: 12px; border-radius: 999px; padding: 3px 9px; background: rgba(169,112,255,.16); color: #d6c2ff; }
   .tag.co { background: rgba(255,255,255,.08); color: var(--s-text); }
+  a.tag.co { text-decoration: none; } a.tag.co:hover { background: rgba(255,255,255,.16); }
   .tag.mv { background: rgba(250,204,21,.15); color: #fde68a; }
   .below { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 14px; }
   .buzz li { grid-template-columns: 1fr 70px 44px; }
@@ -106,7 +107,8 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
-    <div class="nav-cta"><a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
+    <div class="nav-cta"><a href="/market" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Markets</a>
+      <a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
   </div>
 </nav>
 
@@ -205,7 +207,9 @@
       el("div", { class: "j", text: p.job || "" }), meter(p.popularity))));
     $("sTags").replaceChildren(
       ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
-      ...e.companies.map((c) => el("span", { class: "tag co", text: c.ticker ? `${c.name} · ${c.ticker}` : c.name })),
+      ...e.companies.map((c) => c.ticker
+        ? el("a", { class: "tag co", href: `/market?t=${encodeURIComponent(c.ticker)}`, title: "Tremor reading", text: `${c.name} · ${c.ticker} ↗` })
+        : el("span", { class: "tag co", text: c.name })),
       ...e.topics.slice(0, 3).map((t) => el("span", { class: "tag", text: t })));
   }
 
