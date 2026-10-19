@@ -220,6 +220,8 @@ async def on_startup():
     learning_loop.start()
     from lyra.watch.service import refresh_loop
     refresh_loop.start()
+    from lyra.watch.live import loop as live_loop
+    live_loop.start()
 
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
@@ -244,6 +246,8 @@ async def on_shutdown():
     learning_loop.stop()
     from lyra.watch.service import refresh_loop
     refresh_loop.stop()
+    from lyra.watch.live import loop as live_loop
+    live_loop.stop()
     await engine.unload_model()
 
 

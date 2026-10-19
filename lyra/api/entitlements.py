@@ -31,7 +31,7 @@ TRIAL_LIMITS: Dict[str, int] = {
     "chat": int(os.environ.get("LYRA_TRIAL_CHAT_MESSAGES", 20)),      # Lyra chat messages
 }
 UPGRADE_URL = "/dashboard/billing.html"
-FEATURE_NAMES = {"market": "Tremor Index readings", "chat": "Lyra chat messages"}
+FEATURE_NAMES = {"market": "Tremor Index readings", "chat": "Lyra chat messages", "watch_live": "Lyra Watch Live"}
 
 
 def is_paid(user: User) -> bool:
@@ -100,6 +100,18 @@ def require(feature: str, consume: int = 0):
     """FastAPI dependency: the signed-in user, or 402."""
     def dep(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> User:
         check(user, feature, db, consume)
+        return user
+    return dep
+
+
+def require_paid(feature: str):
+    """FastAPI dependency for subscriber-only features: no trial allowance, a plan or 402."""
+    def dep(user: User = Depends(get_current_user)) -> User:
+        if not is_paid(user):
+            raise HTTPException(402, {"error": "payment_required", "feature": feature, "reason": "subscribers_only",
+                                      "message": f"{FEATURE_NAMES.get(feature, feature)} is for subscribers. "
+                                                 "Choose a plan to watch.",
+                                      "upgrade_url": UPGRADE_URL})
         return user
     return dep
 

@@ -8,9 +8,15 @@ import time
 from collections import defaultdict, deque
 from typing import Deque, Dict
 
-from fastapi import APIRouter, HTTPException, Request, Response
+import asyncio
+import json
 
-from lyra.watch import service
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi.responses import StreamingResponse
+
+from lyra.api.entitlements import require_paid
+from lyra.db.models import User
+from lyra.watch import live, service
 from lyra.watch.config import CATEGORIES, load_roster
 
 READS_PER_HOUR = 600
@@ -61,3 +67,52 @@ async def feed(response: Response, request: Request, kind: str = "", limit: int 
     if kind not in ("", "trade", "statement"):
         raise HTTPException(400, "kind must be trade or statement")
     return {"moves": service.feed(min(max(limit, 1), 200), kind)}
+
+
+# ── Live (subscribers) ─────────────────────────────────────────────────────
+
+@router.get("/live/status")
+async def live_status(response: Response, request: Request):
+    """Public: whether the feed is live, how many are watching, events in the last 24 hours."""
+    _public(response, request)
+    response.headers["Cache-Control"] = "no-store"
+    return live.hub.status()
+
+
+@router.get("/live/preview")
+async def live_preview(response: Response, request: Request):
+    """Public taste of the feed: a few events, an hour late."""
+    _public(response, request)
+    return {"delay_seconds": live.TEASER_DELAY, "events": live.hub.recent(5, delay=live.TEASER_DELAY)}
+
+
+@router.get("/live/recent")
+async def live_recent(limit: int = 50, user: User = Depends(require_paid("watch_live"))):
+    return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY))}
+
+
+@router.get("/live/stream")
+async def live_stream(request: Request, user: User = Depends(require_paid("watch_live"))):
+    """Server-sent events: `event: item` per new headline, `event: status` with the viewer
+    count every 30 s, and a comment line every 15 s so proxies keep the connection open.
+    Sign in with the Authorization header (fetch + ReadableStream), not a token in the URL."""
+    q = live.hub.subscribe()
+
+    async def events():
+        try:
+            yield f"event: status\ndata: {json.dumps(live.hub.status())}\n\n"
+            ticks = 0
+            while not await request.is_disconnected():
+                try:
+                    event = await asyncio.wait_for(q.get(), timeout=15)
+                    yield f"event: item\ndata: {json.dumps(event)}\n\n"
+                except asyncio.TimeoutError:
+                    ticks += 1
+                    yield ": ping\n\n"
+                    if ticks % 2 == 0:
+                        yield f"event: status\ndata: {json.dumps(live.hub.status())}\n\n"
+        finally:
+            live.hub.unsubscribe(q)
+
+    return StreamingResponse(events(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})

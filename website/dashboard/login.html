@@ -74,7 +74,7 @@
   if (localStorage.getItem('lyra_token')) {
     const next = localStorage.getItem('lyra_next');
     localStorage.removeItem('lyra_next');
-    window.location.href = next === '/market' ? '/market' : 'index.html';
+    window.location.href = ['/market', '/watch/live/'].includes(next) ? next : 'index.html';
   }
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -119,7 +119,7 @@
       localStorage.setItem('lyra_user', JSON.stringify(data.user));
       const next = localStorage.getItem('lyra_next');
       localStorage.removeItem('lyra_next');
-      window.location.href = next === '/market' ? '/market' : 'index.html';
+      window.location.href = ['/market', '/watch/live/'].includes(next) ? next : 'index.html';
     } catch (ex) {
       showErr(ex.message);
       btn.disabled = false;

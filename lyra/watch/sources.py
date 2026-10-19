@@ -285,12 +285,13 @@ def _us_date(d: str) -> str:
 
 # ── Statements and coverage ────────────────────────────────────────────────
 
-async def statements(person: Dict) -> Tuple[List[Dict], Dict]:
-    """Headlines about the person (coverage) plus posts from their own RSS feeds (own words)."""
+async def statements(person: Dict, max_age: float = 3 * 3600) -> Tuple[List[Dict], Dict]:
+    """Headlines about the person (coverage) plus posts from their own RSS feeds (own words).
+    max_age is how long a fetched feed is reused; the live loop asks for fresh copies."""
     query = quote_plus(person.get("news_query") or f'"{person["name"]}"')
     urls = [(NEWS_FEED.format(q=query, days=STATEMENT_DAYS), False)]
     urls += [(u, True) for u in person.get("feeds", [])]
-    bodies = await asyncio.gather(*(fetch_text(u, max_age=3 * 3600) for u, _ in urls))
+    bodies = await asyncio.gather(*(fetch_text(u, max_age=max_age) for u, _ in urls))
     seen, items = set(), []
     for (url, own), body in zip(urls, bodies):
         for it in news.parse_feed(body or ""):

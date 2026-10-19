@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyra Watch Live</title>
+<meta name="description" content="A live feed of what the media says about politicians, investors, executives and public figures, as it happens. For subscribers." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="stylesheet" href="../../css/main.css" />
+<style>
+  /* A dark "studio" look in both colour schemes: the live room is meant to feel like a broadcast. */
+  .studio { --s-bg: #0e0e10; --s-panel: #18181b; --s-panel2: #1f1f23; --s-line: rgba(255,255,255,.08);
+    --s-text: #efeff1; --s-muted: #adadb8; --s-live: #eb0400; --s-accent: #a970ff; --s-pos: #34d399; --s-neg: #f87171;
+    background: var(--s-bg); color: var(--s-text); min-height: 100vh; padding: 76px 16px 48px; }
+  .studio a { color: inherit; }
+  .bar { max-width: 1280px; margin: 0 auto 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .bar h1 { font-size: 1.35rem; margin: 0; color: var(--s-text); letter-spacing: -.02em; }
+  .pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    border-radius: 4px; padding: 3px 8px; text-transform: uppercase; }
+  .pill.live { background: var(--s-live); color: #fff; }
+  .pill.live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #fff; animation: pulse 1.4s infinite; }
+  .pill.off { background: var(--s-panel2); color: var(--s-muted); }
+  @keyframes pulse { 50% { opacity: .25; } }
+  .stat { font-size: 13px; color: var(--s-muted); font-variant-numeric: tabular-nums; }
+  .stat b { color: var(--s-text); }
+  .spacer { flex: 1; }
+  .studio-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; }
+  @media (max-width: 900px) { .studio-grid { grid-template-columns: 1fr; } }
+  .panel { background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 10px; }
+  .stage { padding: 22px; position: relative; overflow: hidden; min-height: 320px; }
+  .stage .kicker { font-size: 12px; color: var(--s-muted); text-transform: uppercase; letter-spacing: .06em; }
+  .stage .headline { font-size: clamp(1.25rem, 2.6vw, 1.9rem); line-height: 1.25; font-weight: 700; margin: 10px 0 14px;
+    letter-spacing: -.02em; }
+  .stage .headline a { text-decoration: none; } .stage .headline a:hover { text-decoration: underline; }
+  .stage .tone-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--s-muted); }
+  .tone-positive .tone-bar { background: var(--s-pos); } .tone-negative .tone-bar { background: var(--s-neg); }
+  .cast { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 8px; }
+  .who { background: var(--s-panel2); border-radius: 8px; padding: 10px 12px; }
+  .who .n { font-weight: 600; } .who .j { font-size: 12.5px; color: var(--s-muted); margin: 2px 0 6px; line-height: 1.4; }
+  .meter { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--s-muted); }
+  .meter .track { flex: 1; height: 5px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; }
+  .meter .fill { height: 100%; background: var(--s-accent); border-radius: 3px; }
+  .meter b { color: var(--s-text); font-variant-numeric: tabular-nums; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font-size: 12px; border-radius: 999px; padding: 3px 9px; background: rgba(169,112,255,.16); color: #d6c2ff; }
+  .tag.co { background: rgba(255,255,255,.08); color: var(--s-text); }
+  .tag.mv { background: rgba(250,204,21,.15); color: #fde68a; }
+  .below { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+  @media (max-width: 640px) { .below { grid-template-columns: 1fr; } }
+  .below .panel { padding: 16px; }
+  .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--s-muted); margin: 0 0 10px; }
+  .rank { list-style: none; } .rank li { display: grid; grid-template-columns: 1fr 90px 28px; gap: 8px; align-items: center;
+    font-size: 13.5px; padding: 5px 0; }
+  .rank .n { text-align: right; color: var(--s-muted); font-variant-numeric: tabular-nums; }
+  .feed { display: flex; flex-direction: column; height: calc(100vh - 150px); min-height: 480px; }
+  @media (max-width: 900px) { .feed { height: 560px; } }
+  .feed-head { padding: 12px 14px; border-bottom: 1px solid var(--s-line); display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .feed-head h2 { margin: 0 auto 0 0; }
+  .feed-head button { font: inherit; font-size: 12px; background: var(--s-panel2); color: var(--s-muted); border: 0;
+    border-radius: 4px; padding: 4px 8px; cursor: pointer; }
+  .feed-head button[aria-pressed="true"] { background: var(--s-accent); color: #fff; }
+  .feed ol { list-style: none; overflow-y: auto; flex: 1; padding: 6px 0; }
+  .feed li { padding: 9px 14px; font-size: 13.5px; line-height: 1.45; border-left: 3px solid transparent; cursor: pointer; }
+  .feed li:hover { background: var(--s-panel2); }
+  .feed li.tone-positive { border-left-color: var(--s-pos); } .feed li.tone-negative { border-left-color: var(--s-neg); }
+  .feed li.fresh { animation: arrive 1.6s ease-out; }
+  @keyframes arrive { from { background: rgba(169,112,255,.28); } to { background: transparent; } }
+  .feed .t { font-size: 11.5px; color: var(--s-muted); font-variant-numeric: tabular-nums; }
+  .feed .p { font-weight: 600; color: #d6c2ff; }
+  .empty { color: var(--s-muted); font-size: 14px; padding: 14px; }
+  /* Paywall */
+  .locked .studio-grid { filter: blur(6px); pointer-events: none; user-select: none; }
+  .gate { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 20;
+    background: rgba(14,14,16,.55); }
+  .gate .card { background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 12px; padding: 26px; max-width: 440px;
+    text-align: center; color: var(--s-text); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+  .gate h2 { font-size: 1.4rem; margin: 10px 0 8px; color: var(--s-text); }
+  .gate p { color: var(--s-muted); font-size: 14.5px; line-height: 1.55; }
+  .gate .go { display: inline-block; margin-top: 16px; background: var(--s-accent); color: #fff; font-weight: 600; border: 0;
+    border-radius: 6px; padding: 10px 18px; font: inherit; cursor: pointer; text-decoration: none; }
+  .gate .alt { display: block; margin-top: 10px; font-size: 13px; color: var(--s-muted); }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <div class="nav-cta"><a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
+  </div>
+</nav>
+
+<main class="studio" id="studio">
+  <div class="bar">
+    <h1>Lyra Watch Live</h1>
+    <span class="pill off" id="livePill">Offline</span>
+    <span class="stat"><b id="viewers">–</b> watching</span>
+    <span class="stat"><b id="today">–</b> stories in 24 h</span>
+    <span class="spacer"></span>
+    <span class="stat" id="conn"></span>
+  </div>
+
+  <div class="studio-grid">
+    <section>
+      <div class="panel stage" id="stage" aria-live="polite">
+        <div class="tone-bar"></div>
+        <div class="kicker" id="sKicker">Waiting for the next story…</div>
+        <div class="headline" id="sHeadline"></div>
+        <div class="cast" id="sCast"></div>
+        <div class="tags" id="sTags"></div>
+      </div>
+      <div class="below">
+        <div class="panel"><h2>Most talked about · 24 h</h2><ol class="rank" id="trending"></ol></div>
+        <div class="panel"><h2>Companies in the stream · 24 h</h2><ol class="rank" id="companies"></ol></div>
+      </div>
+    </section>
+
+    <aside class="panel feed">
+      <div class="feed-head" role="group" aria-label="Filter the feed">
+        <h2>Live feed</h2>
+        <button data-f="" aria-pressed="true">All</button>
+        <button data-f="moves" aria-pressed="false">Power moves</button>
+        <button data-f="positive" aria-pressed="false">Positive</button>
+        <button data-f="negative" aria-pressed="false">Negative</button>
+      </div>
+      <ol id="feed"></ol>
+    </aside>
+  </div>
+</main>
+
+<div class="gate" id="gate" hidden>
+  <div class="card">
+    <span class="pill live">Live</span>
+    <h2 id="gTitle">Watch the news move, live</h2>
+    <p id="gText">Every new headline about the politicians, investors, executives and public figures we track, the
+      moment it lands: who's named, their job and popularity, the companies involved and the tone.</p>
+    <p id="gNumbers" class="stat"></p>
+    <a class="go" id="gGo" href="/dashboard/billing.html">Subscribe to watch</a>
+    <a class="alt" id="gAlt" href="/watch/">Browse the free directory instead</a>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
+  const link = (u, text) => safeUrl(u) ? el("a", { href: u, target: "_blank", rel: "noopener nofollow", text }) : document.createTextNode(text);
+  const ago = (ts) => { const s = Date.now() / 1000 - ts; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`; };
+  let token = null;
+  try { token = localStorage.getItem("lyra_token"); } catch {}
+
+  let events = [], filter = "", unseen = 0, retry = 1000;
+  const baseTitle = document.title;
+
+  const meter = (pop) => pop ? el("div", { class: "meter", title: pop.basis || "" },
+    el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${pop.score}%` })),
+    el("b", { text: String(pop.score) }), ` ${pop.tier}`) : null;
+
+  function stage(e) {
+    if (!e) return;
+    $("stage").className = `panel stage tone-${e.tone}`;
+    $("sKicker").textContent = `${e.feed} · ${e.source || "News"} · ${ago(e.ts)}`;
+    $("sHeadline").replaceChildren(link(e.url, e.title));
+    $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
+      p.slug ? el("a", { class: "n", href: `/watch/#${p.slug}`, text: p.name }) : el("div", { class: "n", text: p.name }),
+      el("div", { class: "j", text: p.job || "" }), meter(p.popularity))));
+    $("sTags").replaceChildren(
+      ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
+      ...e.companies.map((c) => el("span", { class: "tag co", text: c.ticker ? `${c.name} · ${c.ticker}` : c.name })),
+      ...e.topics.slice(0, 3).map((t) => el("span", { class: "tag", text: t })));
+  }
+
+  const keep = (e) => !filter || (filter === "moves" ? e.moves.length : e.tone === filter);
+
+  function row(e, fresh) {
+    const li = el("li", { class: `tone-${e.tone}${fresh ? " fresh" : ""}` },
+      el("span", { class: "t", text: ago(e.ts) }), " ",
+      el("span", { class: "p", text: e.people.map((p) => p.name).slice(0, 2).join(", ") || e.feed }), el("br"),
+      el("span", { text: e.title }));
+    li.onclick = () => stage(e);
+    return li;
+  }
+
+  function renderFeed() {
+    const rows = events.filter(keep);
+    $("feed").replaceChildren(...rows.slice(0, 200).map((e) => row(e, false)));
+    if (!rows.length) $("feed").replaceChildren(el("li", { class: "empty", text: "No stories yet. New ones appear here the moment they land." }));
+  }
+
+  function rank(target, counts) {
+    const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+    const max = Math.max(1, ...top.map((t) => t[1]));
+    $(target).replaceChildren(...top.map(([name, n]) => el("li", {},
+      el("span", { text: name }),
+      el("span", { class: "meter" }, el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${(100 * n / max).toFixed(0)}%` }))),
+      el("span", { class: "n", text: String(n) }))));
+    if (!top.length) $(target).replaceChildren(el("li", { class: "empty", text: "Nothing yet today." }));
+  }
+
+  function renderSide() {
+    const day = Date.now() / 1000 - 86400, people = new Map(), cos = new Map();
+    for (const e of events) {
+      if (e.ts < day) continue;
+      for (const p of e.people) people.set(p.name, (people.get(p.name) || 0) + 1);
+      for (const c of e.companies) cos.set(c.name, (cos.get(c.name) || 0) + 1);
+    }
+    rank("trending", people); rank("companies", cos);
+  }
+
+  function arrive(e) {
+    if (events.some((x) => x.id === e.id)) return;
+    events.unshift(e);
+    events = events.slice(0, 300);
+    stage(e);
+    if (keep(e)) { $("feed").prepend(row(e, true)); $("feed").querySelector(".empty")?.remove(); }
+    renderSide();
+    if (document.hidden) { unseen += 1; document.title = `(${unseen}) ${baseTitle}`; }
+  }
+
+  function setStatus(s) {
+    $("livePill").className = `pill ${s.live ? "live" : "off"}`;
+    $("livePill").textContent = s.live ? "Live" : "Offline";
+    $("viewers").textContent = s.viewers;
+    $("today").textContent = s.events_today;
+  }
+
+  function gate(kind, status) {
+    document.body.classList.add("locked");
+    $("gate").hidden = false;
+    if (status) $("gNumbers").textContent = `${status.viewers} watching now · ${status.events_today} stories in the last 24 hours`;
+    if (kind === "signin") {
+      $("gTitle").textContent = "Sign in to watch live";
+      $("gGo").textContent = "Sign in";
+      $("gGo").href = "/dashboard/login.html";
+      $("gGo").onclick = () => { try { localStorage.setItem("lyra_next", "/watch/live/"); } catch {} };
+    }
+  }
+
+  async function teaser() {
+    try {
+      const [s, p] = await Promise.all([fetch("/api/watch/live/status").then((r) => r.json()),
+                                        fetch("/api/watch/live/preview").then((r) => r.json())]);
+      setStatus(s);
+      events = p.events; renderFeed(); renderSide(); stage(events[0]);
+      return s;
+    } catch { return null; }
+  }
+
+  async function connect() {
+    $("conn").textContent = "Connecting…";
+    let resp;
+    try {
+      resp = await fetch("/api/watch/live/stream", { headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" } });
+    } catch { return reconnect(); }
+    if (resp.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} return gate("signin", await teaser()); }
+    if (resp.status === 402) return gate("subscribe", await teaser());
+    if (!resp.ok || !resp.body) return reconnect();
+    $("conn").textContent = "";
+    retry = 1000;
+    const reader = resp.body.getReader(), dec = new TextDecoder();
+    let buf = "";
+    for (;;) {
+      let chunk;
+      try { chunk = await reader.read(); } catch { break; }
+      if (chunk.done) break;
+      buf += dec.decode(chunk.value, { stream: true });
+      let cut;
+      while ((cut = buf.indexOf("\n\n")) >= 0) {
+        const block = buf.slice(0, cut); buf = buf.slice(cut + 2);
+        let type = "message", data = "";
+        for (const line of block.split("\n")) {
+          if (line.startsWith("event: ")) type = line.slice(7);
+          else if (line.startsWith("data: ")) data += line.slice(6);
+        }
+        if (!data) continue;
+        try {
+          const msg = JSON.parse(data);
+          if (type === "status") setStatus(msg); else if (type === "item") arrive(msg);
+        } catch {}
+      }
+    }
+    reconnect();
+  }
+
+  function reconnect() {
+    $("conn").textContent = "Reconnecting…";
+    setTimeout(connect, retry);
+    retry = Math.min(retry * 2, 30000);
+  }
+
+  async function start() {
+    if (!token) return gate("signin", await teaser());
+    const r = await fetch("/api/watch/live/recent?limit=200", { headers: { Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} return gate("signin", await teaser()); }
+    if (r.status === 402) return gate("subscribe", await teaser());
+    if (r.ok) { events = (await r.json()).events; renderFeed(); renderSide(); stage(events[0]); }
+    connect();
+  }
+
+  [...document.querySelectorAll(".feed-head button")].forEach((b) => b.onclick = () => {
+    filter = b.dataset.f;
+    document.querySelectorAll(".feed-head button").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+    renderFeed();
+  });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { unseen = 0; document.title = baseTitle; } });
+  setInterval(() => { if (events[0]) $("sKicker").textContent = `${events[0].feed} · ${events[0].source || "News"} · ${ago(events[0].ts)}`; }, 30000);
+  start();
+})();
+</script>
+</body>
+</html>
