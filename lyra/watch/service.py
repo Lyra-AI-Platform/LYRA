@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from lyra.watch import analysis, chatter, people, signals, sources
+from lyra.watch import analysis, chatter, people, signals, sources, xapi
 from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -78,8 +78,9 @@ async def accounts_for(person: Dict) -> Dict:
     links = sources.account_links(accounts)
     read = {f["platform"].lower() for f in feeds}
     for link in links:
-        # ✓ only when a feed for that platform actually loaded (a website may have none).
-        link["read"] = link["read"] and link["platform"] in read
+        # ✓ only when a feed for that platform actually loaded (a website may have none),
+        # or for X when the X API is connected.
+        link["read"] = (link["read"] and link["platform"] in read) or (link["platform"] == "x" and xapi.enabled())
     return {"wiki": wiki, "wikidata": wd, "accounts": links, "own_feeds": feeds}
 
 
@@ -407,4 +408,4 @@ def health() -> Dict:
             "last_live_check_minutes": round(live_age / 60, 1) if live_age is not None else None,
             "refresh_every_hours": refresh_loop.interval / 3600, "live_cycle_minutes": live.LIVE_CYCLE_MINUTES,
             "last_signals_check_minutes": round((now - live.signals_loop.last_run) / 60, 1) if live.signals_loop.last_run else None,
-            "sources": {"gdelt": chatter.gdelt_status(), "reddit": "on" if chatter.reddit_enabled() else "off (no API credentials)"}}
+            "sources": {"x": xapi.status(), "gdelt": chatter.gdelt_status(), "reddit": "on" if chatter.reddit_enabled() else "off (no API credentials)"}}

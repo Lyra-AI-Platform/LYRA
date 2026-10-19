@@ -88,7 +88,7 @@ async def json_feed(response: Response, request: Request):
     _public(response, request)
     base = "https://lyraauth.com"
     items = []
-    for e in live.hub.recent(100, delay=live.TEASER_DELAY):
+    for e in live.hub.recent(100, delay=live.TEASER_DELAY, include_x=False):  # X content stays on the site
         named = [p for p in e.get("people", [])]
         items.append({
             "id": e["id"], "url": e["url"], "title": e["title"],
@@ -141,7 +141,7 @@ async def live_status(response: Response, request: Request):
 async def live_preview(response: Response, request: Request):
     """Public taste of the feed: a few events, an hour late."""
     _public(response, request)
-    return {"delay_seconds": live.TEASER_DELAY, "events": live.hub.recent(5, delay=live.TEASER_DELAY)}
+    return {"delay_seconds": live.TEASER_DELAY, "events": live.hub.recent(5, delay=live.TEASER_DELAY, include_x=False)}
 
 
 @router.get("/live/recent")

@@ -13,7 +13,7 @@ import time
 from collections import deque
 from typing import Deque, Dict, List, Optional, Set
 
-from lyra.watch import analysis, chatter, people, service, signals, sources
+from lyra.watch import analysis, chatter, people, service, signals, sources, xapi
 from lyra.watch.config import WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -43,8 +43,8 @@ class Hub:
         try:
             for line in EVENTS_FILE.read_text().splitlines():
                 event = json.loads(line)
-                if event.get("v", 1) < EVENT_VERSION:
-                    continue  # recorded before dates were read correctly; their ages can't be trusted
+                if event.get("v", 1) < EVENT_VERSION or xapi.expired(event):
+                    continue  # recorded before dates were read correctly, or X content past retention
                 self.history.append(event)
                 self.arrivals.append(event["ts"])
         except (OSError, ValueError):
@@ -84,9 +84,21 @@ class Hub:
             except asyncio.QueueFull:
                 pass
 
-    def recent(self, limit: int = 50, delay: float = 0) -> List[Dict]:
+    def recent(self, limit: int = 50, delay: float = 0, include_x: bool = True) -> List[Dict]:
         cutoff = time.time() - delay
-        return [e for e in self.history if e["ts"] <= cutoff][-limit:][::-1]
+        rows = [e for e in self.history if e["ts"] <= cutoff and not xapi.expired(e) and (include_x or not e.get("x"))]
+        return rows[-limit:][::-1]
+
+    def purge_expired(self):
+        """Remove X content past its retention from memory and from the saved history."""
+        if not any(xapi.expired(e) for e in self.history):
+            return
+        self.history = deque((e for e in self.history if not xapi.expired(e)), maxlen=HISTORY)
+        try:
+            keep = [line for line in EVENTS_FILE.read_text().splitlines() if not xapi.expired(json.loads(line))]
+            EVENTS_FILE.write_text("".join(line + "\n" for line in keep))
+        except (OSError, ValueError):
+            pass
 
     def status(self) -> Dict:
         day = time.time() - 86400
@@ -135,7 +147,7 @@ def make_event(item: Dict, person: Dict, lookup: Dict[str, Dict], tickers=frozen
             "moves": [m["label"] for m in a["moves"]], "topics": a["topics"],
             "kind": ("post" if item.get("own_words") else "reported_post" if item.get("reported")
                      else "interview" if item.get("interview") else "news"),
-            "platform": item.get("platform", ""),
+            "platform": item.get("platform", ""), **({"x": True} if item.get("x") else {}),
             "tone": "positive" if a["sentiment"] >= 0.15 else "negative" if a["sentiment"] <= -0.15 else "neutral"}
 
 
@@ -162,6 +174,9 @@ class LiveLoop:
     async def check(self, person: Dict, lookup: Dict[str, Dict], tickers=frozenset(), announce: bool = True) -> int:
         profile = service.load_profile(person["slug"]) or {}
         items, _ = await sources.statements({**person, "feeds": profile.get("own_feeds", [])}, max_age=60)
+        if xapi.enabled():
+            handles = [a["handle"] for a in profile.get("accounts", []) if a["platform"] == "x"]
+            items += await xapi.new_posts(person, handles)
         new = [it for it in items if it["url"] not in self.seen]
         for it in sorted(new, key=lambda x: x["published"]):
             self.seen.add(it["url"])
@@ -286,6 +301,7 @@ class SignalsLoop:
                     found.append(spike)
                 await asyncio.sleep(0.2)
         signals._save_state(state)
+        hub.purge_expired()
         for sig in sorted(found, key=lambda x: x.get("published") or 0):
             age = time.time() - (sig.get("published") or 0)
             if announce and 0 < age < FRESH_HOURS * 3600 and sig["url"] not in loop.seen:
