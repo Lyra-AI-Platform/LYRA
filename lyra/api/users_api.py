@@ -11,13 +11,20 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import re
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jose import JWTError, jwt
+try:  # PyJWT; python-jose (unmaintained, pulls in a vulnerable ecdsa) only where PyJWT isn't installed yet
+    import jwt
+    from jwt import PyJWTError as JWTError
+except ImportError:
+    from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
+from lyra.api import ratelimit
 from lyra.db.database import get_db
 from lyra.db.models import User
 
@@ -107,15 +114,31 @@ def get_current_user(
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 
+EMAIL_RE = re.compile(r"^[^@\s]{1,64}@[^@\s]{1,189}\.[^@\s]{2,}$")
+
+
+def _admin_emails():
+    return {e.strip().lower() for e in os.getenv("LYRA_ADMIN_EMAILS", "").split(",") if e.strip()}
+
+
 @router.post("/register", status_code=201)
-def register(req: RegisterRequest, db: Session = Depends(get_db)):
-    if len(req.password) < 8:
-        raise HTTPException(400, "Password must be at least 8 characters")
-    if db.query(User).filter(User.email == req.email.lower()).first():
+def register(req: RegisterRequest, request: Request, db: Session = Depends(get_db)):
+    ratelimit.check(f"register:{ratelimit.client_ip(request)}", limit=5, window=3600)
+    email = req.email.lower().strip()
+    if not EMAIL_RE.match(email) or len(email) > 254:
+        raise HTTPException(400, "Enter a valid email address")
+    if not 8 <= len(req.password) <= 128:
+        raise HTTPException(400, "Password must be 8 to 128 characters")
+    if len(req.name) > 80:
+        raise HTTPException(400, "Name is too long")
+    # Owner emails carry admin rights, so nobody else may claim one by signing up first.
+    if email in _admin_emails() and os.getenv("LYRA_ALLOW_ADMIN_SIGNUP") != "1":
+        raise HTTPException(403, "This email can't be registered here")
+    if db.query(User).filter(User.email == email).first():
         raise HTTPException(400, "Email already registered")
 
     user = User(
-        email=req.email.lower().strip(),
+        email=email,
         password_hash=_hash_password(req.password),
         name=req.name.strip() or req.email.split("@")[0],
     )
@@ -127,9 +150,16 @@ def register(req: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/login")
-def login(req: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == req.email.lower()).first()
-    if not user or not _verify_password(req.password, user.password_hash):
+def login(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
+    email = req.email.lower().strip()[:254]
+    ip_key, email_key = f"login-ip:{ratelimit.client_ip(request)}", f"login-email:{email}"
+    # Failed attempts only: 20 per address and 10 per account in 15 minutes.
+    ratelimit.check(ip_key, limit=20, window=900, record=False)
+    ratelimit.check(email_key, limit=10, window=900, record=False)
+    user = db.query(User).filter(User.email == email).first()
+    if not user or len(req.password) > 128 or not _verify_password(req.password, user.password_hash):
+        ratelimit.record(ip_key)
+        ratelimit.record(email_key)
         raise HTTPException(401, "Invalid email or password")
     if not user.is_active:
         raise HTTPException(403, "Account disabled")
@@ -149,7 +179,7 @@ def update_me(
     db: Session = Depends(get_db),
 ):
     if req.name is not None:
-        user.name = req.name.strip()
+        user.name = req.name.strip()[:80]
     db.commit()
     db.refresh(user)
     return UserOut.model_validate(user)

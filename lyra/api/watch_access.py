@@ -22,7 +22,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from lyra.api import entitlements
+from lyra.api import entitlements, ratelimit
 from lyra.api.users_api import get_current_user
 from lyra.db.database import get_db
 from lyra.db.models import ApiKey, CreditPurchase, CreditWallet, User, WatchSubscription, _api_key
@@ -106,13 +106,18 @@ def charge_key(key: str, cost: int, db: Session) -> Viewer:
         raise HTTPException(401, {"error": "invalid_key", "message": "Unknown or revoked API key.",
                                   "get_a_key": f"{APP_URL}/watch/account/"})
     w = wallet(row.user_id, db)
-    if w.balance < cost:
+    # One conditional UPDATE, so parallel requests can't spend the same credits twice.
+    spent = db.query(CreditWallet).filter(CreditWallet.id == w.id, CreditWallet.balance >= cost).update(
+        {CreditWallet.balance: CreditWallet.balance - cost, CreditWallet.spent: CreditWallet.spent + cost},
+        synchronize_session=False)
+    if not spent:
+        db.rollback()
+        db.refresh(w)
         raise _out_of_credits(w.balance, cost)
-    w.balance -= cost
-    w.spent += cost
     row.requests += 1
     row.last_used = datetime.now(timezone.utc)
     db.commit()
+    db.refresh(w)
     return Viewer("key", db.get(User, row.user_id), w.balance)
 
 
@@ -180,6 +185,7 @@ def create_key(req: KeyRequest, user: User = Depends(get_current_user), db: Sess
     """A new API key, shown once. A user's very first key comes with FREE_CREDITS."""
     if db.query(ApiKey).filter(ApiKey.user_id == user.id, ApiKey.is_active == True).count() >= MAX_KEYS:  # noqa: E712
         raise HTTPException(400, f"At most {MAX_KEYS} keys; revoke one first.")
+    ratelimit.check(f"keys:{user.id}", limit=20, window=86400)
     first = db.query(ApiKey).filter(ApiKey.user_id == user.id).count() == 0
     key = _api_key()
     db.add(ApiKey(user_id=user.id, name=req.name[:60], prefix=key[:10], key_hash=_hash(key)))

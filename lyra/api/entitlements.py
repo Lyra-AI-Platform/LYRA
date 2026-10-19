@@ -16,7 +16,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 from fastapi import Depends, HTTPException
-from jose import JWTError, jwt
+try:  # PyJWT; python-jose (unmaintained, pulls in a vulnerable ecdsa) only where PyJWT isn't installed yet
+    import jwt
+    from jwt import PyJWTError as JWTError
+except ImportError:
+    from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from lyra.db.database import get_db

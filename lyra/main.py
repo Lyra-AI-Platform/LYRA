@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
 import uvicorn
 
 from lyra.api.chat import router as chat_router
@@ -64,11 +64,34 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:7860", "http://127.0.0.1:7860", "*"],
-    allow_credentials=True,
+    # Any site may call the public APIs (the LyraAuth widget runs on customers' sites), but
+    # sign-in is a bearer token, never a cookie, so no credentials are allowed cross-site.
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# The engine's control APIs (load and delete models, wipe memory, crawl any URL, set tokens,
+# claim ownership) are for the machine Lyra runs on. Requests from anywhere else, including
+# everything arriving through the Cloudflare tunnel, get a 404.
+LOCAL_ONLY = ("/api/models", "/api/memory", "/api/ingestion", "/api/learning", "/api/graph",
+              "/api/telemetry", "/api/intel", "/api/cognition", "/api/quantum", "/api/experiments",
+              "/api/self", "/api/owner", "/docs", "/redoc", "/openapi.json")
+PROXY_HEADERS = ("cf-connecting-ip", "cf-ray", "x-forwarded-for", "x-real-ip", "forwarded")
+
+
+def is_local_request(request) -> bool:
+    host = request.client.host if request.client else ""
+    return host in ("127.0.0.1", "::1", "localhost") and not any(h in request.headers for h in PROXY_HEADERS)
+
+
+@app.middleware("http")
+async def local_only_guard(request, call_next):
+    path = request.url.path
+    if any(path == p or path.startswith(p + "/") for p in LOCAL_ONLY) and not is_local_request(request):
+        return JSONResponse({"detail": "Not Found"}, status_code=404)
+    return await call_next(request)
 
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
@@ -257,6 +280,13 @@ async def on_shutdown():
     await engine.unload_model()
 
 
+# Pages use inline scripts, so 'unsafe-inline' stays; everything else is locked to this site
+# (plus Google Fonts and Stripe Checkout).
+CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; "
+       "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; object-src 'none'; "
+       "upgrade-insecure-requests")
+
 if SERVE_WEBSITE:
     @app.get("/widget.js")
     async def serve_widget():
@@ -269,6 +299,11 @@ if SERVE_WEBSITE:
         response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
         response.headers.setdefault("X-Content-Type-Options", "nosniff")
         response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000")
+        response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
+        response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+        if response.headers.get("content-type", "").startswith("text/html"):
+            response.headers.setdefault("Content-Security-Policy", CSP)
         return response
 
     # Mounted last so every API route above takes priority over static files.

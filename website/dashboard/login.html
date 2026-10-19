@@ -70,11 +70,16 @@
 </div>
 
 <script>
+  // Only a path on this site: never "//other.site" or a full URL.
+  function safeNext(next) {
+    return typeof next === 'string' && /^\/(?![\/\\])[A-Za-z0-9\-._~\/?=&#%+]*$/.test(next) ? next : 'index.html';
+  }
+
   // Redirect if already logged in
   if (localStorage.getItem('lyra_token')) {
     const next = localStorage.getItem('lyra_next');
     localStorage.removeItem('lyra_next');
-    window.location.href = ['/market', '/watch/live/'].includes(next) ? next : 'index.html';
+    window.location.href = safeNext(next);
   }
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -119,7 +124,7 @@
       localStorage.setItem('lyra_user', JSON.stringify(data.user));
       const next = localStorage.getItem('lyra_next');
       localStorage.removeItem('lyra_next');
-      window.location.href = ['/market', '/watch/live/'].includes(next) ? next : 'index.html';
+      window.location.href = safeNext(next);
     } catch (ex) {
       showErr(ex.message);
       btn.disabled = false;

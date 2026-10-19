@@ -110,6 +110,8 @@ def book(b: Booking, user: User = Depends(get_current_user), db: Session = Depen
     if urlparse(url).scheme != "https" or not urlparse(url).netloc:
         raise HTTPException(400, "The link must be a full https:// address.")
     weeks = min(max(b.weeks, 1), MAX_WEEKS)
+    if db.query(Sponsor).filter(Sponsor.user_id == user.id, Sponsor.status == "unpaid").count() >= 10:
+        raise HTTPException(429, "Too many unfinished bookings. Finish or wait for one first.")
     s = Sponsor(user_id=user.id, headline=headline, body=body, url=url, weeks=weeks, status="unpaid")
     db.add(s)
     db.commit()
