@@ -163,8 +163,10 @@
     <p id="gText">Every new headline about the politicians, investors, executives and public figures we track, the
       moment it lands: who's named, their job and popularity, the companies involved and the tone.</p>
     <p id="gNumbers" class="stat"></p>
-    <a class="go" id="gGo" href="/dashboard/billing.html">Subscribe to watch</a>
+    <a class="go" id="gGo" href="/watch/account/">Get Watch Pro · $7/month</a>
     <a class="alt" id="gAlt" href="/watch/">Browse the free directory instead</a>
+    <p class="stat" style="margin-top:10px">Building an AI agent? <a href="/watch/account/#api" style="color:inherit"><u>Pay per request with an API key</u></a></p>
+    <a id="gAd" hidden style="display:block;margin-top:14px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:inherit;text-decoration:none;font-size:13px"></a>
   </div>
 </div>
 
@@ -292,6 +294,17 @@
   function gate(kind, status) {
     document.body.classList.add("locked");
     $("gate").hidden = false;
+    fetch("/api/watch/account/pricing").then((r) => r.json()).then((p) => {
+      if (kind !== "signin") $("gGo").textContent = `Get Watch Pro · ${new Intl.NumberFormat("en", { style: "currency", currency: p.currency.toUpperCase() }).format(p.watch_pro.price_cents / 100)}/month`;
+    }).catch(() => {});
+    fetch("/api/ads/slot").then((r) => r.json()).then((ad) => {
+      if (ad.kind !== "sponsor") return;   // Lyra's own offer is already the gate
+      const a = $("gAd");
+      a.href = ad.url; a.target = "_blank"; a.rel = "sponsored noopener";
+      a.replaceChildren(Object.assign(document.createElement("small"), { textContent: "Sponsored · " }),
+        Object.assign(document.createElement("b"), { textContent: ad.headline + " " }), document.createTextNode(ad.body));
+      a.hidden = false;
+    }).catch(() => {});
     if (status) $("gNumbers").textContent = `${status.viewers} watching now · ${status.events_today} stories in the last 24 hours`;
     if (kind === "signin") {
       $("gTitle").textContent = "Sign in to watch live";

@@ -99,3 +99,76 @@ class UsageRecord(Base):
     count   = Column(Integer, default=0)
 
     site = relationship("Site", back_populates="usage")
+
+
+# ── Lyra Watch: its own subscription, AI credits and sponsors ─────────────
+
+class WatchSubscription(Base):
+    """Lyra Watch Pro, a Stripe subscription separate from the main plans."""
+    __tablename__ = "watch_subscriptions"
+
+    id                     = Column(Integer, primary_key=True)
+    user_id                = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    stripe_subscription_id = Column(String, nullable=True, index=True)
+    status                 = Column(String, default="inactive")   # active | trialing | past_due | canceled ...
+    updated_at             = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
+def _api_key():
+    return "lw_" + secrets.token_urlsafe(32)
+
+
+class CreditWallet(Base):
+    """Prepaid credits that API keys spend (AI agents pay per request)."""
+    __tablename__ = "credit_wallets"
+
+    id      = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    balance = Column(Integer, default=0)
+    spent   = Column(Integer, default=0)
+
+
+class ApiKey(Base):
+    """Only a hash of the key is stored; the key itself is shown once, when it's made."""
+    __tablename__ = "api_keys"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name       = Column(String, default="")
+    prefix     = Column(String, nullable=False)          # first characters, to tell keys apart
+    key_hash   = Column(String, unique=True, nullable=False, index=True)
+    is_active  = Column(Boolean, default=True)
+    requests   = Column(Integer, default=0)
+    created_at = Column(DateTime(timezone=True), default=_now)
+    last_used  = Column(DateTime(timezone=True), nullable=True)
+
+
+class CreditPurchase(Base):
+    """One row per paid Stripe checkout, so a repeated webhook never adds credits twice."""
+    __tablename__ = "credit_purchases"
+
+    id                = Column(Integer, primary_key=True)
+    user_id           = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    stripe_session_id = Column(String, unique=True, nullable=False)
+    credits           = Column(Integer, nullable=False)
+    amount_cents      = Column(Integer, nullable=False)
+    created_at        = Column(DateTime(timezone=True), default=_now)
+
+
+class Sponsor(Base):
+    """A paid sponsor slot on Lyra Watch. Shown only after payment and the owner's approval."""
+    __tablename__ = "sponsors"
+
+    id                = Column(Integer, primary_key=True)
+    user_id           = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    headline          = Column(String, nullable=False)
+    body              = Column(String, default="")
+    url               = Column(String, nullable=False)
+    weeks             = Column(Integer, default=1)
+    status            = Column(String, default="unpaid")   # unpaid | paid | live | rejected
+    stripe_session_id = Column(String, nullable=True, index=True)
+    impressions       = Column(Integer, default=0)
+    clicks            = Column(Integer, default=0)
+    created_at        = Column(DateTime(timezone=True), default=_now)
+    starts_at         = Column(DateTime(timezone=True), nullable=True)
+    ends_at           = Column(DateTime(timezone=True), nullable=True)

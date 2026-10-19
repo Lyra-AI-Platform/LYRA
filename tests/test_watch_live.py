@@ -11,8 +11,9 @@ from fastapi.testclient import TestClient
 os.environ.setdefault("LYRA_MARKET_DIR", tempfile.mkdtemp(prefix="lyra-live-test-"))
 
 from lyra.api import watch_api  # noqa: E402
-from lyra.api.users_api import get_current_user  # noqa: E402
+from lyra.api.watch_access import Viewer  # noqa: E402
 from lyra.db.models import User  # noqa: E402
+from _watchdb import make_app, signed_in  # noqa: E402
 from lyra.watch import chatter, live, service, sources  # noqa: E402
 
 STARMER = {"slug": "keir-starmer", "name": "Keir Starmer", "role": "Former UK Prime Minister"}
@@ -78,11 +79,9 @@ def test_loop_announces_only_new_recent_headlines(monkeypatch):
 
 
 def _client(tier):
-    app = FastAPI()
-    app.include_router(watch_api.router)
-    if tier:
-        app.dependency_overrides[get_current_user] = lambda: User(id=1, email="a@b.c", tier=tier)
-    return TestClient(app)
+    app, Session = make_app(watch_api.router)
+    headers = signed_in(Session, tier)[1] if tier else {}
+    return TestClient(app, headers=headers)
 
 
 def test_status_and_preview_are_public():
@@ -94,7 +93,7 @@ def test_status_and_preview_are_public():
 
 
 def test_subscribers_only():
-    assert _client(None).get("/api/watch/live/recent").status_code == 401
+    assert _client(None).get("/api/watch/live/recent").status_code == 402
     r = _client("free").get("/api/watch/live/recent")
     assert r.status_code == 402 and r.json()["detail"]["reason"] == "subscribers_only"
     assert _client("free").get("/api/watch/live/stream").status_code == 402
@@ -111,7 +110,7 @@ def test_stream_sends_status_then_items(monkeypatch):
             return FakeRequest.calls > 1
 
     async def run():
-        resp = await watch_api.live_stream(FakeRequest(), user=User(id=1, tier="pro"))
+        resp = await watch_api.live_stream(FakeRequest(), viewer=Viewer("subscriber", User(id=1, tier="pro")))
         it = resp.body_iterator
         first = await it.__anext__()
         live.hub.publish({"id": "s1", "ts": time.time(), "title": "Breaking"})

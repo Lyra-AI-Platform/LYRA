@@ -15,8 +15,7 @@ from typing import Deque, Dict
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from lyra.api.entitlements import require_paid
-from lyra.db.models import User
+from lyra.api.watch_access import Viewer, identify, pricing, require_watch
 from lyra.watch import impact, live, service
 from lyra.watch.config import CATEGORIES, load_roster
 
@@ -26,7 +25,14 @@ _hits: Dict[str, Deque[float]] = defaultdict(deque)
 router = APIRouter(prefix="/api/watch", tags=["watch"])
 
 
-def _public(response: Response, request: Request):
+FREE_LEADERS = 5   # rows of Who moves markets anyone can see
+
+
+def _public(response: Response, request: Request, viewer: Viewer = None):
+    if viewer is not None and viewer.full:
+        # Paid answers differ per caller: never cached by browsers' shared caches or Cloudflare.
+        response.headers["Cache-Control"] = "private, no-store"
+        return
     ip = request.headers.get("cf-connecting-ip") or (request.client.host if request.client else "?")
     now, q = time.time(), _hits[ip]
     while q and now - q[0] > 3600:
@@ -56,26 +62,47 @@ async def figure(slug: str, response: Response, request: Request):
 
 @router.get("/people")
 async def people(response: Response, request: Request, q: str = "", watched: str = "", limit: int = 100,
-                 ticker: str = ""):
+                 ticker: str = "", viewer: Viewer = Depends(identify("people"))):
     """Everyone named in the coverage: job, linked companies, tone and a popularity rating.
     `ticker` (e.g. NVDA) keeps the people whose coverage names that company."""
-    _public(response, request)
+    _public(response, request, viewer)
     flag = {"": None, "true": True, "false": False}.get(watched.lower())
-    return service.people_list(q[:80], flag, min(max(limit, 1), 500), ticker=ticker[:10])
+    out = service.people_list(q[:80], flag, min(max(limit, 1), 500 if viewer.full else 150), ticker=ticker[:10])
+    out["people"] = [_shape(r, viewer) for r in out["people"]]
+    return out
+
+
+def _shape(rec: Dict, viewer: Viewer) -> Dict:
+    """Free callers get each person's market-impact summary; the day-by-day record and said &
+    traded are for subscribers and API keys."""
+    if viewer.full:
+        return rec
+    m = rec.get("market_impact") or {}
+    out = {k: v for k, v in rec.items() if k != "said_and_traded"}
+    out["market_impact"] = {k: m[k] for k in ("days", "big_moves", "lift", "verdict") if k in m}
+    out["locked"] = {"fields": ["market_impact.by_ticker", "market_impact.biggest", "said_and_traded"],
+                     "said_and_traded_rows": len(rec.get("said_and_traded") or []), "unlock": "/watch/account/"}
+    return out
 
 
 @router.get("/impact")
-async def market_impact(response: Response, request: Request, ticker: str = "", limit: int = 50):
+async def market_impact(response: Response, request: Request, ticker: str = "", limit: int = 50,
+                        viewer: Viewer = Depends(identify("impact"))):
     """Who moves markets, measured: for each public figure, how often a company's stock made a big
     move (two of its usual daily swings) on the days they were in the news about it, against how
-    often it does on any day. `ticker` (e.g. NVDA) keeps the people measured on that stock."""
-    _public(response, request)
+    often it does on any day. `ticker` (e.g. NVDA) keeps the people measured on that stock.
+    Free callers see the top FREE_LEADERS; the rest is for subscribers and API keys."""
+    _public(response, request, viewer)
     rows = impact.leaderboard(service.people_list(limit=500)["people"], limit=500)
     t = ticker.upper().strip()[:10]
     if t:
         rows = [{**r, "this_stock": next(b for b in r["by_ticker"] if b["ticker"] == t)}
                 for r in rows if any(b["ticker"] == t for b in r["by_ticker"])]
-    return {"method": IMPACT_METHOD, "people": rows[:min(max(limit, 1), 200)]}
+    rows = rows[:min(max(limit, 1), 200)]
+    if viewer.full:
+        return {"method": IMPACT_METHOD, "people": rows, "locked": 0}
+    return {"method": IMPACT_METHOD, "people": rows[:FREE_LEADERS], "locked": max(0, len(rows) - FREE_LEADERS),
+            "unlock": "/watch/account/", "pricing": pricing()}
 
 
 IMPACT_METHOD = ("A big move is a daily close-to-close change of at least two of the stock's usual daily swings "
@@ -87,14 +114,14 @@ IMPACT_METHOD = ("A big move is a daily close-to-close change of at least two of
 
 
 @router.get("/people/{pid}")
-async def person(pid: str, response: Response, request: Request):
+async def person(pid: str, response: Response, request: Request, viewer: Viewer = Depends(identify("person"))):
     """One person as JSON: job, popularity, documented politics, interests, companies, recent headlines.
     Stable URL, meant for linking and for AI agents."""
-    _public(response, request)
+    _public(response, request, viewer)
     rec = service.person_record(pid[:120])
     if not rec:
         raise HTTPException(404, "No public figure with that id")
-    return {**rec, "links": _links(rec)}
+    return {**_shape(rec, viewer), "links": _links(rec)}
 
 
 def _links(rec):
@@ -106,13 +133,14 @@ def _links(rec):
 
 
 @router.get("/feed.json")
-async def json_feed(response: Response, request: Request):
+async def json_feed(response: Response, request: Request, viewer: Viewer = Depends(identify("feed"))):
     """JSON Feed 1.1 of the latest stories, an hour behind the live (subscriber) stream. Each item
     names the public figures in it, with links to their JSON records."""
-    _public(response, request)
+    _public(response, request, viewer)
     base = "https://lyraauth.com"
     items = []
-    for e in live.hub.recent(100, delay=live.TEASER_DELAY, include_x=False):  # X content stays on the site
+    # Free: an hour behind. Subscribers and API keys: real time. X content stays on the site either way.
+    for e in live.hub.recent(100, delay=0 if viewer.full else live.TEASER_DELAY, include_x=False):
         named = [p for p in e.get("people", [])]
         items.append({
             "id": e["id"], "url": e["url"], "title": e["title"],
@@ -169,8 +197,10 @@ async def live_preview(response: Response, request: Request):
 
 
 @router.get("/live/recent")
-async def live_recent(limit: int = 50, user: User = Depends(require_paid("watch_live"))):
-    return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY))}
+async def live_recent(response: Response, limit: int = 50, viewer: Viewer = Depends(require_watch("live"))):
+    """Real-time events. API keys get everything except X posts, which X's terms keep on the site."""
+    response.headers["Cache-Control"] = "private, no-store"
+    return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY), include_x=viewer.kind != "key")}
 
 
 @router.get("/live/peer")
@@ -184,17 +214,19 @@ async def live_peer(response: Response, limit: int = 100, x_lyra_peer_key: str =
 
 
 @router.get("/live/buzz")
-async def live_buzz(user: User = Depends(require_paid("watch_live"))):
+async def live_buzz(viewer: Viewer = Depends(require_watch("live"))):
     """Who is being discussed most right now (Hacker News, Bluesky, and Reddit when configured)."""
     rows = sorted(live.loop.buzz.values(), key=lambda b: b.get("total", 0), reverse=True)
     return {"people": rows, "reddit": live.chatter.reddit_enabled()}
 
 
 @router.get("/live/stream")
-async def live_stream(request: Request, user: User = Depends(require_paid("watch_live"))):
+async def live_stream(request: Request, viewer: Viewer = Depends(require_watch("live"))):
     """Server-sent events: `event: item` per new headline, `event: status` with the viewer
     count every 30 s, and a comment line every 15 s so proxies keep the connection open.
     Sign in with the Authorization header (fetch + ReadableStream), not a token in the URL."""
+    if viewer.kind == "key":
+        raise HTTPException(400, "The stream is for the website. API keys poll /api/watch/live/recent instead.")
     q = live.hub.subscribe()
 
     async def events():

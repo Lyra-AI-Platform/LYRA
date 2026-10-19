@@ -143,6 +143,11 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     et = event["type"]
     data = event["data"]["object"]
 
+    # Lyra Watch Pro, API credits and sponsor slots are handled separately and never touch user.tier.
+    from lyra.api import watch_access
+    if watch_access.handle_webhook(et, data, db, stripe):
+        return {"received": True}
+
     if et == "checkout.session.completed" and data.get("subscription"):
         # Upgrade as soon as checkout finishes rather than waiting for the subscription event.
         sub = stripe.Subscription.retrieve(data["subscription"])

@@ -66,7 +66,7 @@
 <section class="hero" id="home">
   <div style="position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;">
 
-    <a class="announce fade-up" href="watch/live/"><span class="live-dot">New</span> Lyra Watch Live: who's in the news, as it happens &rarr;</a>
+    <a class="announce fade-up" href="watch/#movers"><span class="live-dot">New</span> Who moves markets: measured from real prices, not guessed &rarr;</a>
     <div class="hero-badge fade-up">Drop-in reCAPTCHA Replacement</div>
 
     <h1 class="hero-title fade-up-2">
@@ -569,13 +569,16 @@ onMounted(() => {
         <div><b>Live studio</b>New headlines and posts stream in the moment they land, with who's named and how popular they are.</div>
         <div><b>Popularity &amp; politics</b>A 0–100 attention rating, and only documented party membership and offices. Nothing guessed.</div>
         <div><b>Posts, not just press</b>YouTube, Bluesky and official sites are read directly; X and Truth Social posts arrive via news coverage.</div>
-        <div><b>Built for AI</b>Every person is a stable JSON link, with a JSON Feed and <a href="/llms.txt"><u>llms.txt</u></a> for agents.</div>
+        <div><b>Who moves markets</b>On the days someone made news about a company, did its stock really jump? Measured from closing prices, with a record that grows every day.</div>
+        <div><b>Said &amp; traded</b>Every disclosed insider and politician trade, next to the days they were in the news about that same company.</div>
+        <div><b>Built for AI</b>A pay-per-request JSON API with 100 free credits, plus a free feed and <a href="/llms.txt"><u>llms.txt</u></a> for agents.</div>
       </div>
       <div style="display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;">
         <a href="watch/live/" class="btn btn-primary"><span class="live-dot" style="margin-right:6px;">Live</span> Watch live &rarr;</a>
         <a href="watch/" class="btn btn-outline">Explore the free directory</a>
+        <a href="watch/account/" class="btn btn-outline">Watch Pro · API</a>
       </div>
-      <p class="muted" style="margin-top:10px;font-size:13px;">The directory is free. The live stream is included with every paid plan.</p>
+      <p class="muted" style="margin-top:10px;font-size:13px;">The directory is free. Watch Pro ($7/month) adds the real-time stream and the full market record, and every paid plan includes it. <a href="/advertise/"><u>Advertise here</u></a>.</p>
     </div>
   </div>
 </section>
@@ -779,6 +782,8 @@ onMounted(() => {
           <li><a href="tremor/">Tremor Index</a></li>
           <li><a href="watch/">Lyra Watch</a></li>
           <li><a href="watch/live/">Lyra Watch Live</a></li>
+          <li><a href="watch/account/">Watch Pro &amp; API</a></li>
+          <li><a href="advertise/">Advertise</a></li>
         </ul>
       </div>
       <div class="footer-col">

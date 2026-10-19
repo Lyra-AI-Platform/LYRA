@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Advertise on Lyra Watch</title>
+<meta name="description" content="Put your product in front of people who follow markets, politics and public figures. Self-serve sponsor slots on Lyra Watch, from one week." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="canonical" href="https://lyraauth.com/advertise/" />
+<link rel="stylesheet" href="../css/main.css" />
+<style>
+  .wrap { max-width: 860px; margin: 0 auto; padding: 96px 16px 80px; }
+  .wrap h2 { font-size: 1.3rem; margin: 36px 0 12px; }
+  .lede { color: var(--muted); line-height: 1.6; max-width: 680px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 12px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+  input, textarea, select { width: 100%; font: inherit; font-size: 14px; padding: 9px 12px; border: 1px solid var(--border-hi); border-radius: 8px; background: var(--bg); color: var(--text); box-sizing: border-box; }
+  textarea { min-height: 64px; resize: vertical; }
+  button { font: inherit; font-size: 14px; border-radius: 8px; padding: 9px 16px; cursor: pointer; border: 1px solid var(--text); background: var(--text); color: var(--bg); margin-top: 14px; }
+  button.ghost { background: var(--surface); color: var(--text); border-color: var(--border-hi); margin: 0 4px 0 0; padding: 5px 10px; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .note { padding: 10px 14px; border-radius: 8px; margin: 14px 0; font-size: 14px; background: #ecfdf5; color: #065f46; }
+  .note.warn { background: #fff7ed; color: #9a3412; }
+  .ad { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg); }
+  .ad small { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+  .ad b { display: block; margin: 2px 0; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-top: 14px; }
+  .stats div { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .stats b { font-size: 22px; display: block; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; } td, th { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <div class="nav-cta"><a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <h1>Advertise on Lyra Watch</h1>
+  <p class="lede">Lyra Watch readers follow markets, politics and the people who move them. A sponsor slot puts one
+    headline, one line and your link in front of every free visitor on Lyra Watch and its live feed. Book it yourself, pay
+    by card, and it goes live as soon as it's reviewed.</p>
+  <div class="stats" id="stats">
+    <div><b id="sPrice">$49</b><span class="muted">per week</span></div>
+    <div><b id="sToday">—</b><span class="muted">live stories in 24 h</span></div>
+    <div><b>No tracking</b><span class="muted">impressions and clicks only</span></div>
+  </div>
+  <div id="msg"></div>
+
+  <h2>Book a slot</h2>
+  <div class="panel">
+    <label for="headline">Headline (up to 70 characters)</label>
+    <input id="headline" maxlength="70" placeholder="The research terminal for retail investors" />
+    <label for="body">One line (up to 160)</label>
+    <textarea id="body" maxlength="160" placeholder="What you offer, in a sentence."></textarea>
+    <label for="url">Link (https://)</label>
+    <input id="url" type="url" placeholder="https://example.com" />
+    <label for="weeks">Weeks</label>
+    <select id="weeks"></select>
+    <p class="muted" style="margin-top:12px">Preview</p>
+    <div class="ad"><small>Sponsored</small><b id="pH">Your headline</b><span class="muted" id="pB">Your line of text.</span></div>
+    <p class="muted" id="rules" style="margin-top:12px"></p>
+    <button id="book">Continue to payment</button>
+  </div>
+
+  <h2>Your slots</h2>
+  <div class="panel"><div class="table-wrap"><table><thead><tr><th>Headline</th><th>Status</th><th>Runs</th><th>Seen</th><th>Clicks</th></tr></thead>
+    <tbody id="mine"><tr><td colspan="5" class="muted">Sign in to see your slots.</td></tr></tbody></table></div></div>
+
+  <div id="adminBox" hidden>
+    <h2>Review (owner)</h2>
+    <div class="panel"><div class="table-wrap"><table><thead><tr><th>Slot</th><th>Status</th><th>Weeks</th><th></th></tr></thead>
+      <tbody id="admin"></tbody></table></div>
+      <p class="muted">Rejecting doesn't refund automatically: refund the payment in the Stripe dashboard.</p></div>
+  </div>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else if (k.startsWith("on")) n[k] = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  let token = null, rate = 4900, cur = "usd";
+  try { token = localStorage.getItem("lyra_token"); } catch {}
+  const money = (c) => new Intl.NumberFormat("en", { style: "currency", currency: cur.toUpperCase(), maximumFractionDigits: 0 }).format(c / 100);
+  const toLogin = () => { try { localStorage.setItem("lyra_next", "/advertise/"); } catch {} location.href = "/dashboard/login.html"; };
+  const note = (text, warn) => $("msg").replaceChildren(el("div", { class: "note" + (warn ? " warn" : ""), text }));
+  async function api(path, opts = {}) {
+    if (!token) { toLogin(); throw new Error("sign in"); }
+    const r = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` } });
+    if (r.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} toLogin(); throw new Error("sign in"); }
+    const b = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((b.detail && (b.detail.message || b.detail)) || r.statusText);
+    return b;
+  }
+  const q = new URLSearchParams(location.search);
+  if (q.get("paid")) note("Paid, thank you. Your slot goes live once it's reviewed, usually within a day.");
+  if (q.get("cancelled")) note("No charge was made.", true);
+
+  const preview = () => { $("pH").textContent = $("headline").value || "Your headline"; $("pB").textContent = $("body").value || "Your line of text."; };
+  $("headline").oninput = preview; $("body").oninput = preview;
+
+  fetch("/api/ads/rates").then((r) => r.json()).then((r) => {
+    rate = r.week_cents; cur = r.currency;
+    $("sPrice").textContent = money(rate);
+    $("rules").textContent = r.rules;
+    $("weeks").replaceChildren(...Array.from({ length: r.max_weeks }, (_, i) => el("option", { value: String(i + 1), text: `${i + 1} week${i ? "s" : ""} · ${money(rate * (i + 1))}` })));
+  }).catch(() => {});
+  fetch("/api/watch/live/status").then((r) => r.json()).then((s) => { $("sToday").textContent = (s.events_today || 0).toLocaleString(); }).catch(() => {});
+
+  $("book").onclick = async () => {
+    try {
+      const r = await api("/api/ads/book", { method: "POST", body: JSON.stringify({
+        headline: $("headline").value, body: $("body").value, url: $("url").value, weeks: Number($("weeks").value || 1) }) });
+      location.href = r.checkout_url;
+    } catch (e) { if (e.message !== "sign in") note(e.message, true); }
+  };
+
+  const runs = (s) => s.starts_at ? `${s.starts_at.slice(0, 10)} → ${s.ends_at.slice(0, 10)}` : `${s.weeks} week${s.weeks > 1 ? "s" : ""}, after review`;
+  async function load() {
+    if (!token) return;
+    const m = await api("/api/ads/mine");
+    $("mine").replaceChildren(...m.slots.map((s) => el("tr", {}, el("td", { text: s.headline }), el("td", { text: s.status }),
+      el("td", { class: "muted", text: runs(s) }), el("td", { text: String(s.impressions) }), el("td", { text: String(s.clicks) }))));
+    if (!m.slots.length) $("mine").replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted", text: "None yet." })));
+    if (!m.admin) return;
+    $("adminBox").hidden = false;
+    const a = await api("/api/ads/admin");
+    const act = (s, action) => el("button", { class: "ghost", text: action, onclick: async () => { await api(`/api/ads/admin/${s.id}/${action}`, { method: "POST" }); load(); } });
+    $("admin").replaceChildren(...a.slots.map((s) => el("tr", {},
+      el("td", {}, el("b", { text: s.headline }), el("div", { class: "muted", text: s.body }), el("a", { href: s.url, target: "_blank", rel: "noopener nofollow", text: s.url })),
+      el("td", { text: s.status }), el("td", { text: String(s.weeks) }),
+      el("td", {}, s.status === "paid" ? act(s, "approve") : null, act(s, s.status === "live" ? "stop" : "reject")))));
+    if (!a.slots.length) $("admin").replaceChildren(el("tr", {}, el("td", { colspan: "4", class: "muted", text: "Nothing waiting." })));
+  }
+  load().catch(() => {});
+})();
+</script>
+</body>
+</html>

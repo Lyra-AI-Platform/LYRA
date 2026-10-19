@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lyra Watch Pro and API</title>
+<meta name="description" content="Lyra Watch Pro: the real-time live stream, who moves markets and said & traded. Plus a pay-as-you-go JSON API for AI agents." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+<link rel="canonical" href="https://lyraauth.com/watch/account/" />
+<meta property="og:title" content="Lyra Watch Pro and API" />
+<meta property="og:description" content="See who moves the market, as it happens. Real-time stream for people, pay-per-request JSON for AI agents." />
+<meta property="og:image" content="https://lyraauth.com/img/watch-og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="stylesheet" href="../../css/main.css" />
+<style>
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 96px 16px 80px; }
+  .wrap h2 { font-size: 1.3rem; margin: 40px 0 12px; }
+  .lede { color: var(--muted); max-width: 680px; line-height: 1.6; }
+  .tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 22px; }
+  .tier { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; }
+  .tier.hot { border-color: var(--text); box-shadow: 0 2px 18px rgba(0,0,0,.08); }
+  .tier .name { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .tier .price { font-size: 30px; font-weight: 700; letter-spacing: -.03em; margin: 6px 0 2px; }
+  .tier .price span { font-size: 14px; font-weight: 400; color: var(--muted); }
+  .tier ul { list-style: none; margin: 12px 0 18px; padding: 0; flex: 1; }
+  .tier li { font-size: 14px; padding: 5px 0; border-bottom: 1px solid var(--border); color: var(--muted); }
+  .tier li::before { content: "✓ "; color: #15803d; font-weight: 700; }
+  .tier li.no::before { content: "– "; color: var(--muted); }
+  .packs { display: flex; flex-wrap: wrap; gap: 8px; }
+  .packs button, .tier button, .row button { font: inherit; font-size: 14px; border-radius: 8px; padding: 9px 14px; cursor: pointer;
+    border: 1px solid var(--border-hi); background: var(--surface); color: var(--text); }
+  .tier button.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+  button:disabled { opacity: .5; cursor: default; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; margin-top: 12px; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .row input { font: inherit; font-size: 14px; padding: 9px 12px; border: 1px solid var(--border-hi); border-radius: 8px; background: var(--bg); color: var(--text); min-width: 200px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--border); }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .muted { color: var(--muted); font-size: 14px; }
+  .note { padding: 10px 14px; border-radius: 8px; margin: 14px 0; font-size: 14px; background: #ecfdf5; color: #065f46; }
+  .note.warn { background: #fff7ed; color: #9a3412; }
+  .key { font-family: ui-monospace, Menlo, monospace; word-break: break-all; background: var(--bg); padding: 10px; border-radius: 8px; border: 1px dashed var(--border-hi); }
+  pre { background: #0f1117; color: #e6e8ee; padding: 14px; border-radius: 10px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  .table-wrap { overflow-x: auto; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
+    <div class="nav-cta"><a href="/watch/" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Lyra Watch</a>
+      <a href="/watch/live/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">● Live</a></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <h1>Lyra Watch Pro</h1>
+  <p class="lede">The free directory shows you what's there. Pro shows it as it happens: the live stream in real time, the full
+    record of who moves markets, and every disclosed trade next to what was being said. AI agents pay per request instead.</p>
+  <div id="msg"></div>
+
+  <div class="tiers">
+    <div class="tier">
+      <div class="name">Free</div>
+      <div class="price">$0</div>
+      <ul>
+        <li>Live feed preview, an hour behind</li>
+        <li>Top 5 of Who moves markets</li>
+        <li>Every person's profile and impact summary</li>
+        <li>JSON feed, an hour behind</li>
+        <li class="no">Sponsored messages shown</li>
+      </ul>
+      <a href="/watch/" class="btn" style="justify-content:center;border:1px solid var(--border-hi)">Browse free</a>
+    </div>
+    <div class="tier hot">
+      <div class="name">Watch Pro</div>
+      <div class="price" id="proPrice">$7<span>/month</span></div>
+      <ul>
+        <li>Real-time live stream: news, posts, filings, court cases</li>
+        <li>Full Who moves markets record, day by day</li>
+        <li>Said &amp; traded for every insider and politician</li>
+        <li>Who's being discussed right now</li>
+        <li>No ads · cancel anytime</li>
+      </ul>
+      <button class="primary" id="buyPro">Get Watch Pro</button>
+    </div>
+    <div class="tier" id="api">
+      <div class="name">API for AI agents</div>
+      <div class="price">Pay as you go</div>
+      <ul>
+        <li>Everything Pro has, as JSON, in real time</li>
+        <li>1 credit a person, 2 a list or feed, 5 the impact board</li>
+        <li><b id="freeCredits">100</b> free credits with your first key</li>
+        <li>Credits never expire</li>
+      </ul>
+      <div class="packs" id="packs"></div>
+    </div>
+  </div>
+
+  <h2>Your account</h2>
+  <div class="panel" id="account"><p class="muted">Loading…</p></div>
+
+  <h2>API keys</h2>
+  <div class="panel">
+    <div class="row"><input id="keyName" placeholder="Name, e.g. my research agent" maxlength="60" /><button id="makeKey">Create key</button></div>
+    <div id="newKey"></div>
+    <div class="table-wrap"><table style="margin-top:12px"><thead><tr><th>Name</th><th>Key</th><th>Requests</th><th>Last used</th><th></th></tr></thead>
+      <tbody id="keys"></tbody></table></div>
+  </div>
+
+  <h2>Using the API</h2>
+  <p class="muted">Send your key in the <code>X-Lyra-Key</code> header (or as <code>Authorization: Bearer lw_…</code>). Every
+    response says what it cost and what's left in <code>X-Lyra-Credits-Remaining</code>. With no credits left the API answers
+    <code>402 Payment Required</code> with the prices, so an agent can tell its owner what to buy.</p>
+<pre>curl -H "X-Lyra-Key: lw_your_key" https://lyraauth.com/api/watch/impact          # who moves markets (5)
+curl -H "X-Lyra-Key: lw_your_key" https://lyraauth.com/api/watch/people/elon-musk # one person, full record (1)
+curl -H "X-Lyra-Key: lw_your_key" https://lyraauth.com/api/watch/feed.json       # real-time stories (2)
+curl -H "X-Lyra-Key: lw_your_key" https://lyraauth.com/api/watch/live/recent     # live events (10)</pre>
+  <p class="muted">Prices as JSON: <a href="/api/watch/account/pricing">/api/watch/account/pricing</a> · Everything for AI agents:
+    <a href="/llms.txt">/llms.txt</a> · Want to reach these readers? <a href="/advertise/">Advertise</a>.</p>
+  <p class="muted" style="margin-top:18px">Payments by Stripe. Watch Pro is separate from the main Lyra plans; any paid Lyra
+    plan already includes it. Not financial advice.</p>
+</main>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const el = (tag, attrs = {}, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k === "class") n.className = v; else if (k === "text") n.textContent = v; else if (k.startsWith("on")) n[k] = v; else n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k != null) n.append(k);
+    return n;
+  };
+  let token = null;
+  try { token = localStorage.getItem("lyra_token"); } catch {}
+  const money = (c, cur) => new Intl.NumberFormat("en", { style: "currency", currency: (cur || "usd").toUpperCase(), maximumFractionDigits: c % 100 ? 2 : 0 }).format(c / 100);
+  const toLogin = () => { try { localStorage.setItem("lyra_next", "/watch/account/" + location.hash); } catch {} location.href = "/dashboard/login.html"; };
+  async function api(path, opts = {}) {
+    if (!token) { toLogin(); throw new Error("sign in"); }
+    const r = await fetch(path, { ...opts, headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, ...(opts.headers || {}) } });
+    if (r.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} toLogin(); throw new Error("sign in"); }
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error((body.detail && (body.detail.message || body.detail)) || r.statusText);
+    return body;
+  }
+  const note = (text, warn) => $("msg").replaceChildren(el("div", { class: "note" + (warn ? " warn" : ""), text }));
+  async function pay(path, body) {
+    try { const r = await api(path, { method: "POST", body: JSON.stringify(body || {}) }); location.href = r.checkout_url; }
+    catch (e) { if (e.message !== "sign in") note(e.message, true); }
+  }
+
+  const q = new URLSearchParams(location.search);
+  if (q.get("pro")) note("Welcome to Watch Pro. It can take a few seconds to switch on; refresh if the live page still asks you to subscribe.");
+  if (q.get("credits")) note("Payment received. Your credits are being added.");
+  if (q.get("cancelled")) note("No charge was made.", true);
+
+  async function prices() {
+    const p = await fetch("/api/watch/account/pricing").then((r) => r.json());
+    $("proPrice").replaceChildren(money(p.watch_pro.price_cents, p.currency), el("span", { text: "/month" }));
+    $("freeCredits").textContent = p.api_credits.free_credits_with_first_key;
+    $("packs").replaceChildren(...Object.entries(p.api_credits.packs).map(([k, v]) =>
+      el("button", { onclick: () => pay("/api/watch/account/checkout/credits", { pack: k }),
+        text: `${v.credits.toLocaleString()} credits · ${money(v.price_cents, p.currency)}` })));
+  }
+
+  async function load() {
+    if (!token) {
+      $("account").replaceChildren(el("p", { class: "muted" }, "Sign in to subscribe, buy credits or make API keys. ",
+        el("a", { href: "#", onclick: (e) => { e.preventDefault(); toLogin(); }, text: "Sign in" }), " · ",
+        el("a", { href: "/dashboard/register.html", text: "Create an account" })));
+      $("keys").replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted", text: "Sign in to see your keys." })));
+      return;
+    }
+    const a = await api("/api/watch/account");
+    $("buyPro").disabled = a.watch_pro;
+    if (a.watch_pro) $("buyPro").textContent = a.via_main_plan ? "Included in your plan" : "You're on Watch Pro";
+    $("account").replaceChildren(
+      el("p", {}, el("b", { text: a.watch_pro ? "Watch Pro: active" : "Free" }),
+        a.subscription_status && !a.watch_pro ? el("span", { class: "muted", text: ` (subscription ${a.subscription_status})` }) : null),
+      el("p", {}, el("b", { text: `${a.credits.balance.toLocaleString()} API credits` }), el("span", { class: "muted", text: ` · ${a.credits.spent.toLocaleString()} spent` })),
+      el("div", { class: "row" }, el("button", { text: "Manage billing", onclick: async () => {
+        try { const r = await api("/api/billing/portal", { method: "POST" }); location.href = r.portal_url; } catch (e) { note(e.message, true); } } }),
+        el("a", { href: "/watch/live/", text: "Open the live feed →" })));
+    $("keys").replaceChildren(...a.keys.map((k) => el("tr", {},
+      el("td", { text: k.name || "—" }), el("td", {}, el("code", { text: `${k.prefix}…` })),
+      el("td", { text: String(k.requests) }), el("td", { class: "muted", text: k.last_used ? k.last_used.slice(0, 16).replace("T", " ") : "never" }),
+      el("td", {}, el("button", { text: "Revoke", onclick: async () => { await api(`/api/watch/account/keys/${k.id}`, { method: "DELETE" }); load(); } })))));
+    if (!a.keys.length) $("keys").replaceChildren(el("tr", {}, el("td", { colspan: "5", class: "muted", text: "No keys yet." })));
+  }
+
+  $("buyPro").onclick = () => pay("/api/watch/account/checkout/pro");
+  $("makeKey").onclick = async () => {
+    try {
+      const r = await api("/api/watch/account/keys", { method: "POST", body: JSON.stringify({ name: $("keyName").value }) });
+      const copy = el("button", { text: "Copy", onclick: async () => { try { await navigator.clipboard.writeText(r.key); copy.textContent = "Copied"; } catch {} } });
+      $("newKey").replaceChildren(el("p", { class: "muted", style: "margin-top:12px",
+        text: `${r.note}${r.free_credits_added ? ` ${r.free_credits_added} free credits added.` : ""}` }),
+        el("div", { class: "row" }, el("div", { class: "key", text: r.key }), copy));
+      $("keyName").value = "";
+      load();
+    } catch (e) { if (e.message !== "sign in") note(e.message, true); }
+  };
+  prices().catch(() => {});
+  load().catch((e) => { if (e.message !== "sign in") $("account").replaceChildren(el("p", { class: "muted", text: "Couldn't load your account." })); });
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,19 @@
 > Lyra Watch tracks what the media says about politicians, investors, executives and public figures:
 > who is named in the news, their job, a 0–100 popularity rating, their documented political
 > affiliation, the issues their coverage is about and the companies they are linked to. All data is
-> public JSON with stable URLs; link to it freely.
+> public JSON with stable URLs; link to it freely. It also measures who moves markets: how often a
+> company's stock made a big move on the days a person was in the news about it.
+
+## Access and prices
+
+- Free, no key: everything below, with the market record summarised (top 5 of the impact board, each
+  person's impact verdict) and the story feed one hour behind.
+- Full and real time: send an API key as the `X-Lyra-Key` header (or `Authorization: Bearer lw_...`).
+  Requests spend prepaid credits: 1 for a person, 2 for a list or the feed, 5 for the impact board,
+  10 for live events. Every response carries `X-Lyra-Credits-Remaining`. With no credits left the API
+  answers `402 Payment Required` with the prices. A first key comes with 100 free credits.
+- Keys and credit packs: https://lyraauth.com/watch/account/ · prices as JSON:
+  https://lyraauth.com/api/watch/account/pricing
 
 ## Data (JSON, no key needed)
 
@@ -11,6 +23,8 @@
 - [One person](https://lyraauth.com/api/watch/people/keir-starmer): `/api/watch/people/{id}`, where `id` is the lowercase name with hyphens (e.g. `jensen-huang`, `flavio-bolsonaro`). Fields: `job`, `popularity` {score, tier, basis}, `politics` {parties, offices, basis, source, political_coverage}, `interests` [{topic, share}], `companies`, `tone`, `headlines`, `links`.
 - [Story feed](https://lyraauth.com/api/watch/feed.json): JSON Feed 1.1 of the latest headlines, one hour behind the live subscriber stream. Each item lists the people named with links to their JSON records.
 - [Watchlist](https://lyraauth.com/api/watch/figures): the tracked politicians, investors, executives and public figures, with disclosed trades and power moves at `/api/watch/figures/{slug}`.
+- [Who moves markets](https://lyraauth.com/api/watch/impact): per person, `days` (trading days they were in the news about a listed company), `big_moves` (days the stock moved at least two of its usual daily swings), `big_share` vs `usual_big_share`, `lift` (the ratio) and `verdict`. `?ticker=NVDA` keeps people measured on that stock. Full rows (`by_ticker`, `biggest` days) need a key. It shows what happened on those days, not what caused it.
+- Said & traded: with a key, watchlist records carry `said_and_traded`: each disclosed trade with the days in the 30 before and after when they were in the news about that company.
 - [Health](https://lyraauth.com/api/watch/health): whether the data is up to date.
 
 - Accounts and posts: each person record has `accounts` (official handles from Wikidata, with `read: true` where Lyra reads the free feed: YouTube, Bluesky, Mastodon, official websites) and, for the watchlist, `posts`: their own recent posts plus news stories about posts on X, Truth Social, Instagram, TikTok and others (`reported: true`; the post may be by or about them).

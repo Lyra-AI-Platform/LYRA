@@ -45,6 +45,10 @@
   .chips { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
   .chip { font-size: 11.5px; background: var(--chip); color: #1e3a5f; border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
   a.chip { text-decoration: none; } a.chip:hover { text-decoration: underline; }
+  .ad { display: block; border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin: 16px 0 4px;
+        background: var(--surface); color: var(--text); text-decoration: none; }
+  .ad small { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+  .ad b { margin-right: 8px; } .ad span { color: var(--muted); font-size: 14px; } .ad .cta { color: var(--text); font-weight: 600; margin-left: 8px; }
   .chip.move { background: #fef3c7; color: #92400e; }
   .chip.aff { background: var(--surface2); color: var(--text); }
   .layout { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 20px; }
@@ -91,7 +95,8 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><span class="star">✦</span> Lyra AI</a>
-    <div class="nav-cta"><a href="/market" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Markets</a>
+    <div class="nav-cta"><a href="/watch/account/" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Go Pro</a>
+      <a href="/market" class="btn" style="padding:6px 15px;font-size:13px;color:inherit;border:1px solid rgba(127,127,127,.45);">Markets</a>
       <a href="/watch/live/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">● Watch live</a></div>
   </div>
 </nav>
@@ -104,6 +109,7 @@
       funds bought and sold, deals and lawsuits in the news, the companies they're tied to and the issues they talk about.
       Every item links to its public source.</p>
 
+    <div id="adSlot" hidden></div>
     <div class="tabs" id="tabs" role="group" aria-label="Filter by group"></div>
     <input class="search" id="search" type="search" placeholder="Search by name, role or country" aria-label="Search" />
 
@@ -266,7 +272,23 @@
   const link = (u, text) => safeUrl(u) ? el("a", { href: u, target: "_blank", rel: "noopener nofollow", text }) : document.createTextNode(text);
   const money = (v) => v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${Math.round(v)}`;
   const ago = (ts) => { if (!ts) return "never"; const h = (Date.now() / 1000 - ts) / 3600; return h < 1 ? "under an hour ago" : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
-  const api = (p) => fetch(`/api/watch/${p}`).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  let token = null;
+  try { token = localStorage.getItem("lyra_token"); } catch {}
+  // Signed-in Watch Pro members get the full records; everyone else the free view.
+  const api = (p) => fetch(`/api/watch/${p}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+    .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
+  const proLink = (text) => el("a", { class: "chip aff", href: "/watch/account/", text: `🔒 ${text}` });
+
+  async function loadAd() {
+    try {
+      const ad = await fetch("/api/ads/slot", token ? { headers: { Authorization: `Bearer ${token}` } } : {}).then((r) => r.json());
+      if (ad.kind === "none") return;
+      $("adSlot").replaceChildren(el("a", { class: "ad", href: ad.url, rel: ad.kind === "sponsor" ? "sponsored noopener" : "",
+        target: ad.kind === "sponsor" ? "_blank" : "_self" },
+        el("small", { text: ad.label }), el("b", { text: ad.headline }), el("span", { text: ad.body }), el("span", { class: "cta", text: `${ad.cta} →` })));
+      $("adSlot").hidden = false;
+    } catch {}
+  }
 
   const popBadge = (pop) => pop ? el("span", { class: "pop", title: `${pop.basis}${pop.daily_views != null ? ` · ${pop.daily_views.toLocaleString()} Wikipedia views a day` : ""}` },
     el("span", { class: "meter" }, el("span", { style: `width:${pop.score}%` })), el("b", { text: String(pop.score) }), ` ${pop.tier}`) : null;
@@ -349,6 +371,9 @@
         r.slug ? el("span", { class: "meta" }, " · ", el("a", { href: `#${r.slug}`, text: "Trades & power moves" })) : null),
       sect("Market impact", impactBlock(r.market_impact)),
       ...(r.said_and_traded && r.said_and_traded.length ? [sect("Said & traded", tradedBlock(r.said_and_traded))] : []),
+      ...(r.locked && r.locked.said_and_traded_rows ? [sect("Said & traded", el("p", {},
+        `${r.locked.said_and_traded_rows} disclosed trade${r.locked.said_and_traded_rows === 1 ? "" : "s"}, each next to the days they were in the news about that company. `,
+        proLink("Unlock with Watch Pro")))] : []),
       sect("Politics",
         pol.basis === "documented"
           ? el("p", {}, ...[...pol.parties.map((p) => el("span", { class: "chip aff", text: p })), " ", pol.offices.join(" · ")], " ", pol.source ? link(pol.source, "source") : null)
@@ -393,13 +418,18 @@
         el("td", { class: "num", text: `${r.big_moves} (${Math.round(r.big_share * 100)}%)` }),
         el("td", { class: "num" }, liftCell(r), el("div", { class: "meta", text: `usual ${Math.round(r.usual_big_share * 100)}%` })),
         el("td", {}, r.biggest[0] ? moveChip(r.biggest[0]) : "—"))));
+      if (data.locked) $("moverRows").append(el("tr", {}, el("td", { colspan: "6" }, proLink(`${data.locked} more people measured`),
+        el("span", { class: "meta", text: " · the full record, day by day, is in Watch Pro" }))));
       if (!data.people.length) $("moverRows").replaceChildren(el("tr", {}, el("td", { colspan: "6", class: "muted",
         text: "Building the record: a person needs at least 5 news days about a listed company. Check back after the next refresh." })));
     } catch { $("moverRows").replaceChildren(el("tr", {}, el("td", { colspan: "6", class: "muted", text: "Couldn't load the market record." }))); }
   }
 
-  function impactBlock(m) {
+  function impactBlock(m, locked) {
     if (!m || !m.days) return el("p", { class: "muted", text: "No news days about a listed company yet." });
+    if (!m.by_ticker) return el("div", {},
+      el("p", {}, el("b", { text: `${m.big_moves} big moves in ${m.days} news days` }), " · ", liftCell(m)),
+      el("p", {}, proLink("See which stocks, which days and how far they moved")));
     return el("div", {},
       el("p", {}, el("b", { text: `${m.big_moves} big moves in ${m.days} news days` }),
         ` (${Math.round(m.big_share * 100)}%) against ${Math.round(m.usual_big_share * 100)}% on ordinary days: `, liftCell(m),
@@ -572,6 +602,7 @@
       renderGrid();
     } catch { $("grid").replaceChildren(el("p", { text: "Couldn't load the watchlist. Try again in a minute." })); }
     loadFeed();
+    loadAd();
     loadMovers();
     loadPeople();
   }
