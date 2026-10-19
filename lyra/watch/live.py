@@ -31,13 +31,17 @@ class Hub:
     def __init__(self):
         self.viewers: Set[asyncio.Queue] = set()
         self.history: Deque[Dict] = deque(maxlen=HISTORY)
+        # Arrival times kept apart from the (shorter) history, so the 24-hour count isn't capped by it.
+        self.arrivals: Deque[float] = deque(maxlen=50_000)
         self.started = time.time()
         self._load()
 
     def _load(self):
         try:
-            for line in EVENTS_FILE.read_text().splitlines()[-HISTORY:]:
-                self.history.append(json.loads(line))
+            for line in EVENTS_FILE.read_text().splitlines():
+                event = json.loads(line)
+                self.history.append(event)
+                self.arrivals.append(event["ts"])
         except (OSError, ValueError):
             pass
 
@@ -51,11 +55,14 @@ class Hub:
 
     def publish(self, event: Dict):
         self.history.append(event)
+        self.arrivals.append(event["ts"])
         try:
             with EVENTS_FILE.open("a") as f:
                 f.write(json.dumps(event) + "\n")
-            if EVENTS_FILE.stat().st_size > 2_000_000:  # keep the file to the recent history
-                EVENTS_FILE.write_text("".join(json.dumps(e) + "\n" for e in self.history))
+            if EVENTS_FILE.stat().st_size > 20_000_000:  # trim to the last two days
+                keep = [line for line in EVENTS_FILE.read_text().splitlines()
+                        if json.loads(line)["ts"] > time.time() - 2 * 86400]
+                EVENTS_FILE.write_text("".join(line + "\n" for line in keep))
         except OSError as e:
             logger.warning(f"Live event not saved: {e}")
         for q in list(self.viewers):
@@ -71,7 +78,7 @@ class Hub:
     def status(self) -> Dict:
         day = time.time() - 86400
         return {"live": loop.running and loop.alive(), "viewers": len(self.viewers),
-                "events_today": sum(e["ts"] >= day for e in self.history),
+                "events_today": sum(t >= day for t in self.arrivals),
                 "last_event": self.history[-1]["ts"] if self.history else None,
                 "cycle_minutes": LIVE_CYCLE_MINUTES}
 

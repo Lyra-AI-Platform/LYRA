@@ -27,6 +27,7 @@ def _item(title, url, age=60):
 def fresh(monkeypatch):
     monkeypatch.setattr(live, "hub", live.Hub())
     monkeypatch.setattr(live.hub, "history", live.deque(maxlen=live.HISTORY))
+    monkeypatch.setattr(live.hub, "arrivals", live.deque(maxlen=50_000))
     monkeypatch.setattr(live, "load_roster", lambda: [STARMER])
     service.save_people({"built_at": 1.0, "people": [
         {"name": "Andy Burnham", "slug": "", "watched": False, "job": "Prime Minister of the United Kingdom",
@@ -149,3 +150,10 @@ def test_health_reports_stale_data(monkeypatch):
     app = FastAPI()
     app.include_router(api.router)
     assert TestClient(app).get("/api/watch/health").status_code == 503
+
+
+def test_daily_count_is_not_capped_by_history():
+    for i in range(live.HISTORY + 50):
+        live.hub.publish({"id": str(i), "ts": time.time(), "title": "t"})
+    assert len(live.hub.history) == live.HISTORY
+    assert live.hub.status()["events_today"] == live.HISTORY + 50
