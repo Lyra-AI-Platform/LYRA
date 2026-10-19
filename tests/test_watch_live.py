@@ -146,6 +146,7 @@ def test_health_reports_stale_data(monkeypatch):
     from lyra.api import watch_api as api
     monkeypatch.setattr(service.refresh_loop, "alive", lambda: True)
     monkeypatch.setattr(live.loop, "alive", lambda: True)
+    monkeypatch.setattr(live.signals_loop, "alive", lambda: True)
     monkeypatch.setattr(live.loop, "last_check", time.time() - 60)
     service.save_people({"built_at": time.time() - 600, "people": []})
     assert service.health()["ok"]

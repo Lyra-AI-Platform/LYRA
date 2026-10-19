@@ -13,7 +13,7 @@ import time
 from collections import deque
 from typing import Deque, Dict, List, Optional, Set
 
-from lyra.watch import analysis, chatter, people, service, sources
+from lyra.watch import analysis, chatter, people, service, signals, sources
 from lyra.watch.config import WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -237,3 +237,84 @@ class LiveLoop:
 
 
 loop = LiveLoop()
+
+
+def signal_event(sig: Dict, lookup: Dict[str, Dict]) -> Dict:
+    """A signals.py result (Wikipedia edit, attention spike, official statement, court case) as a live event."""
+    person = sig.get("person")
+    names = [person["name"]] if person else []
+    names += [n for n in people.names_in(sig["title"]) if n not in names]
+    feed = person["name"] if person else sig.get("source", "")
+    return {"v": EVENT_VERSION, "id": sig["url"], "ts": time.time(), "published": sig.get("published") or time.time(),
+            "feed": feed, "feed_slug": (person or {}).get("slug", ""), "title": sig["title"], "url": sig["url"],
+            "source": sig.get("source", ""), "people": _cast(names, lookup),
+            "companies": analysis.companies_in(sig["title"]), "moves": [m["label"] for m in analysis.move_kinds(sig["title"])],
+            "topics": analysis.topics_in(sig["title"]), "kind": sig["kind"], "platform": sig.get("platform", ""),
+            "stats": sig.get("stats"), "tone": "neutral"}
+
+
+def _tracked() -> List[Dict]:
+    """Public figures with a Wikipedia article: [{"name", "slug", "title"}]."""
+    out = []
+    for r in service.load_people().get("people", []):
+        title = (r.get("wiki") or {}).get("title")
+        if service.is_public_figure(r) and title:
+            out.append({"name": r["name"], "slug": r.get("slug", ""), "title": title})
+    return out
+
+
+class SignalsLoop:
+    """Every few minutes: Wikipedia edits to tracked people's articles and new official statements.
+    Hourly: attention spikes. Failures are logged and the loop carries on."""
+
+    def __init__(self, every_seconds: float = 180):
+        self.every = every_seconds
+        self._task: Optional[asyncio.Task] = None
+        self.last_run: Optional[float] = None
+        self._last_spikes = 0.0
+
+    async def run_once(self, announce: bool = True):
+        state = signals._load_state()
+        tracked, lookup = _tracked(), _people_lookup()
+        found = await signals.wiki_edits(tracked, state)
+        found += await signals.official(state)
+        if time.time() - self._last_spikes > 3600:
+            self._last_spikes = time.time()
+            for person in tracked:
+                spike = await signals.attention_spike(person, state)
+                if spike:
+                    found.append(spike)
+                await asyncio.sleep(0.2)
+        signals._save_state(state)
+        for sig in sorted(found, key=lambda x: x.get("published") or 0):
+            age = time.time() - (sig.get("published") or 0)
+            if announce and 0 < age < FRESH_HOURS * 3600 and sig["url"] not in loop.seen:
+                loop.seen.add(sig["url"])
+                hub.publish(signal_event(sig, lookup))
+        self.last_run = time.time()
+
+    async def _run(self):
+        first = not signals.STATE_FILE.exists()
+        while True:
+            try:
+                await self.run_once(announce=not first)
+                first = False
+            except asyncio.CancelledError:
+                raise
+            except Exception as e:  # noqa: BLE001
+                logger.warning(f"Signals loop error: {e}")
+            await asyncio.sleep(self.every)
+
+    def alive(self) -> bool:
+        return self._task is not None and not self._task.done()
+
+    def start(self):
+        if not self.alive():
+            self._task = asyncio.get_event_loop().create_task(self._run())
+
+    def stop(self):
+        if self._task:
+            self._task.cancel()
+
+
+signals_loop = SignalsLoop()

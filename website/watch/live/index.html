@@ -145,6 +145,7 @@
         <button data-f="posts" aria-pressed="false">Posts</button>
         <button data-f="interview" aria-pressed="false">Interviews</button>
         <button data-f="discussion" aria-pressed="false">Discussion</button>
+        <button data-f="signals" aria-pressed="false">Signals</button>
         <button data-f="positive" aria-pressed="false">Positive</button>
         <button data-f="negative" aria-pressed="false">Negative</button>
       </div>
@@ -211,11 +212,14 @@
   const kindLabel = (e) => e.kind === "post" ? `📣 Posted on ${e.platform || "social"} · `
     : e.kind === "reported_post" ? `💬 ${e.platform || "Social"} post in the news · `
     : e.kind === "interview" ? `🎙 Interview${e.platform === "Podcast" ? " · podcast" : ""} · `
-    : e.kind === "discussion" ? `🔥 Trending on ${e.source || e.platform}${e.stats ? ` (${e.stats.comments} comments)` : ""} · ` : "";
+    : e.kind === "discussion" ? `🔥 Trending on ${e.source || e.platform}${e.stats ? ` (${e.stats.comments} comments)` : ""} · `
+    : e.kind === "wiki" ? "📝 Wikipedia edit · " : e.kind === "attention" ? "📈 Attention spike · "
+    : e.kind === "official" ? `🏛 ${e.platform} · ` : e.kind === "court" ? "⚖️ Court filing · " : "";
 
   const keep = (e) => !filter || (filter === "moves" ? e.moves.length
     : filter === "posts" ? ["post", "reported_post"].includes(e.kind)
-    : filter === "interview" || filter === "discussion" ? e.kind === filter : e.tone === filter);
+    : filter === "interview" || filter === "discussion" ? e.kind === filter
+    : filter === "signals" ? ["wiki", "attention", "official", "court"].includes(e.kind) : e.tone === filter);
 
   function row(e, fresh) {
     const li = el("li", { class: `tone-${e.tone}${fresh ? " fresh" : ""}` },

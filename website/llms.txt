@@ -17,6 +17,8 @@
 
 - Interviews and discussion: watchlist records also carry `interviews` (news interviews, speeches and podcast episodes from the last 30 days) and `discussion` (mentions in the last 24 hours on Hacker News, Bluesky and, where enabled, Reddit, with tone and links to the busiest threads; individual users' posts aren't included).
 
+- Signals: watchlist records carry `court_cases` (US federal cases from the last 30 days naming them as a party, via CourtListener). The live stream also carries Wikipedia edits to tracked people's articles, attention spikes in their Wikipedia readership, and official statements (White House, 10 Downing Street).
+
 ## How to read the fields
 
 - `popularity.score` is 70% Wikipedia page views over the last 30 days (log scale) and 30% headline count. It measures attention now, not lifetime fame.

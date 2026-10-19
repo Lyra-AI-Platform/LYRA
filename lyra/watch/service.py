@@ -6,9 +6,10 @@ import json
 import logging
 import re
 import time
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from lyra.watch import analysis, chatter, people, sources
+from lyra.watch import analysis, chatter, people, signals, sources
 from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
     found = await accounts_for(person)
     wiki = found["wiki"]
     tasks = {"statements": sources.statements({**person, "feeds": found["own_feeds"]}),
-             "discussion": chatter.discussion(person)}
+             "discussion": chatter.discussion(person), "courts": signals.court_cases(person)}
     if person.get("sec_cik"):
         tasks["insider"] = sources.form4_trades(person["sec_cik"])
     if person.get("fund_cik"):
@@ -96,8 +97,9 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     data, status = {}, {}
     buzz = results[1] if isinstance(results[1], dict) else {}
+    cases = results[2] if isinstance(results[2], list) else []
     for key, r in zip(tasks, results):
-        if key == "discussion":
+        if key in ("discussion", "courts"):
             continue
         if isinstance(r, Exception):
             logger.warning(f"Watch {person['slug']} {key} failed: {r}")
@@ -131,6 +133,7 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         "interviews": [{**{k: it.get(k) for k in ("url", "source", "platform", "published")}, "title": people.headline(it)}
                        for it in items if it.get("interview")][:20],
         "discussion": buzz,
+        "court_cases": cases,
         "sources": status,
     }
 
@@ -180,6 +183,29 @@ def feed(limit: int = 80, kind: str = "") -> List[Dict]:
                          "person": person["name"], "slug": person["slug"]})
     rows.sort(key=lambda r: r["date"], reverse=True)
     return rows[:limit]
+
+
+def _announce_cases(person: Dict, cases: List[Dict]):
+    """New court cases filed in the last two days go to the live feed once."""
+    from lyra.watch import live
+    state = signals._load_state()
+    fresh = False
+    for c in cases:
+        if c["url"] in state["courts"]:
+            continue
+        state["courts"].append(c["url"])
+        fresh = True
+        try:
+            filed = datetime.strptime(c["filed"], "%Y-%m-%d").replace(tzinfo=timezone.utc).timestamp()
+        except ValueError:
+            continue
+        if time.time() - filed < 2 * 86400:
+            live.hub.publish(live.signal_event(
+                {"kind": "court", "platform": "US federal court", "person": person, "source": c["court"],
+                 "title": f"New case: {c['case']} ({c['court']}{', ' + c['nature'] if c['nature'] else ''})",
+                 "url": c["url"], "published": filed + 43200}, live._people_lookup()))
+    if fresh:
+        signals._save_state(state)
 
 
 def load_people() -> Dict:
@@ -238,6 +264,7 @@ async def build_people(roster: List[Dict]) -> Dict:
             rec["posts"] = prof.get("posts", [])[:10]
             rec["interviews"] = prof.get("interviews", [])[:10]
             rec["discussion"] = prof.get("discussion", {})
+            rec["court_cases"] = prof.get("court_cases", [])
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
     return {"built_at": time.time(), "people": records}
 
@@ -310,7 +337,9 @@ async def refresh_all():
     roster = load_roster()
     for person in roster:
         try:
-            save_profile(await build_profile(person, tickers))
+            profile = await build_profile(person, tickers)
+            save_profile(profile)
+            _announce_cases(person, profile.get("court_cases", []))
         except Exception as e:  # noqa: BLE001
             logger.warning(f"Watch profile {person['slug']} failed: {e}")
         await asyncio.sleep(1)  # stay polite to the SEC and the House Clerk
@@ -371,8 +400,11 @@ def health() -> Dict:
         problems.append("people index is stale")
     if live_age is not None and live_age > 1800:
         problems.append("live feed hasn't checked a source in 30 minutes")
+    if not live.signals_loop.alive():
+        problems.append("signals loop stopped")
     return {"ok": not problems, "problems": problems,
             "people_index_age_minutes": round(people_age / 60) if people_age is not None else None,
             "last_live_check_minutes": round(live_age / 60, 1) if live_age is not None else None,
             "refresh_every_hours": refresh_loop.interval / 3600, "live_cycle_minutes": live.LIVE_CYCLE_MINUTES,
+            "last_signals_check_minutes": round((now - live.signals_loop.last_run) / 60, 1) if live.signals_loop.last_run else None,
             "sources": {"gdelt": chatter.gdelt_status(), "reddit": "on" if chatter.reddit_enabled() else "off (no API credentials)"}}
