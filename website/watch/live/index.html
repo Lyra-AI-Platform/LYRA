@@ -120,6 +120,7 @@
         <h2>Live feed</h2>
         <button data-f="" aria-pressed="true">All</button>
         <button data-f="moves" aria-pressed="false">Power moves</button>
+        <button data-f="posts" aria-pressed="false">Posts</button>
         <button data-f="positive" aria-pressed="false">Positive</button>
         <button data-f="negative" aria-pressed="false">Negative</button>
       </div>
@@ -167,7 +168,7 @@
   function stage(e) {
     if (!e) return;
     $("stage").className = `panel stage tone-${e.tone}`;
-    $("sKicker").textContent = `${e.feed} · ${e.source || "News"} · ${ago(e.ts)}`;
+    $("sKicker").textContent = `${kindLabel(e)}${e.feed} · ${e.source || "News"} · ${ago(e.ts)}`;
     $("sHeadline").replaceChildren(link(e.url, e.title));
     $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
       p.id ? el("a", { class: "n", href: `/watch/#person/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
@@ -178,11 +179,14 @@
       ...e.topics.slice(0, 3).map((t) => el("span", { class: "tag", text: t })));
   }
 
-  const keep = (e) => !filter || (filter === "moves" ? e.moves.length : e.tone === filter);
+  const kindLabel = (e) => e.kind === "post" ? `📣 Posted on ${e.platform || "social"} · `
+    : e.kind === "reported_post" ? `💬 ${e.platform || "Social"} post in the news · ` : "";
+
+  const keep = (e) => !filter || (filter === "moves" ? e.moves.length : filter === "posts" ? e.kind !== "news" && e.kind : e.tone === filter);
 
   function row(e, fresh) {
     const li = el("li", { class: `tone-${e.tone}${fresh ? " fresh" : ""}` },
-      el("span", { class: "t", text: ago(e.ts) }), " ",
+      el("span", { class: "t", text: kindLabel(e) + ago(e.ts) }), " ",
       el("span", { class: "p", text: e.people.map((p) => p.name).slice(0, 2).join(", ") || e.feed }), el("br"),
       el("span", { text: e.title }));
     li.onclick = () => stage(e);
@@ -311,7 +315,7 @@
     renderFeed();
   });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { unseen = 0; document.title = baseTitle; } });
-  setInterval(() => { if (events[0]) $("sKicker").textContent = `${events[0].feed} · ${events[0].source || "News"} · ${ago(events[0].ts)}`; }, 30000);
+  setInterval(() => { if (events[0]) $("sKicker").textContent = `${kindLabel(events[0])}${events[0].feed} · ${events[0].source || "News"} · ${ago(events[0].ts)}`; }, 30000);
   start();
 })();
 </script>

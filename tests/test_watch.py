@@ -114,8 +114,11 @@ def test_build_profile_merges_sources(monkeypatch):
         return ([{"company": "Apple Inc.", "ticker": "AAPL", "side": "buy", "value": 1000.0,
                   "amount_range": "$1,001 - $15,000", "date": "2026-07-01", "url": "https://ptr",
                   "kind": "congress", "source": "House PTR"}], {"status": "ok", "provider": "house"})
+    async def no_wiki(person):
+        return {"status": "none"}
     monkeypatch.setattr(sources, "statements", fake_statements)
     monkeypatch.setattr(sources, "house_trades", fake_house)
+    monkeypatch.setattr(sources, "wiki_person", no_wiki)
     person = {"slug": "p", "name": "P", "category": "politician", "country": "US", "role": "Rep",
               "house": {"last": "P", "state": "CA11"}}
     p = asyncio.run(service.build_profile(person))

@@ -108,6 +108,8 @@ def make_event(item: Dict, person: Dict, lookup: Dict[str, Dict], tickers=frozen
             "feed": person["name"], "feed_slug": person["slug"], "title": title, "url": item["url"],
             "source": item.get("source", ""), "people": cast, "companies": a["companies"],
             "moves": [m["label"] for m in a["moves"]], "topics": a["topics"],
+            "kind": "post" if item.get("own_words") else "reported_post" if item.get("reported") else "news",
+            "platform": item.get("platform", ""),
             "tone": "positive" if a["sentiment"] >= 0.15 else "negative" if a["sentiment"] <= -0.15 else "neutral"}
 
 
@@ -131,7 +133,8 @@ class LiveLoop:
             pass
 
     async def check(self, person: Dict, lookup: Dict[str, Dict], tickers=frozenset(), announce: bool = True) -> int:
-        items, _ = await sources.statements(person, max_age=60)
+        profile = service.load_profile(person["slug"]) or {}
+        items, _ = await sources.statements({**person, "feeds": profile.get("own_feeds", [])}, max_age=60)
         new = [it for it in items if it["url"] not in self.seen]
         for it in sorted(new, key=lambda x: x["published"]):
             self.seen.add(it["url"])

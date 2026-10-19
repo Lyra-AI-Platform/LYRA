@@ -13,6 +13,8 @@
 - [Watchlist](https://lyraauth.com/api/watch/figures): the tracked politicians, investors, executives and public figures, with disclosed trades and power moves at `/api/watch/figures/{slug}`.
 - [Health](https://lyraauth.com/api/watch/health): whether the data is up to date.
 
+- Accounts and posts: each person record has `accounts` (official handles from Wikidata, with `read: true` where Lyra reads the free feed: YouTube, Bluesky, Mastodon, official websites) and, for the watchlist, `posts`: their own recent posts plus news stories about posts on X, Truth Social, Instagram, TikTok and others (`reported: true`; the post may be by or about them).
+
 ## How to read the fields
 
 - `popularity.score` is 70% Wikipedia page views over the last 30 days (log scale) and 30% headline count. It measures attention now, not lifetime fame.

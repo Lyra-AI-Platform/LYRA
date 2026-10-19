@@ -54,13 +54,32 @@ def _media(items: List[Dict], person: Dict) -> List[Dict]:
         out.append({"title": title, "summary": summary, "url": it["url"], "source": it.get("source", ""),
                     "date": time.strftime("%Y-%m-%d", time.gmtime(it["published"])), "sentiment": it["sentiment"],
                     "companies": it["companies"], "topics": it.get("topics", []),
-                    "moves": [m["kind"] for m in it.get("moves", [])], "people": people.names_in(f"{title}. {summary}" if summary else title),
+                    "moves": [m["kind"] for m in it.get("moves", [])],
+                    "own_words": bool(it.get("own_words")), "platform": it.get("platform", ""),
+                    "reported": bool(it.get("reported")), "people": people.names_in(f"{title}. {summary}" if summary else title),
                     "feed": person["name"]})
     return out
 
 
+async def accounts_for(person: Dict) -> Dict:
+    """Wikipedia match, Wikidata facts and the person's own readable feeds, found once per refresh."""
+    try:
+        wiki = await sources.wiki_person(person)
+    except Exception:  # noqa: BLE001
+        wiki = {"status": "unavailable"}
+    wd = await sources.wikidata_profile(wiki.get("qid", "")) if wiki.get("status") == "ok" else {}
+    accounts = wd.get("accounts", {})
+    try:
+        feeds = await sources.own_feeds(person, accounts)
+    except Exception:  # noqa: BLE001
+        feeds = []
+    return {"wiki": wiki, "wikidata": wd, "accounts": sources.account_links(accounts), "own_feeds": feeds}
+
+
 async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
-    tasks = {"statements": sources.statements(person), "wiki": sources.wiki_person(person)}
+    found = await accounts_for(person)
+    wiki = found["wiki"]
+    tasks = {"statements": sources.statements({**person, "feeds": found["own_feeds"]})}
     if person.get("sec_cik"):
         tasks["insider"] = sources.form4_trades(person["sec_cik"])
     if person.get("fund_cik"):
@@ -69,10 +88,7 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         tasks["congress"] = sources.house_trades(person["house"]["last"], person["house"]["state"])
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     data, status = {}, {}
-    wiki = results[1] if not isinstance(results[1], Exception) else {"status": "unavailable"}
     for key, r in zip(tasks, results):
-        if key == "wiki":
-            continue
         if isinstance(r, Exception):
             logger.warning(f"Watch {person['slug']} {key} failed: {r}")
             data[key], status[key] = [], {"status": "failed", "detail": "lookup error"}
@@ -98,6 +114,10 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         "statements": items[:40],
         "media": _media(items, person),
         "wiki": wiki,
+        "accounts": found["accounts"],
+        "own_feeds": found["own_feeds"],
+        "posts": [{**{k: it.get(k) for k in ("url", "source", "platform", "published", "sentiment", "reported")},
+                   "title": people.headline(it)} for it in items if it.get("own_words") or it.get("reported")][:30],
         "sources": status,
     }
 
@@ -196,6 +216,11 @@ async def build_people(roster: List[Dict]) -> Dict:
     for rec, wd in zip(records, facts):
         rec["politics"] = politics(rec, wd, next((p for p in roster if p["slug"] == rec["slug"]), None))
         rec["occupations"] = wd.get("occupations", [])
+        rec["accounts"] = sources.account_links(wd.get("accounts", {}))
+        if rec["watched"]:
+            prof = profiles.get(rec["slug"], {})
+            rec["own_feeds"] = prof.get("own_feeds", [])
+            rec["posts"] = prof.get("posts", [])[:10]
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
     return {"built_at": time.time(), "people": records}
 

@@ -148,6 +148,10 @@
         <h2>Political affiliation</h2>
         <div id="pStance"></div>
 
+        <h2>Accounts &amp; posts</h2>
+        <div id="pAccounts"></div>
+        <ul class="feed" id="pPosts"></ul>
+
         <h2>People in their coverage</h2>
         <ul class="feed" id="pPeople"></ul>
 
@@ -259,6 +263,20 @@
     } catch { $("feed").replaceChildren(el("li", { class: "muted", text: "Couldn't load the feed." })); }
   }
 
+  const PLATFORM = { youtube: "YouTube", bluesky: "Bluesky", mastodon: "Mastodon", website: "Website", x: "X",
+    instagram: "Instagram", facebook: "Facebook", threads: "Threads", tiktok: "TikTok" };
+  function accountChips(accounts) {
+    if (!accounts || !accounts.length) return el("p", { class: "muted", text: "No official accounts on record." });
+    return el("div", {},
+      el("div", { class: "chips" }, ...accounts.map((a) => el("a", { class: "chip" + (a.read ? " aff" : ""), href: a.url, target: "_blank",
+        rel: "noopener nofollow", title: a.read ? "Posts are read into Lyra Watch" : "Linked only: this platform has no free feed",
+        text: `${PLATFORM[a.platform] || a.platform}${a.platform === "website" ? "" : ` @${a.handle}`}${a.read ? " ✓" : ""}` }))),
+      el("p", { class: "meta", style: "margin-top:6px", text: "Official accounts from Wikidata. ✓ = posts are read. X, Instagram, Facebook, Threads and TikTok have no free feed, so posts there show up only when news stories cover them (“in the news”: a post by them or about them)." }));
+  }
+  const postRow = (p) => el("li", {},
+    el("span", { class: "chip" + (p.reported ? "" : " aff"), text: p.reported ? `${p.platform || "Social"} post · in the news` : `${p.platform || "Post"} · their post` }), " ",
+    link(p.url, p.title), p.published ? el("span", { class: "when", text: ` ${new Date(p.published * 1000).toISOString().slice(0, 10)}` }) : null);
+
   function politicsCell(pol) {
     if (!pol || pol.basis !== "documented") return el("span", { class: "meta", text: "None on record" });
     return el("div", {}, ...pol.parties.slice(0, 1).map((p) => el("span", { class: "chip aff", text: p })),
@@ -286,6 +304,8 @@
           ? el("p", {}, ...[...pol.parties.map((p) => el("span", { class: "chip aff", text: p })), " ", pol.offices.join(" · ")], " ", pol.source ? link(pol.source, "source") : null)
           : el("p", { class: "muted", text: "No party membership or office on record. Lyra doesn't infer anyone's politics." }),
         el("p", { class: "muted", text: `${Math.round((pol.political_coverage || 0) * 100)}% of their headlines are about elections, taxes, immigration, trade or policy.` })),
+      sect("Accounts", accountChips(r.accounts),
+        (r.posts || []).length ? el("ul", { class: "feed" }, ...r.posts.slice(0, 6).map(postRow)) : null),
       sect("Interests", el("ul", { class: "bars" }, ...(r.interests || []).map((t) => el("li", {},
         el("span", { text: t.topic }),
         el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${Math.round(t.share * 100)}%` })),
@@ -380,6 +400,10 @@
     $("pStance").replaceChildren(st.basis === "documented"
       ? el("p", {}, el("b", { text: st.label }), " · ", link(st.source, "source"))
       : el("p", { text: "Not publicly declared. Lyra only shows documented affiliations and doesn't infer anyone's politics." }));
+
+    $("pAccounts").replaceChildren(accountChips(p.accounts));
+    $("pPosts").replaceChildren(...(p.posts || []).slice(0, 12).map(postRow));
+    if (!(p.posts || []).length) $("pPosts").replaceChildren(el("li", { class: "muted", text: "No posts found in the last 30 days." }));
 
     try {
       peopleCache = peopleCache || (await api("people?limit=500")).people;

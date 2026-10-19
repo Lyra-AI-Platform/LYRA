@@ -65,6 +65,11 @@ def parse_feed(body: str) -> List[Dict]:
             url = (link.text or link.get("href") or "").strip()
         title = _strip_html(fields["title"].text if "title" in fields else "")
         summary_el = _first(fields, "description", "summary", "content")
+        if not title and summary_el is not None and summary_el.text:
+            # Bluesky and Mastodon posts have no title; the post text stands in for one.
+            text = " ".join(re.sub(r"\[contains quote post or other embedded content\]", "",
+                                   _strip_html(summary_el.text)).split())
+            title = text if len(text) <= 200 else text[:197].rsplit(" ", 1)[0] + "…"
         source_el = fields.get("source")
         date_el = _first(fields, "pubDate", "published", "updated")
         if not title or not url:
