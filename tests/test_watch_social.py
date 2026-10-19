@@ -82,7 +82,7 @@ def test_profile_carries_accounts_and_posts(monkeypatch):
         return {"status": "ok", "qid": "Q1"}
 
     async def fake_wd(qid):
-        return {"accounts": {"x": ["RoKhanna"], "bluesky": ["khanna.house.gov"]}}
+        return {"accounts": {"x": ["RoKhanna"], "bluesky": ["khanna.house.gov"], "website": ["https://khanna.house.gov"]}}
 
     async def fake_feeds(person, accounts):
         return [{"platform": "Bluesky", "url": "https://bsky.app/profile/khanna.house.gov/rss", "posts": 1}]
@@ -96,7 +96,7 @@ def test_profile_carries_accounts_and_posts(monkeypatch):
     monkeypatch.setattr(sources, "own_feeds", fake_feeds)
     monkeypatch.setattr(sources, "statements", fake_statements)
     p = asyncio.run(service.build_profile({"slug": "ro-khanna", "name": "Ro Khanna", "role": "Rep"}))
-    assert {a["platform"] for a in p["accounts"]} == {"x", "bluesky"}
+    assert {a["platform"]: a["read"] for a in p["accounts"]} == {"x": False, "bluesky": True, "website": False}
     assert p["posts"][0]["platform"] == "Bluesky" and p["media"][0]["own_words"]
     assert p["summary"]["tone"]["own_words"]["items"] == 1
 

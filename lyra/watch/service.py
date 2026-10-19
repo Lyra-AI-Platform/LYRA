@@ -73,7 +73,12 @@ async def accounts_for(person: Dict) -> Dict:
         feeds = await sources.own_feeds(person, accounts)
     except Exception:  # noqa: BLE001
         feeds = []
-    return {"wiki": wiki, "wikidata": wd, "accounts": sources.account_links(accounts), "own_feeds": feeds}
+    links = sources.account_links(accounts)
+    read = {f["platform"].lower() for f in feeds}
+    for link in links:
+        # ✓ only when a feed for that platform actually loaded (a website may have none).
+        link["read"] = link["read"] and link["platform"] in read
+    return {"wiki": wiki, "wikidata": wd, "accounts": links, "own_feeds": feeds}
 
 
 async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
@@ -216,9 +221,11 @@ async def build_people(roster: List[Dict]) -> Dict:
     for rec, wd in zip(records, facts):
         rec["politics"] = politics(rec, wd, next((p for p in roster if p["slug"] == rec["slug"]), None))
         rec["occupations"] = wd.get("occupations", [])
-        rec["accounts"] = sources.account_links(wd.get("accounts", {}))
+        # Off the watchlist nothing is read, so these are links only.
+        rec["accounts"] = [{**a, "read": False} for a in sources.account_links(wd.get("accounts", {}))]
         if rec["watched"]:
             prof = profiles.get(rec["slug"], {})
+            rec["accounts"] = prof.get("accounts", rec["accounts"])
             rec["own_feeds"] = prof.get("own_feeds", [])
             rec["posts"] = prof.get("posts", [])[:10]
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
