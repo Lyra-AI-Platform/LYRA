@@ -5,12 +5,14 @@ Read-only and public: everything comes from public records and is rebuilt in the
 background, so requests only read stored profiles. Rate limited per IP.
 """
 import asyncio
+import hmac
 import json
+import os
 import time
 from collections import defaultdict, deque
 from typing import Deque, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from lyra.api.entitlements import require_paid
@@ -144,6 +146,16 @@ async def live_preview(response: Response, request: Request):
 
 @router.get("/live/recent")
 async def live_recent(limit: int = 50, user: User = Depends(require_paid("watch_live"))):
+    return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY))}
+
+
+@router.get("/live/peer")
+async def live_peer(response: Response, limit: int = 100, x_lyra_peer_key: str = Header(default="")):
+    """Live events for trusted nodes (e.g. the owner's trader), keyed by LYRA_PEER_KEY. 404 without it."""
+    expected = os.environ.get("LYRA_PEER_KEY", "")
+    if not expected or not hmac.compare_digest(x_lyra_peer_key, expected):
+        raise HTTPException(404, "Not found")
+    response.headers["Cache-Control"] = "no-store"
     return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY))}
 
 
