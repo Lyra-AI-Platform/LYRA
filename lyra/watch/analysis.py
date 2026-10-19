@@ -46,7 +46,8 @@ PRIVATE = ["OpenAI", "Anthropic", "xAI", "Neuralink", "The Boring Company", "Blu
            "Stripe", "Databricks", "ByteDance", "TikTok", "Starlink", "SKIMS", "Roc Nation",
            "Wrexham", "Maximum Effort", "Teremana", "Public Investment Fund", "NEOM", "World Liberty Financial"]
 
-_COMPANY_RE = [(re.compile(rf"(?<![\w&]){re.escape(n)}(?![\w&])"), n, t) for n, t in COMPANIES.items()]
+# Not inside a money amount: "$3M" and "$42.3M" aren't the company 3M.
+_COMPANY_RE = [(re.compile(rf"(?<![\w&$])(?<!\d[.,]){re.escape(n)}(?![\w&])"), n, t) for n, t in COMPANIES.items()]
 _PRIVATE_RE = [(re.compile(rf"(?<![\w&]){re.escape(n)}(?![\w&])"), n) for n in PRIVATE]
 _CASHTAG = re.compile(r"\$([A-Z]{1,5})\b")
 _EXCHANGE = re.compile(r"\((?:NYSE|NASDAQ|Nasdaq|LSE|TSX|AMEX)\s*:\s*([A-Z.]{1,6})\)")

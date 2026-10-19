@@ -237,13 +237,25 @@ async function loadPeople(ticker, company) {
     const short = (company || "").replace(/[,.]|\b(inc|corp|corporation|co|ltd|plc|holdings|group|company|sa|ag|nv)\b/gi, "").trim();
     if (!d.people.length && short.length > 2)
       d = await fetch("/api/watch/people?limit=8&q=" + encodeURIComponent(short)).then(r => r.json());
+    let moved = {};
+    try {
+      const im = await fetch("/api/watch/impact?ticker=" + encodeURIComponent(ticker)).then(r => r.json());
+      im.people.forEach(p => { moved[p.id] = p.this_stock; });
+    } catch {}
+    const mv = (m) => `${m >= 0 ? "+" : ""}${(m * 100).toFixed(1)}%`;
+    const impactTag = (b) => b ? `<span class="tag ${b.big_moves / b.days >= 2 * b.usual_big_share && b.big_moves >= 2 ? "ok" : ""}"
+      title="Days ${esc(ticker)} closed 2+ usual daily swings away, out of the days this person was in the news about it">
+      ${esc(ticker)}: ${b.big_moves} big moves in ${b.days} news days (usual ${Math.round(b.usual_big_share * 100)}%) · avg ${mv(b.avg_move)}</span>` : "";
+    d.people.sort((a, b) => ((moved[b.id] || {}).big_moves || 0) - ((moved[a.id] || {}).big_moves || 0));
     $("people").innerHTML = d.people.length ? `<ul class="people">${d.people.map(p => `<li>
       <a href="/watch/#person/${encodeURIComponent(p.id)}">${esc(p.name)}</a>
       <span class="muted">${esc(p.job || "")}</span>
       ${p.popularity ? `<span class="tag">${esc(p.popularity.tier)} · ${p.popularity.score}</span>` : ""}
       <span class="tag ${p.tone.label === "positive" ? "ok" : p.tone.label === "negative" ? "failed" : ""}">tone ${esc(p.tone.label)}</span>
-      <span class="muted">${p.mentions} headlines</span></li>`).join("")}</ul>
-      <p class="muted">From Lyra Watch's last 30 days of headlines. <a href="/watch/live/">Follow them live →</a></p>`
+      <span class="muted">${p.mentions} headlines</span> ${impactTag(moved[p.id])}</li>`).join("")}</ul>
+      <p class="muted">From Lyra Watch headlines. Big moves are measured from real closes on the days each person was in
+        the news about ${esc(ticker)}: what happened, not what caused it. <a href="/watch/#movers">Who moves markets →</a>
+        · <a href="/watch/live/">Follow them live →</a></p>`
       : `<p class="empty">No tracked public figures named with ${esc(company || ticker)} recently.</p>`;
   } catch { $("people").innerHTML = `<p class="empty">Lyra Watch is unavailable right now.</p>`; }
 }

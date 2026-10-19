@@ -66,6 +66,7 @@
   .buy { color: var(--buy); font-weight: 600; } .sell { color: var(--sell); font-weight: 600; }
   .bars { list-style: none; }
   .bars li { display: grid; grid-template-columns: 9.5em 1fr 2.5em; align-items: center; gap: 8px; font-size: 13px; margin: 6px 0; }
+  .bars.wide li { grid-template-columns: minmax(9.5em, auto) 1fr 4em; }
   .bars .track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
   .bars .fill { height: 100%; background: var(--bar); border-radius: 4px; }
   .bars .n { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -118,6 +119,16 @@
         <ul class="feed" id="feed"></ul>
       </aside>
     </div>
+
+    <h2 id="movers">Who moves markets <span class="chip aff" style="vertical-align:middle">Measured, not guessed</span></h2>
+    <p class="muted" style="max-width:720px;">On the days each person was in the news about a listed company, how often did
+      that stock make a big move (two of its usual daily swings), compared with its ordinary days? Built from real closing
+      prices and a record that grows every day. News and price moves come together both ways, so this shows what happened,
+      not what caused it. Not financial advice.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Person</th><th>Stocks</th><th class="num">News days</th><th class="num">Big moves</th><th class="num">vs usual</th><th>Biggest day</th></tr></thead>
+      <tbody id="moverRows"><tr><td colspan="6" class="muted">Loading…</td></tr></tbody>
+    </table></div>
 
     <h2>People in the news</h2>
     <p class="muted" style="max-width:720px;">Everyone the coverage names, not only the watchlist: their job, the companies
@@ -336,6 +347,8 @@
       el("div", { class: "chips" }, popBadge(r.popularity), " ", copy, " ", el("a", { class: "meta", href: ai, text: "JSON" }),
         r.wiki && r.wiki.url ? el("span", { class: "meta" }, " · ", link(r.wiki.url, "Wikipedia")) : null,
         r.slug ? el("span", { class: "meta" }, " · ", el("a", { href: `#${r.slug}`, text: "Trades & power moves" })) : null),
+      sect("Market impact", impactBlock(r.market_impact)),
+      ...(r.said_and_traded && r.said_and_traded.length ? [sect("Said & traded", tradedBlock(r.said_and_traded))] : []),
       sect("Politics",
         pol.basis === "documented"
           ? el("p", {}, ...[...pol.parties.map((p) => el("span", { class: "chip aff", text: p })), " ", pol.offices.join(" · ")], " ", pol.source ? link(pol.source, "source") : null)
@@ -361,6 +374,55 @@
   function companyChip(c, text) {
     return c.ticker ? el("a", { class: "chip", href: marketLink(c.ticker), title: `${c.ticker} on Lyra Markets`, text })
       : el("span", { class: "chip", text });
+  }
+
+  const pctMove = (m) => `${m >= 0 ? "+" : ""}${(m * 100).toFixed(1)}%`;
+  const LIFT_TEXT = { strong: "Strong", some: "Some", "none seen": "None seen", "not enough days yet": "Too early", "no data": "No data" };
+  const liftCell = (r) => el("span", { class: r.verdict === "strong" ? "buy" : r.verdict === "some" ? "" : "meta",
+    text: `${r.lift.toFixed(1)}× · ${LIFT_TEXT[r.verdict] || r.verdict}` });
+  const moveChip = (b) => el("a", { class: "chip", href: marketLink(b.ticker), title: "Tremor reading",
+    text: `${b.ticker} ${b.date ? b.date.slice(5) + " " : ""}${pctMove(b.move ?? b.avg_move)}` });
+
+  async function loadMovers() {
+    try {
+      const data = await api("impact?limit=25");
+      $("moverRows").replaceChildren(...data.people.map((r) => el("tr", {},
+        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }), el("div", { class: "meta", text: r.job || "" })),
+        el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.by_ticker.slice(0, 3).map((b) => companyChip(b, b.ticker)))),
+        el("td", { class: "num", text: String(r.days) }),
+        el("td", { class: "num", text: `${r.big_moves} (${Math.round(r.big_share * 100)}%)` }),
+        el("td", { class: "num" }, liftCell(r), el("div", { class: "meta", text: `usual ${Math.round(r.usual_big_share * 100)}%` })),
+        el("td", {}, r.biggest[0] ? moveChip(r.biggest[0]) : "—"))));
+      if (!data.people.length) $("moverRows").replaceChildren(el("tr", {}, el("td", { colspan: "6", class: "muted",
+        text: "Building the record: a person needs at least 5 news days about a listed company. Check back after the next refresh." })));
+    } catch { $("moverRows").replaceChildren(el("tr", {}, el("td", { colspan: "6", class: "muted", text: "Couldn't load the market record." }))); }
+  }
+
+  function impactBlock(m) {
+    if (!m || !m.days) return el("p", { class: "muted", text: "No news days about a listed company yet." });
+    return el("div", {},
+      el("p", {}, el("b", { text: `${m.big_moves} big moves in ${m.days} news days` }),
+        ` (${Math.round(m.big_share * 100)}%) against ${Math.round(m.usual_big_share * 100)}% on ordinary days: `, liftCell(m),
+        el("span", { class: "meta", text: ` · since ${m.first_day}` })),
+      el("ul", { class: "bars wide" }, ...m.by_ticker.map((b) => el("li", {},
+        companyChip(b, `${b.name} (${b.ticker})`),
+        el("span", { class: "meta", text: `${b.days} days · ${b.big_moves} big · typical ${b.avg_abs_z.toFixed(1)}σ` }),
+        el("span", { class: "n " + (b.avg_move >= 0 ? "buy" : "sell"), text: pctMove(b.avg_move) })))),
+      m.biggest.length ? el("div", { class: "chips" }, el("span", { class: "meta", text: "Biggest days: " }), ...m.biggest.map(moveChip)) : null,
+      el("p", { class: "meta", style: "margin-top:6px", text: "Close-to-close moves on the trading day of the news (weekend news counts on Monday). Shows what happened, not what caused it." }));
+  }
+
+  function tradedBlock(rows) {
+    if (!rows || !rows.length) return null;
+    return el("div", {},
+      el("ul", { class: "feed" }, ...rows.slice(0, 10).map((t) => el("li", {},
+        el("span", { class: "when", text: t.date }), " ",
+        el("span", { class: t.side === "buy" ? "buy" : t.side === "sell" ? "sell" : "", text: `${t.side || "traded"} ` }),
+        companyChip({ ticker: t.ticker }, t.company), t.amount ? el("span", { class: "meta", text: ` ${t.amount}` }) : null,
+        t.url ? el("span", { class: "meta" }, " · ", link(t.url, "filing")) : null,
+        el("div", { class: "meta", text: `In the news about ${t.ticker} on ${t.news_days_before.length} day${t.news_days_before.length === 1 ? "" : "s"} in the 30 before, ${t.news_days_after.length} in the 30 after` +
+          (t.news_days_before.length ? ` (last: ${t.news_days_before[t.news_days_before.length - 1]})` : "") })))),
+      el("p", { class: "meta", style: "margin-top:6px", text: "Disclosed trades next to the days they were in the news about the same company. Facts side by side; no wrongdoing is suggested." }));
   }
 
   async function loadPeople() {
@@ -510,6 +572,7 @@
       renderGrid();
     } catch { $("grid").replaceChildren(el("p", { text: "Couldn't load the watchlist. Try again in a minute." })); }
     loadFeed();
+    loadMovers();
     loadPeople();
   }
 

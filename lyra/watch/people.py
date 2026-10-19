@@ -285,6 +285,12 @@ def merge(records: List[Dict]) -> Dict:
         return main
     total = sum(r["mentions"] for r in records)
     avg = sum(r["tone"]["avg"] * r["mentions"] for r in records) / total
+    ticker_days: Dict[str, Dict] = {}
+    for r in records:
+        for t, v in (r.get("ticker_days") or {}).items():
+            have = ticker_days.setdefault(t, {"name": v["name"], "dates": []})
+            have["dates"] = sorted(set(have["dates"]) | set(v["dates"]))
+    main["ticker_days"] = ticker_days
     companies: Dict[str, Dict] = {}
     for r in records:
         for c in r["companies"]:
@@ -390,7 +396,7 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
     found: Dict[str, Dict] = defaultdict(lambda: {"items": [], "jobs": Counter(), "companies": Counter(),
                                                   "topics": Counter(), "political": 0,
                                                   "company_meta": {}, "feeds": Counter(),
-                                                  "job_spelling": {}})
+                                                  "job_spelling": {}, "ticker_days": {}})
     for it in items:
         text = f"{it['title']} {it.get('summary', '')}"
         here = {canon.get(n, n) for n in it.get("people", [])}
@@ -412,6 +418,8 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
                 key = c.get("ticker") or c["name"]
                 rec["companies"][key] += 1
                 rec["company_meta"].setdefault(key, c)
+                if c.get("ticker") and it.get("date"):
+                    rec["ticker_days"].setdefault(c["ticker"], {"name": c["name"], "dates": set()})["dates"].add(it["date"])
             if it.get("feed"):
                 rec["feeds"][it["feed"]] += 1
             rec["topics"].update(it.get("topics", []))
@@ -442,5 +450,7 @@ def build_index(media: Iterable[Dict], roster: List[Dict]) -> Dict[str, Dict]:
             "seen_with": [s for s, _ in rec["feeds"].most_common(5)],
             "first_seen": rows[-1].get("date", ""), "last_seen": rows[0].get("date", ""),
             "headlines": [{k: r.get(k, "") for k in ("title", "url", "date", "source")} for r in rows[:5]],
+            # Days they were in the news about each listed company, for the market-impact record.
+            "ticker_days": {t: {"name": v["name"], "dates": sorted(v["dates"])} for t, v in rec["ticker_days"].items()},
         }
     return out

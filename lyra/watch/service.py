@@ -9,7 +9,7 @@ import time
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
 
-from lyra.watch import analysis, chatter, people, signals, sources, xapi
+from lyra.watch import analysis, chatter, impact, people, signals, sources, xapi
 from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -266,6 +266,14 @@ async def build_people(roster: List[Dict]) -> Dict:
             rec["interviews"] = prof.get("interviews", [])[:10]
             rec["discussion"] = prof.get("discussion", {})
             rec["court_cases"] = prof.get("court_cases", [])
+            rec["trades"] = prof.get("trades", [])
+    try:
+        await impact.measure(records)
+    except Exception as e:  # noqa: BLE001
+        logger.warning(f"Market impact failed: {e}")
+    for rec in records:
+        rec.pop("trades", None)  # the full list stays on the profile
+        rec.pop("ticker_days", None)  # kept in the impact history instead
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
     return {"built_at": time.time(), "people": records}
 

@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from lyra.api.entitlements import require_paid
 from lyra.db.models import User
-from lyra.watch import live, service
+from lyra.watch import impact, live, service
 from lyra.watch.config import CATEGORIES, load_roster
 
 READS_PER_HOUR = 600
@@ -62,6 +62,28 @@ async def people(response: Response, request: Request, q: str = "", watched: str
     _public(response, request)
     flag = {"": None, "true": True, "false": False}.get(watched.lower())
     return service.people_list(q[:80], flag, min(max(limit, 1), 500), ticker=ticker[:10])
+
+
+@router.get("/impact")
+async def market_impact(response: Response, request: Request, ticker: str = "", limit: int = 50):
+    """Who moves markets, measured: for each public figure, how often a company's stock made a big
+    move (two of its usual daily swings) on the days they were in the news about it, against how
+    often it does on any day. `ticker` (e.g. NVDA) keeps the people measured on that stock."""
+    _public(response, request)
+    rows = impact.leaderboard(service.people_list(limit=500)["people"], limit=500)
+    t = ticker.upper().strip()[:10]
+    if t:
+        rows = [{**r, "this_stock": next(b for b in r["by_ticker"] if b["ticker"] == t)}
+                for r in rows if any(b["ticker"] == t for b in r["by_ticker"])]
+    return {"method": IMPACT_METHOD, "people": rows[:min(max(limit, 1), 200)]}
+
+
+IMPACT_METHOD = ("A big move is a daily close-to-close change of at least two of the stock's usual daily swings "
+                 "(standard deviation over the previous 60 trading days). For each person, Lyra counts the trading "
+                 "days on which they were in the news about a listed company (weekend news counts on the next session) "
+                 "and compares the share of big moves on those days with the stock's share on all days. 'lift' is the "
+                 "ratio. A verdict needs at least 5 days. News and price moves come together in both directions, so "
+                 "this shows what happened on those days, not what caused it. Not financial advice.")
 
 
 @router.get("/people/{pid}")
