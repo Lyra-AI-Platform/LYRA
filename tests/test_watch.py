@@ -119,6 +119,16 @@ def test_build_profile_merges_sources(monkeypatch):
     monkeypatch.setattr(sources, "statements", fake_statements)
     monkeypatch.setattr(sources, "house_trades", fake_house)
     monkeypatch.setattr(sources, "wiki_person", no_wiki)
+
+    async def no_discussion(person, hours=24, max_age=0):
+        return {}
+
+    async def nothing(person, **kw):
+        return []
+    from lyra.watch import chatter
+    monkeypatch.setattr(chatter, "discussion", no_discussion)
+    monkeypatch.setattr(chatter, "gdelt", nothing)
+    monkeypatch.setattr(chatter, "podcasts", nothing)
     person = {"slug": "p", "name": "P", "category": "politician", "country": "US", "role": "Rep",
               "house": {"last": "P", "state": "CA11"}}
     p = asyncio.run(service.build_profile(person))

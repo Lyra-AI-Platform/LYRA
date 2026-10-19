@@ -13,7 +13,7 @@ os.environ.setdefault("LYRA_MARKET_DIR", tempfile.mkdtemp(prefix="lyra-live-test
 from lyra.api import watch_api  # noqa: E402
 from lyra.api.users_api import get_current_user  # noqa: E402
 from lyra.db.models import User  # noqa: E402
-from lyra.watch import live, service, sources  # noqa: E402
+from lyra.watch import chatter, live, service, sources  # noqa: E402
 
 STARMER = {"slug": "keir-starmer", "name": "Keir Starmer", "role": "Former UK Prime Minister"}
 
@@ -23,8 +23,14 @@ def _item(title, url, age=60):
             "own_words": False}
 
 
+EMPTY_BUZZ = {"hours": 24, "platforms": {}, "threads": [], "total": 0, "tone": {"avg": 0, "label": "neutral"}}
+
+
 @pytest.fixture(autouse=True)
 def fresh(monkeypatch):
+    async def no_discussion(person, hours=24, max_age=0):
+        return dict(EMPTY_BUZZ)
+    monkeypatch.setattr(live.chatter, "discussion", no_discussion)
     monkeypatch.setattr(live, "hub", live.Hub())
     monkeypatch.setattr(live.hub, "history", live.deque(maxlen=live.HISTORY))
     monkeypatch.setattr(live.hub, "arrivals", live.deque(maxlen=50_000))
@@ -181,6 +187,7 @@ def test_an_old_youtube_video_is_not_live_news(monkeypatch):
     async def fake_fetch(url, **kw):
         return feed if "youtube" in url else "<rss><channel></channel></rss>"
     monkeypatch.setattr(sources, "fetch_text", fake_fetch)
+    monkeypatch.setattr(chatter, "fetch_text", fake_fetch)
     monkeypatch.setattr(service, "load_profile", lambda slug: {"own_feeds": [
         {"platform": "YouTube", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC1"}]})
     loop = live.LiveLoop()
@@ -198,3 +205,25 @@ def test_events_saved_before_the_date_fix_are_dropped(monkeypatch):
                                 _json.dumps({"v": live.EVENT_VERSION, "id": "ok", "ts": time.time(), "title": "t"}) + "\n")
     hub = live.Hub()
     assert [e["id"] for e in hub.history] == ["ok"] and len(hub.arrivals) == 1
+
+
+def test_trending_threads_become_events_and_buzz_is_sent(monkeypatch):
+    now = time.time()
+
+    async def buzzing(person, hours=24, max_age=0):
+        return {**EMPTY_BUZZ, "total": 42, "platforms": {"Hacker News": {"mentions": 42, "avg": 0, "label": "neutral"}},
+                "threads": [{"platform": "Hacker News", "title": "Starmer's AI plan, explained", "url": "https://hn/1",
+                             "score": 80, "comments": 40, "published": now - 600},
+                            {"platform": "Hacker News", "title": "Quiet thread", "url": "https://hn/2",
+                             "score": 2, "comments": 1, "published": now - 600}]}
+    monkeypatch.setattr(live.chatter, "discussion", buzzing)
+    q = live.hub.subscribe()
+    loop = live.LiveLoop()
+    asyncio.run(loop.discuss(STARMER, {}))
+    assert [e["id"] for e in live.hub.history] == ["https://hn/1"]  # the quiet thread isn't news
+    e = live.hub.history[0]
+    assert e["kind"] == "discussion" and e["stats"] == {"score": 80, "comments": 40}
+    msgs = [q.get_nowait() for _ in range(q.qsize())]
+    assert msgs[0]["_buzz"]["total"] == 42 and msgs[0]["_buzz"]["slug"] == "keir-starmer"
+    asyncio.run(loop.discuss(STARMER, {}))
+    assert len(live.hub.history) == 1  # announced once

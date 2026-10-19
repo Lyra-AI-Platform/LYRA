@@ -8,7 +8,7 @@ import re
 import time
 from typing import Dict, List, Optional
 
-from lyra.watch import analysis, people, sources
+from lyra.watch import analysis, chatter, people, sources
 from lyra.watch.config import CATEGORIES, LOOKBACK_DAYS, PROFILES_DIR, REFRESH_HOURS, WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -56,6 +56,7 @@ def _media(items: List[Dict], person: Dict) -> List[Dict]:
                     "companies": it["companies"], "topics": it.get("topics", []),
                     "moves": [m["kind"] for m in it.get("moves", [])],
                     "own_words": bool(it.get("own_words")), "platform": it.get("platform", ""),
+                    "interview": bool(it.get("interview")),
                     "reported": bool(it.get("reported")), "people": people.names_in(f"{title}. {summary}" if summary else title),
                     "feed": person["name"]})
     return out
@@ -84,7 +85,8 @@ async def accounts_for(person: Dict) -> Dict:
 async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
     found = await accounts_for(person)
     wiki = found["wiki"]
-    tasks = {"statements": sources.statements({**person, "feeds": found["own_feeds"]})}
+    tasks = {"statements": sources.statements({**person, "feeds": found["own_feeds"]}),
+             "discussion": chatter.discussion(person)}
     if person.get("sec_cik"):
         tasks["insider"] = sources.form4_trades(person["sec_cik"])
     if person.get("fund_cik"):
@@ -93,7 +95,10 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         tasks["congress"] = sources.house_trades(person["house"]["last"], person["house"]["state"])
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     data, status = {}, {}
+    buzz = results[1] if isinstance(results[1], dict) else {}
     for key, r in zip(tasks, results):
+        if key == "discussion":
+            continue
         if isinstance(r, Exception):
             logger.warning(f"Watch {person['slug']} {key} failed: {r}")
             data[key], status[key] = [], {"status": "failed", "detail": "lookup error"}
@@ -123,6 +128,9 @@ async def build_profile(person: Dict, tickers=frozenset()) -> Dict:
         "own_feeds": found["own_feeds"],
         "posts": [{**{k: it.get(k) for k in ("url", "source", "platform", "published", "sentiment", "reported")},
                    "title": people.headline(it)} for it in items if it.get("own_words") or it.get("reported")][:30],
+        "interviews": [{**{k: it.get(k) for k in ("url", "source", "platform", "published")}, "title": people.headline(it)}
+                       for it in items if it.get("interview")][:20],
+        "discussion": buzz,
         "sources": status,
     }
 
@@ -228,6 +236,8 @@ async def build_people(roster: List[Dict]) -> Dict:
             rec["accounts"] = prof.get("accounts", rec["accounts"])
             rec["own_feeds"] = prof.get("own_feeds", [])
             rec["posts"] = prof.get("posts", [])[:10]
+            rec["interviews"] = prof.get("interviews", [])[:10]
+            rec["discussion"] = prof.get("discussion", {})
     records.sort(key=lambda r: (r["popularity"]["score"], r["mentions"]), reverse=True)
     return {"built_at": time.time(), "people": records}
 
@@ -364,4 +374,5 @@ def health() -> Dict:
     return {"ok": not problems, "problems": problems,
             "people_index_age_minutes": round(people_age / 60) if people_age is not None else None,
             "last_live_check_minutes": round(live_age / 60, 1) if live_age is not None else None,
-            "refresh_every_hours": refresh_loop.interval / 3600, "live_cycle_minutes": live.LIVE_CYCLE_MINUTES}
+            "refresh_every_hours": refresh_loop.interval / 3600, "live_cycle_minutes": live.LIVE_CYCLE_MINUTES,
+            "sources": {"gdelt": chatter.gdelt_status(), "reddit": "on" if chatter.reddit_enabled() else "off (no API credentials)"}}

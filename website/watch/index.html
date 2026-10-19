@@ -168,6 +168,12 @@
         <div id="pAccounts"></div>
         <ul class="feed" id="pPosts"></ul>
 
+        <h2>Being discussed</h2>
+        <div id="pBuzz"></div>
+
+        <h2>Interviews &amp; podcasts</h2>
+        <ul class="feed" id="pInterviews"></ul>
+
         <h2>People in their coverage</h2>
         <ul class="feed" id="pPeople"></ul>
 
@@ -293,6 +299,16 @@
     el("span", { class: "chip" + (p.reported ? "" : " aff"), text: p.reported ? `${p.platform || "Social"} post · in the news` : `${p.platform || "Post"} · their post` }), " ",
     link(p.url, p.title), p.published ? el("span", { class: "when", text: ` ${new Date(p.published * 1000).toISOString().slice(0, 10)}` }) : null);
 
+  function buzzBlock(d) {
+    if (!d || !d.platforms || !Object.keys(d.platforms).length) return el("p", { class: "muted", text: "Not measured yet." });
+    return el("div", {},
+      el("p", {}, el("b", { text: `${d.total.toLocaleString()} mentions` }), ` in the last ${d.hours} hours · tone ${d.tone.label}`),
+      el("div", { class: "chips" }, ...Object.entries(d.platforms).map(([k, p]) => el("span", { class: "chip", text: `${k}: ${p.mentions}${p.capped ? "+" : ""} · ${p.label}` }))),
+      (d.threads || []).length ? el("ul", { class: "feed", style: "margin-top:6px" }, ...d.threads.slice(0, 5).map((t) => el("li", {},
+        link(t.url, t.title), el("span", { class: "meta", text: ` · ${t.subreddit || t.platform} · ${t.score} points · ${t.comments} comments` })))) : null,
+      el("p", { class: "meta", style: "margin-top:4px", text: "Counts and tone from public posts; individual users' posts aren't shown." }));
+  }
+
   function politicsCell(pol) {
     if (!pol || pol.basis !== "documented") return el("span", { class: "meta", text: "None on record" });
     return el("div", {}, ...pol.parties.slice(0, 1).map((p) => el("span", { class: "chip aff", text: p })),
@@ -322,6 +338,7 @@
         el("p", { class: "muted", text: `${Math.round((pol.political_coverage || 0) * 100)}% of their headlines are about elections, taxes, immigration, trade or policy.` })),
       sect("Accounts", accountChips(r.accounts),
         (r.posts || []).length ? el("ul", { class: "feed" }, ...r.posts.slice(0, 6).map(postRow)) : null),
+      sect("Being discussed", buzzBlock(r.discussion)),
       sect("Interests", el("ul", { class: "bars" }, ...(r.interests || []).map((t) => el("li", {},
         el("span", { text: t.topic }),
         el("span", { class: "track" }, el("span", { class: "fill", style: `display:block;width:${Math.round(t.share * 100)}%` })),
@@ -418,6 +435,11 @@
       : el("p", { text: "Not publicly declared. Lyra only shows documented affiliations and doesn't infer anyone's politics." }));
 
     $("pAccounts").replaceChildren(accountChips(p.accounts));
+    $("pBuzz").replaceChildren(buzzBlock(p.discussion));
+    $("pInterviews").replaceChildren(...(p.interviews || []).slice(0, 10).map((i) => el("li", {},
+      el("span", { class: "chip", text: i.platform === "Podcast" ? "Podcast" : "Interview" }), " ", link(i.url, i.title),
+      el("span", { class: "meta", text: ` · ${i.source || ""}${i.published ? ` · ${new Date(i.published * 1000).toISOString().slice(0, 10)}` : ""}` }))));
+    if (!(p.interviews || []).length) $("pInterviews").replaceChildren(el("li", { class: "muted", text: "None found in the last 30 days." }));
     $("pPosts").replaceChildren(...(p.posts || []).slice(0, 12).map(postRow));
     if (!(p.posts || []).length) $("pPosts").replaceChildren(el("li", { class: "muted", text: "No posts found in the last 30 days." }));
 

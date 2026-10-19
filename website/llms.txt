@@ -15,6 +15,8 @@
 
 - Accounts and posts: each person record has `accounts` (official handles from Wikidata, with `read: true` where Lyra reads the free feed: YouTube, Bluesky, Mastodon, official websites) and, for the watchlist, `posts`: their own recent posts plus news stories about posts on X, Truth Social, Instagram, TikTok and others (`reported: true`; the post may be by or about them).
 
+- Interviews and discussion: watchlist records also carry `interviews` (news interviews, speeches and podcast episodes from the last 30 days) and `discussion` (mentions in the last 24 hours on Hacker News, Bluesky and, where enabled, Reddit, with tone and links to the busiest threads; individual users' posts aren't included).
+
 ## How to read the fields
 
 - `popularity.score` is 70% Wikipedia page views over the last 30 days (log scale) and 30% headline count. It measures attention now, not lifetime fame.

@@ -305,34 +305,46 @@ def _us_date(d: str) -> str:
 # ── Statements and coverage ────────────────────────────────────────────────
 
 async def statements(person: Dict, max_age: float = 3 * 3600) -> Tuple[List[Dict], Dict]:
-    """Headlines about the person (coverage) plus posts from their own RSS feeds (own words).
-    max_age is how long a fetched feed is reused; the live loop asks for fresh copies."""
+    """Everything recent about the person: Google News and GDELT coverage, news about their
+    posts, podcast episodes, and posts from their own feeds (own words). Interviews, podcasts
+    and speeches are tagged. max_age is how long a fetched feed is reused; the live loop asks
+    for fresh copies."""
+    from lyra.watch import chatter
     query = person.get("news_query") or f'"{person["name"]}"'
     posts_url = NEWS_FEED.format(q=quote_plus(f"{query} {POST_TERMS}"), days=STATEMENT_DAYS)
     urls = [(NEWS_FEED.format(q=quote_plus(query), days=STATEMENT_DAYS), False), (posts_url, False)]
-    own = [f if isinstance(f, dict) else {"url": f, "platform": platform_of(f)} for f in person.get("feeds", [])]
-    urls += [(f["url"], True) for f in own]
-    platforms = {f["url"]: f["platform"] for f in own}
-    bodies = await asyncio.gather(*(fetch_text(u, max_age=max_age) for u, _ in urls))
+    own_feeds = [f if isinstance(f, dict) else {"url": f, "platform": platform_of(f)} for f in person.get("feeds", [])]
+    urls += [(f["url"], True) for f in own_feeds]
+    platforms = {f["url"]: f["platform"] for f in own_feeds}
+    results = await asyncio.gather(*(fetch_text(u, max_age=max_age) for u, _ in urls),
+                                   chatter.gdelt(person, max_age=max(max_age, 900)), chatter.podcasts(person),
+                                   return_exceptions=True)
+    bodies = [r if isinstance(r, str) else None for r in results[:len(urls)]]
+    extra_items = [it for r in results[len(urls):] if isinstance(r, list) for it in r]
+    feeds = [(url, own, news.parse_feed(body or "")) for (url, own), body in zip(urls, bodies)]
+    feeds.append(("extra", False, extra_items))
     seen, items = set(), []
-    for (url, own), body in zip(urls, bodies):
-        for it in news.parse_feed(body or ""):
-            key = it["title"].lower()[:80]
-            if key in seen or _days_ago(datetime.fromtimestamp(it["published"], timezone.utc)
-                                        .strftime("%Y-%m-%d")) > STATEMENT_DAYS:
+    for url, own, rows in feeds:
+        for it in rows:
+            # The same story from Google ("Title - Outlet") and GDELT ("Title") is one item.
+            key = re.sub(r"\s+-\s+[^-]{2,60}$", "", it["title"]).lower()[:80]
+            if not it.get("published") or key in seen or _days_ago(
+                    datetime.fromtimestamp(it["published"], timezone.utc).strftime("%Y-%m-%d")) > STATEMENT_DAYS:
                 continue
             seen.add(key)
             extra = {"platform": platforms.get(url, "")} if own else {}
             # Only a headline that itself says it's about a post counts; Google's matching is loose.
             if not own and _POST_HEADLINE.search(it["title"]):
                 extra = {"reported": True, "platform": reported_platform(it["title"])}
-            items.append({**it, "summary": it["summary"][:news.SUMMARY_CHARS], "own_words": own, **extra})
+            if not own and (it.get("interview") or chatter.is_interview(it["title"])):
+                extra["interview"] = True
+            items.append({**it, "summary": (it.get("summary") or "")[:news.SUMMARY_CHARS], "own_words": own, **extra})
     items.sort(key=lambda x: x["published"], reverse=True)
     failed = sum(b is None for b in bodies)
     status = {"status": "ok" if not failed else "failed" if failed == len(urls) else "partial",
-              "provider": "Google News RSS" + (" + own feeds" if own else ""),
+              "provider": "Google News RSS + GDELT + podcasts" + (" + own feeds" if own_feeds else ""),
               "items": len(items)}
-    return items[:120], status
+    return items[:150], status
 
 
 # ── Wikipedia: who someone is and how many people read about them ──────────

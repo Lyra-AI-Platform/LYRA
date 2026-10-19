@@ -9,7 +9,7 @@ from email.utils import formatdate  # noqa: E402
 import time  # noqa: E402
 
 from lyra.market import news  # noqa: E402
-from lyra.watch import service, sources  # noqa: E402
+from lyra.watch import chatter, service, sources  # noqa: E402
 
 RECENT = formatdate(time.time() - 3600)  # an hour ago, in RSS form
 
@@ -75,13 +75,14 @@ def test_statements_mark_own_posts_and_reported_posts(monkeypatch):
             return BSKY
         return coverage
     monkeypatch.setattr(sources, "fetch_text", fake_fetch)
+    monkeypatch.setattr(chatter, "fetch_text", fake_fetch)
     items, status = asyncio.run(sources.statements(
         {"name": "Ro Khanna", "feeds": [{"platform": "Bluesky", "url": "https://bsky.app/profile/k/rss"}]}))
     by = {it["url"]: it for it in items}
     assert by["https://bsky.app/profile/x/post/1"]["own_words"] and by["https://bsky.app/profile/x/post/1"]["platform"] == "Bluesky"
     assert by["https://cnn/1"]["reported"] and by["https://cnn/1"]["platform"] == "X"
     assert not by["https://ap/1"].get("reported") and not by["https://ap/1"]["own_words"]
-    assert status["provider"] == "Google News RSS + own feeds"
+    assert status["provider"] == "Google News RSS + GDELT + podcasts + own feeds"
 
 
 def test_profile_carries_accounts_and_posts(monkeypatch):
@@ -101,7 +102,10 @@ def test_profile_carries_accounts_and_posts(monkeypatch):
     monkeypatch.setattr(sources, "wiki_person", fake_wiki)
     monkeypatch.setattr(sources, "wikidata_profile", fake_wd)
     monkeypatch.setattr(sources, "own_feeds", fake_feeds)
+    async def no_discussion(person, hours=24, max_age=0):
+        return {}
     monkeypatch.setattr(sources, "statements", fake_statements)
+    monkeypatch.setattr(chatter, "discussion", no_discussion)
     p = asyncio.run(service.build_profile({"slug": "ro-khanna", "name": "Ro Khanna", "role": "Rep"}))
     assert {a["platform"]: a["read"] for a in p["accounts"]} == {"x": False, "bluesky": True, "website": False}
     assert p["posts"][0]["platform"] == "Bluesky" and p["media"][0]["own_words"]

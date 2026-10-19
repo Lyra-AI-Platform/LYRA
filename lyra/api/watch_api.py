@@ -159,6 +159,13 @@ async def live_peer(response: Response, limit: int = 100, x_lyra_peer_key: str =
     return {"events": live.hub.recent(min(max(limit, 1), live.HISTORY))}
 
 
+@router.get("/live/buzz")
+async def live_buzz(user: User = Depends(require_paid("watch_live"))):
+    """Who is being discussed most right now (Hacker News, Bluesky, and Reddit when configured)."""
+    rows = sorted(live.loop.buzz.values(), key=lambda b: b.get("total", 0), reverse=True)
+    return {"people": rows, "reddit": live.chatter.reddit_enabled()}
+
+
 @router.get("/live/stream")
 async def live_stream(request: Request, user: User = Depends(require_paid("watch_live"))):
     """Server-sent events: `event: item` per new headline, `event: status` with the viewer
@@ -173,7 +180,10 @@ async def live_stream(request: Request, user: User = Depends(require_paid("watch
             while not await request.is_disconnected():
                 try:
                     event = await asyncio.wait_for(q.get(), timeout=15)
-                    yield f"event: item\ndata: {json.dumps(event)}\n\n"
+                    if "_buzz" in event:
+                        yield f"event: buzz\ndata: {json.dumps(event['_buzz'])}\n\n"
+                    else:
+                        yield f"event: item\ndata: {json.dumps(event)}\n\n"
                 except asyncio.TimeoutError:
                     ticks += 1
                     yield ": ping\n\n"
