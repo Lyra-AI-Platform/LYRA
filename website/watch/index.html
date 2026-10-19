@@ -422,6 +422,7 @@
         el("td", { class: "num", text: `${r.big_moves} (${Math.round(r.big_share * 100)}%)` }),
         el("td", { class: "num" }, liftCell(r), el("div", { class: "meta", text: `usual ${Math.round(r.usual_big_share * 100)}%` })),
         el("td", {}, r.biggest[0] ? moveChip(r.biggest[0]) : "—"))));
+      if (location.hash === "#movers") setTimeout(() => $("movers").scrollIntoView(), 300);
       if (data.locked) $("moverRows").append(el("tr", {}, el("td", { colspan: "6" }, proLink(`${data.locked} more people measured`),
         el("span", { class: "meta", text: " · the full record, day by day, is in Watch Pro" }))));
       if (!data.people.length) $("moverRows").replaceChildren(el("tr", {}, el("td", { colspan: "6", class: "muted",
@@ -589,9 +590,12 @@
     const slug = location.hash.slice(1);
     if (slug.startsWith("person/")) return showPerson(slug.slice(7));
     $("person").hidden = true;
-    if (slug) return showProfile(slug);
+    // Section anchors on the directory page (e.g. #movers) aren't people.
+    const section = slug && document.getElementById(slug);
+    if (slug && !(section && $("directory").contains(section))) return showProfile(slug);
     document.title = "Lyra Watch — Power Moves of Public Figures";
     $("profile").hidden = true; $("directory").hidden = false;
+    if (section) setTimeout(() => section.scrollIntoView(), 0);
   }
 
   async function init() {
