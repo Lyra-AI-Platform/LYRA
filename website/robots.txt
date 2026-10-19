@@ -1,8 +1,21 @@
-# Public marketing pages may be indexed; app data may not.
+# Public marketing pages may be indexed; app data may not, except Lyra Watch's public data.
 User-agent: *
+Allow: /api/watch/
 Disallow: /api/
 Disallow: /market
 Disallow: /dashboard/
+
+# AI search and answer agents (not training) may read Lyra Watch so they can cite and link it.
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: Perplexity-User
+User-agent: PerplexityBot
+Allow: /watch/
+Allow: /llms.txt
+Allow: /api/watch/
+Disallow: /
 
 # AI training crawlers: nothing on this site is licensed for training.
 User-agent: GPTBot
@@ -11,6 +24,7 @@ User-agent: CCBot
 User-agent: Google-Extended
 User-agent: Applebot-Extended
 User-agent: Bytespider
-User-agent: PerplexityBot
 User-agent: meta-externalagent
 Disallow: /
+
+Sitemap: https://lyraauth.com/sitemap.xml
