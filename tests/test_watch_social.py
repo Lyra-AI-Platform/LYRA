@@ -5,14 +5,19 @@ import tempfile
 
 os.environ.setdefault("LYRA_MARKET_DIR", tempfile.mkdtemp(prefix="lyra-social-test-"))
 
+from email.utils import formatdate  # noqa: E402
+import time  # noqa: E402
+
 from lyra.market import news  # noqa: E402
 from lyra.watch import service, sources  # noqa: E402
 
+RECENT = formatdate(time.time() - 3600)  # an hour ago, in RSS form
+
 YT = """<feed xmlns="http://www.w3.org/2005/Atom"><entry><title>President Trump speaks</title>
 <link href="https://www.youtube.com/watch?v=1"/><published>2026-10-18T10:00:00Z</published></entry></feed>"""
-BSKY = """<rss><channel><item><link>https://bsky.app/profile/x/post/1</link>
+BSKY = f"""<rss><channel><item><link>https://bsky.app/profile/x/post/1</link>
 <description>Congress must ban stock trading by members. Full stop.</description>
-<pubDate>Sun, 18 Oct 2026 20:30:00 +0000</pubDate></item></channel></rss>"""
+<pubDate>{RECENT}</pubDate></item></channel></rss>"""
 
 
 def test_posts_without_titles_use_their_text():
@@ -59,9 +64,11 @@ def test_reported_platform():
 
 
 def test_statements_mark_own_posts_and_reported_posts(monkeypatch):
-    coverage = """<rss><channel>
-      <item><title>Ro Khanna tweeted support for the bill - CNN</title><link>https://cnn/1</link><source>CNN</source></item>
-      <item><title>Ro Khanna holds town hall - AP</title><link>https://ap/1</link><source>AP</source></item></channel></rss>"""
+    coverage = f"""<rss><channel>
+      <item><title>Ro Khanna tweeted support for the bill - CNN</title><link>https://cnn/1</link><source>CNN</source>
+        <pubDate>{RECENT}</pubDate></item>
+      <item><title>Ro Khanna holds town hall - AP</title><link>https://ap/1</link><source>AP</source>
+        <pubDate>{RECENT}</pubDate></item></channel></rss>"""
 
     async def fake_fetch(url, **kw):
         if "bsky" in url:

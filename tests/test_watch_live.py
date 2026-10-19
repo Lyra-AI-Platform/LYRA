@@ -157,3 +157,44 @@ def test_daily_count_is_not_capped_by_history():
         live.hub.publish({"id": str(i), "ts": time.time(), "title": "t"})
     assert len(live.hub.history) == live.HISTORY
     assert live.hub.status()["events_today"] == live.HISTORY + 50
+
+
+def test_dates_in_every_feed_format_are_read():
+    from datetime import datetime, timezone
+    from lyra.market import news
+    want = datetime(2026, 7, 18, 10, 0, tzinfo=timezone.utc).timestamp()
+    assert news._parse_date("2026-07-18T10:00:00+00:00") == want      # YouTube / Atom
+    assert news._parse_date("2026-07-18T10:00:00Z") == want
+    assert news._parse_date("Sat, 18 Jul 2026 10:00:00 +0000") == want  # RSS
+    assert news._parse_date("18 Jul 2026 10:00 +0000") == want          # Bluesky
+    assert news._parse_date("next Tuesday") == 0.0                      # unknown is old, never "now"
+
+
+def test_an_old_youtube_video_is_not_live_news(monkeypatch):
+    three_months_ago = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(time.time() - 90 * 86400))
+    just_now = time.strftime("%Y-%m-%dT%H:%M:%S+00:00", time.gmtime(time.time() - 120))
+    feed = f"""<feed xmlns="http://www.w3.org/2005/Atom">
+      <entry><title>Old town hall</title><link href="https://youtube.com/watch?v=old"/><published>{three_months_ago}</published></entry>
+      <entry><title>New statement</title><link href="https://youtube.com/watch?v=new"/><published>{just_now}</published></entry>
+    </feed>"""
+
+    async def fake_fetch(url, **kw):
+        return feed if "youtube" in url else "<rss><channel></channel></rss>"
+    monkeypatch.setattr(sources, "fetch_text", fake_fetch)
+    monkeypatch.setattr(service, "load_profile", lambda slug: {"own_feeds": [
+        {"platform": "YouTube", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC1"}]})
+    loop = live.LiveLoop()
+    loop.seen = {"something-else"}  # not the first pass
+    asyncio.run(loop.check(STARMER, {}))
+    assert [e["id"] for e in live.hub.history] == ["https://youtube.com/watch?v=new"]
+    e = live.hub.history[0]
+    assert e["kind"] == "post" and e["platform"] == "YouTube" and time.time() - e["published"] < 300
+
+
+def test_events_saved_before_the_date_fix_are_dropped(monkeypatch):
+    import json as _json
+    monkeypatch.setattr(live, "EVENTS_FILE", live.WATCH_DIR / "events-test.jsonl")
+    live.EVENTS_FILE.write_text(_json.dumps({"id": "old", "ts": time.time(), "title": "t"}) + "\n" +
+                                _json.dumps({"v": live.EVENT_VERSION, "id": "ok", "ts": time.time(), "title": "t"}) + "\n")
+    hub = live.Hub()
+    assert [e["id"] for e in hub.history] == ["ok"] and len(hub.arrivals) == 1

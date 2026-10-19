@@ -170,6 +170,11 @@
   };
   const safeUrl = (u) => /^https?:\/\//i.test(u || "") ? u : null;
   const link = (u, text) => safeUrl(u) ? el("a", { href: u, target: "_blank", rel: "noopener nofollow", text }) : document.createTextNode(text);
+  // A story's age is when it was published, not when Lyra caught it.
+  const when = (e) => {
+    const pub = e.published || e.ts, late = e.ts - pub;
+    return ago(pub) + (e.published && late > 1800 ? ` · caught ${ago(e.ts)}` : "");
+  };
   const ago = (ts) => { const s = Date.now() / 1000 - ts; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`; };
   let token = null;
   try { token = localStorage.getItem("lyra_token"); } catch {}
@@ -184,7 +189,7 @@
   function stage(e) {
     if (!e) return;
     $("stage").className = `panel stage tone-${e.tone}`;
-    $("sKicker").textContent = `${kindLabel(e)}${e.feed} · ${e.source || "News"} · ${ago(e.ts)}`;
+    $("sKicker").textContent = `${kindLabel(e)}${e.feed} · ${e.source || "News"} · ${when(e)}`;
     $("sHeadline").replaceChildren(link(e.url, e.title));
     $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
       p.id ? el("a", { class: "n", href: `/watch/#person/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
@@ -202,7 +207,7 @@
 
   function row(e, fresh) {
     const li = el("li", { class: `tone-${e.tone}${fresh ? " fresh" : ""}` },
-      el("span", { class: "t", text: kindLabel(e) + ago(e.ts) }), " ",
+      el("span", { class: "t", text: kindLabel(e) + when(e) }), " ",
       el("span", { class: "p", text: e.people.map((p) => p.name).slice(0, 2).join(", ") || e.feed }), el("br"),
       el("span", { text: e.title }));
     li.onclick = () => stage(e);
@@ -331,7 +336,7 @@
     renderFeed();
   });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { unseen = 0; document.title = baseTitle; } });
-  setInterval(() => { if (events[0]) $("sKicker").textContent = `${kindLabel(events[0])}${events[0].feed} · ${events[0].source || "News"} · ${ago(events[0].ts)}`; }, 30000);
+  setInterval(() => { if (events[0]) $("sKicker").textContent = `${kindLabel(events[0])}${events[0].feed} · ${events[0].source || "News"} · ${when(events[0])}`; }, 30000);
   start();
 })();
 </script>

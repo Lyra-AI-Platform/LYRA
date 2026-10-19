@@ -4,6 +4,7 @@ headline + short summary + link. Full article text is never fetched or shown:
 republishing third-party articles is a copyright problem."""
 import asyncio
 import hashlib
+from datetime import datetime, timezone
 import logging
 import re
 import time
@@ -33,10 +34,19 @@ def _strip_html(s: str) -> str:
 
 
 def _parse_date(s: str) -> float:
+    """RSS dates ("Sun, 18 Oct 2026 20:30:00 +0000") and Atom/ISO 8601 ones ("2026-07-18T10:00:00+00:00",
+    used by YouTube). An unreadable date is 0 (the distant past), never "now": guessing now made
+    months-old items look like breaking news."""
+    s = (s or "").strip()
     try:
         return parsedate_to_datetime(s).timestamp()
-    except Exception:
-        return time.time()
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        d = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        return (d if d.tzinfo else d.replace(tzinfo=timezone.utc)).timestamp()
+    except ValueError:
+        return 0.0
 
 
 def _first(fields: Dict, *names):
@@ -78,7 +88,7 @@ def parse_feed(body: str) -> List[Dict]:
             "title": title,
             "url": url,
             "summary": _strip_html(summary_el.text if summary_el is not None else "")[:1000],
-            "published": _parse_date(date_el.text) if date_el is not None and date_el.text else time.time(),
+            "published": _parse_date(date_el.text) if date_el is not None and date_el.text else 0.0,
             "source": (source_el.text if source_el is not None and source_el.text else urlparse(url).netloc),
         })
     return items

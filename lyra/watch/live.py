@@ -20,6 +20,8 @@ logger = logging.getLogger(__name__)
 
 LIVE_CYCLE_MINUTES = float(os.environ.get("LYRA_WATCH_LIVE_CYCLE_MINUTES", 10))
 HISTORY = 300                      # events kept for viewers who join late
+FRESH_HOURS = 6                    # older headlines and posts are history, not live news
+EVENT_VERSION = 2                  # v1 events could carry a wrong published date
 TEASER_DELAY = 3600                # non-subscribers see events an hour late
 EVENTS_FILE = WATCH_DIR / "live_events.jsonl"
 SEEN_FILE = WATCH_DIR / "live_seen.json"
@@ -40,6 +42,8 @@ class Hub:
         try:
             for line in EVENTS_FILE.read_text().splitlines():
                 event = json.loads(line)
+                if event.get("v", 1) < EVENT_VERSION:
+                    continue  # recorded before dates were read correctly; their ages can't be trusted
                 self.history.append(event)
                 self.arrivals.append(event["ts"])
         except (OSError, ValueError):
@@ -111,7 +115,7 @@ def make_event(item: Dict, person: Dict, lookup: Dict[str, Dict], tickers=frozen
                      "id": rec.get("id") or watched.get(n, {}).get("slug", ""),
                      "job": rec.get("job") or watched.get(n, {}).get("role", ""),
                      "popularity": rec.get("popularity")})
-    return {"id": item["url"], "ts": time.time(), "published": item.get("published"),
+    return {"v": EVENT_VERSION, "id": item["url"], "ts": time.time(), "published": item.get("published"),
             "feed": person["name"], "feed_slug": person["slug"], "title": title, "url": item["url"],
             "source": item.get("source", ""), "people": cast, "companies": a["companies"],
             "moves": [m["label"] for m in a["moves"]], "topics": a["topics"],
@@ -146,7 +150,7 @@ class LiveLoop:
         for it in sorted(new, key=lambda x: x["published"]):
             self.seen.add(it["url"])
             # Headlines from before the first check are history, not news.
-            if announce and time.time() - it["published"] < 6 * 3600:
+            if announce and 0 < time.time() - it["published"] < FRESH_HOURS * 3600:
                 hub.publish(make_event(it, person, lookup, tickers))
         return len(new)
 
