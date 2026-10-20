@@ -228,7 +228,27 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     # Stream response
     full_response = ""
 
-    if not engine.loaded_model_name:
+    # A local model served by Ollama comes first (lyra/core/ollama_backend.py); if it's down,
+    # fall through to the Claude API or the language backbone below.
+    from lyra.core import ollama_backend
+    answered = False
+    if not engine.loaded_model_name and ollama_backend.enabled():
+        try:
+            async for piece in ollama_backend.stream(conversations[conv_id], system_prompt, max_tokens, temperature):
+                full_response += piece
+                await websocket.send_json({"type": "token", "content": piece})
+            answered = True
+        except ollama_backend.Unavailable as e:
+            logger.warning(f"Ollama unavailable, falling back: {e}")
+            if full_response:
+                note = "\n\n(The reply was cut short. Please ask again.)"
+                full_response += note
+                await websocket.send_json({"type": "token", "content": note})
+                answered = True
+
+    if answered:
+        pass
+    elif not engine.loaded_model_name:
         import os as _os
         _anthropic_key = _os.getenv("ANTHROPIC_API_KEY")
 
@@ -346,6 +366,9 @@ def _needs_search(message: str) -> bool:
     return any(kw in msg_lower for kw in search_keywords)
 
 
+MAX_UPLOAD = 20_000_000
+
+
 @router.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
@@ -359,13 +382,15 @@ async def upload_file(
     uploads_dir = Path(__file__).parent.parent.parent / "data" / "uploads"
     uploads_dir.mkdir(parents=True, exist_ok=True)
 
-    # Save file
+    # Save file under its bare name only: no folders, no "..", nothing hidden.
     file_id = str(uuid.uuid4())[:8]
-    safe_name = f"{file_id}_{file.filename}"
-    dest = uploads_dir / safe_name
+    base = Path(file.filename or "upload").name.lstrip(".")[:120] or "upload"
+    dest = uploads_dir / f"{file_id}_{base}"
 
+    content = await file.read(MAX_UPLOAD + 1)
+    if len(content) > MAX_UPLOAD:
+        raise HTTPException(413, f"Files can be up to {MAX_UPLOAD // 1_000_000} MB")
     async with aiofiles.open(dest, "wb") as f:
-        content = await file.read()
         await f.write(content)
 
     # Process

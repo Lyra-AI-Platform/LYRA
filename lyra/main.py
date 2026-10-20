@@ -153,6 +153,11 @@ async def serve_market():
     return HTMLResponse("<h1>Market Expert UI not found</h1>")
 
 
+def _ollama_model() -> str:
+    from lyra.core import ollama_backend
+    return f"ollama:{ollama_backend.model()}" if ollama_backend.enabled() else ""
+
+
 @app.get("/api/health")
 async def health():
     from lyra.core.engine import engine
@@ -170,6 +175,7 @@ async def health():
         "status": "running",
         "platform": "Lyra AI",
         "version": "3.0.0",
+        "chat_model": engine.loaded_model_name or _ollama_model() or ("claude" if os.getenv("ANTHROPIC_API_KEY") else "language-backbone"),
         "model_loaded": engine.loaded_model_name is not None,
         "current_model": engine.loaded_model_name,
         "memory_enabled": mem_stats.get("enabled", False),
