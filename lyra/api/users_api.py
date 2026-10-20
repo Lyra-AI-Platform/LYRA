@@ -13,7 +13,7 @@ from typing import Optional
 
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 try:  # PyJWT; python-jose (unmaintained, pulls in a vulnerable ecdsa) only where PyJWT isn't installed yet
     import jwt
@@ -50,6 +50,13 @@ def _load_secret() -> str:
 SECRET_KEY  = _load_secret()
 ALGORITHM   = "HS256"
 TOKEN_HOURS = 24 * 7  # 7-day tokens
+
+# Pages are guarded on the server (lyra/api/page_access.py), so a sign-in also sets this
+# cookie. It is HttpOnly (scripts can't read it) and only ever accepted for GETs of pages
+# and read-only data, never for actions, so it can't be used for cross-site request forgery.
+# LYRA_IN is a plain marker the page scripts can see, telling them the cookie exists.
+SESSION_COOKIE = "lyra_session"
+MARKER_COOKIE  = "lyra_in"
 
 pwd_ctx  = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer   = HTTPBearer(auto_error=False)
@@ -93,6 +100,29 @@ def _create_token(user_id: int) -> str:
     return jwt.encode({"sub": str(user_id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
 
 
+def set_session(response: Response, token: str) -> None:
+    secure = os.getenv("LYRA_INSECURE_COOKIES") != "1"   # plain-http local testing only
+    age = TOKEN_HOURS * 3600
+    response.set_cookie(SESSION_COOKIE, token, max_age=age, httponly=True, secure=secure, samesite="lax", path="/")
+    response.set_cookie(MARKER_COOKIE, "1", max_age=age, httponly=False, secure=secure, samesite="lax", path="/")
+
+
+def clear_session(response: Response) -> None:
+    for name in (SESSION_COOKIE, MARKER_COOKIE):
+        response.delete_cookie(name, path="/")
+
+
+def user_from_cookie(request: Request, db: Session) -> Optional[User]:
+    token = request.cookies.get(SESSION_COOKIE)
+    if not token:
+        return None
+    try:
+        user_id = int(jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])["sub"])
+    except (JWTError, KeyError, ValueError):
+        return None
+    return db.query(User).filter(User.id == user_id, User.is_active == True).first()  # noqa: E712
+
+
 def get_current_user(
     creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
     db: Session = Depends(get_db),
@@ -122,7 +152,7 @@ def _admin_emails():
 
 
 @router.post("/register", status_code=201)
-def register(req: RegisterRequest, request: Request, db: Session = Depends(get_db)):
+def register(req: RegisterRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     ratelimit.check(f"register:{ratelimit.client_ip(request)}", limit=5, window=3600)
     email = req.email.lower().strip()
     if not EMAIL_RE.match(email) or len(email) > 254:
@@ -146,11 +176,13 @@ def register(req: RegisterRequest, request: Request, db: Session = Depends(get_d
     db.commit()
     db.refresh(user)
 
-    return {"token": _create_token(user.id), "user": UserOut.model_validate(user)}
+    token = _create_token(user.id)
+    set_session(response, token)
+    return {"token": token, "user": UserOut.model_validate(user)}
 
 
 @router.post("/login")
-def login(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
+def login(req: LoginRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     email = req.email.lower().strip()[:254]
     ip_key, email_key = f"login-ip:{ratelimit.client_ip(request)}", f"login-email:{email}"
     # Failed attempts only: 20 per address and 10 per account in 15 minutes.
@@ -164,7 +196,24 @@ def login(req: LoginRequest, request: Request, db: Session = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(403, "Account disabled")
 
-    return {"token": _create_token(user.id), "user": UserOut.model_validate(user)}
+    token = _create_token(user.id)
+    set_session(response, token)
+    return {"token": token, "user": UserOut.model_validate(user)}
+
+
+@router.post("/session")
+def session(response: Response, creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+            user: User = Depends(get_current_user)):
+    """Turn a sign-in held by the page (bearer token) into the page cookie. For accounts that
+    signed in before the cookie existed; the token keeps its own expiry."""
+    set_session(response, creds.credentials)
+    return {"ok": True}
+
+
+@router.post("/logout")
+def logout(response: Response):
+    clear_session(response)
+    return {"ok": True}
 
 
 @router.get("/me")

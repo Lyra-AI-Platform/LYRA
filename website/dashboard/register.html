@@ -41,6 +41,7 @@
     .terms-note { font-size:.75rem; color:var(--dim); margin-top:12px; text-align:center; line-height:1.5; }
     .terms-note a { color:var(--muted); }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 <div class="auth-card">
@@ -74,7 +75,14 @@
 </div>
 
 <script>
-  if (localStorage.getItem('lyra_token')) window.location.href = 'index.html';
+  // A plan picked on the pricing table goes straight to checkout after sign-up.
+  const plan = new URLSearchParams(location.search).get('plan');
+  const afterSignup = /^(starter|pro|business|enterprise)$/.test(plan || '') ? '/dashboard/billing.html?plan=' + plan : '/';
+  if (localStorage.getItem('lyra_token')) {
+    fetch('/api/users/session', { method: 'POST', headers: { Authorization: 'Bearer ' + localStorage.getItem('lyra_token') } })
+      .then(r => { if (r.ok) location.replace(afterSignup); else localStorage.removeItem('lyra_token'); })
+      .catch(() => {});
+  }
 
   document.getElementById('reg-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -120,7 +128,7 @@
       }
       localStorage.setItem('lyra_token', data.token);
       localStorage.setItem('lyra_user', JSON.stringify(data.user));
-      window.location.href = 'index.html';
+      window.location.href = afterSignup;
     } catch (ex) {
       showErr(ex.message);
       btn.disabled = false;

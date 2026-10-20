@@ -90,6 +90,7 @@
     .toast.show { opacity:1; transform:translateY(0); }
     @media(max-width:540px) { .dash-body { padding:24px 16px 60px; } }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 
@@ -188,11 +189,7 @@
     return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
   }
 
-  function signOut() {
-    localStorage.removeItem('lyra_token');
-    localStorage.removeItem('lyra_user');
-    window.location.href = 'login.html';
-  }
+  function signOut() { window.lyraSignOut('/dashboard/login.html'); }
 
   function toast(msg, duration=2500) {
     const el = document.getElementById('toast');

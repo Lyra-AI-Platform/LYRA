@@ -234,6 +234,7 @@
     /* ── Responsive ── */
     @media (max-width: 640px) { .chat-sidebar { display: none; } }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 
@@ -385,11 +386,7 @@ fetch('/api/users/me', { headers: { Authorization: 'Bearer ' + token } })
   .then(u => { if (u) document.getElementById('user-email').textContent = u.email || ''; })
   .catch(() => {});
 
-function signOut() {
-  localStorage.removeItem('lyra_token');
-  localStorage.removeItem('lyra_user');
-  window.location.href = 'login.html';
-}
+function signOut() { window.lyraSignOut('/dashboard/login.html'); }
 
 /* ════ WebSocket ════ */
 function connectWS(convId) {

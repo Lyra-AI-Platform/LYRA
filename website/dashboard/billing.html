@@ -70,6 +70,7 @@
     @media(max-width:580px) { .plans-grid { grid-template-columns:1fr 1fr; } }
     @media(max-width:380px) { .plans-grid { grid-template-columns:1fr; } }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 
@@ -93,6 +94,7 @@
 
   <div id="msg-success" class="alert alert-success" style="display:none;">Payment successful — your account has been upgraded!</div>
   <div id="msg-cancel"  class="alert alert-info"    style="display:none;">No charge was made. You're still on your current plan.</div>
+  <div id="msg-need"    class="alert alert-info"    style="display:none;"></div>
 
   <!-- Current plan -->
   <div class="current-banner" id="current-banner">
@@ -193,12 +195,16 @@
   const params = new URLSearchParams(location.search);
   if (params.get('success'))   document.getElementById('msg-success').style.display = 'block';
   if (params.get('cancelled')) document.getElementById('msg-cancel').style.display  = 'block';
-
-  function signOut() {
-    localStorage.removeItem('lyra_token');
-    localStorage.removeItem('lyra_user');
-    window.location.href = 'login.html';
+  const NEED = { market: 'the Tremor Index', chat: 'Lyra chat', coshh: 'the COSHH database' };
+  if (NEED[params.get('need')]) {
+    const m = document.getElementById('msg-need');
+    m.textContent = `Your trial has ended, so ${NEED[params.get('need')]} needs a plan. Pick one below to carry on.`;
+    m.style.display = '';
   }
+  const wantPlan = params.get('plan');
+  if (wantPlan) document.getElementById('plan-' + wantPlan)?.scrollIntoView({ block: 'center' });
+
+  function signOut() { window.lyraSignOut('/dashboard/login.html'); }
   function authH() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }; }
 
   const TIER_LABELS = {
@@ -247,8 +253,16 @@
         }
       });
 
-      // Show manage billing portal if subscribed
+      if (wantPlan && wantPlan !== tier) document.getElementById('plan-' + wantPlan)?.classList.add('active');
+
+      // Show manage billing portal if subscribed. A plan change goes through the portal too:
+      // a second checkout would start a second subscription and bill twice.
       if (bil.has_subscription) {
+        document.querySelectorAll('.plan-btn[id^=btn-]:not(#btn-free)').forEach(b => {
+          if (b.classList.contains('current')) return;
+          b.textContent = 'Switch plan';
+          b.onclick = portal;
+        });
         document.getElementById('portal-btn-wrap').innerHTML =
           `<button class="btn btn-outline" onclick="portal()" style="padding:8px 18px;font-size:.875rem;">Manage billing</button>`;
       }

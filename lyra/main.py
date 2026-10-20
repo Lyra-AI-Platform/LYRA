@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse
@@ -37,6 +37,7 @@ from lyra.api.watch_api import router as watch_router
 from lyra.api.watch_access import router as watch_account_router
 from lyra.api.ads_api import router as ads_router
 from lyra.api.coshh_api import router as coshh_router
+from lyra.api import page_access
 
 logging.basicConfig(
     level=logging.INFO,
@@ -93,6 +94,10 @@ async def local_only_guard(request, call_next):
         return JSONResponse({"detail": "Not Found"}, status_code=404)
     return await call_next(request)
 
+
+# Members-only pages are withheld on the server until the visitor is signed in and entitled.
+app.middleware("http")(page_access.guard)
+
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -117,9 +122,22 @@ app.include_router(ads_router)
 app.include_router(coshh_router)
 
 
+FAVICON = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
+           "<text y='.9em' font-size='90'>\u2726</text></svg>")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    # Browsers ask for this on every page that doesn't name an icon; answer instead of a 404.
+    return Response(FAVICON, media_type="image/svg+xml", headers={"Cache-Control": "public, max-age=86400"})
+
+
 @app.get("/", response_class=HTMLResponse)
-async def serve_ui():
+async def serve_ui(request: Request):
     if SERVE_WEBSITE:
+        home = page_access.signed_in_home(request, WEBSITE_DIR)
+        if home:
+            return home
         return FileResponse(str(WEBSITE_DIR / "index.html"))
     index_path = FRONTEND_DIR / "templates" / "index.html"
     if index_path.exists():

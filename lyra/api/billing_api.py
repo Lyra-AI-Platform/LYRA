@@ -75,6 +75,10 @@ def create_checkout(
         raise HTTPException(503, f"Stripe price ID not configured for plan '{plan}'. "
                                   f"Set STRIPE_{plan.upper()}_PRICE_ID env var.")
 
+    if user.stripe_subscription_id and entitlements.is_paid(user):
+        # A second checkout would start a second subscription; plan changes go through the portal.
+        raise HTTPException(409, "You already have a plan. Use Manage billing to switch plans.")
+
     stripe = _stripe()
 
     # Create or reuse Stripe customer

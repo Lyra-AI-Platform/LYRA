@@ -15,6 +15,7 @@
     .legal-content ul { padding-left: 20px; margin: 12px 0; }
     .legal-content li { margin-bottom: 6px; }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 <nav class="nav">
@@ -28,7 +29,7 @@
 
 <div class="legal-content">
   <h1>Privacy Policy</h1>
-  <div class="meta">Last updated: March 28, 2026 · Lyra Labs · legal@lyraauth.com</div>
+  <div class="meta">Last updated: October 20, 2026 · Lyra Labs · legal@lyraauth.com</div>
 
   <h2>What We Collect</h2>
   <p>When an end user completes a LyraAuth challenge, we collect:</p>
@@ -39,6 +40,16 @@
     <li>Browser user agent string</li>
   </ul>
   <p>We do <strong>not</strong> collect: names, email addresses, IP addresses, cookies, or any cross-site tracking data.</p>
+
+  <h2>Lyra Accounts</h2>
+  <p>The above covers people answering a LyraAuth challenge. If you create a Lyra account on lyraauth.com, we also hold:</p>
+  <ul>
+    <li>Your email address and a one-way hash of your password (never the password itself)</li>
+    <li>Your plan, trial dates and usage counts</li>
+    <li>Two sign-in cookies: <code>lyra_session</code> (keeps you signed in, unreadable by page scripts) and <code>lyra_in</code> (tells the page you are signed in). Both expire after 7 days or when you sign out. They are needed for the site to work and are not used for tracking.</li>
+  </ul>
+  <p>Payments are handled by Stripe. We never see your card number; we keep only the Stripe customer and subscription IDs. Stripe's own policy: <a href="https://stripe.com/privacy">stripe.com/privacy</a>.</p>
+  <p>Account data is kept while your account is open and deleted within 30 days of you asking us to close it, except billing records we must keep by law (normally 6 years).</p>
 
   <h2>How We Use It</h2>
   <ul>

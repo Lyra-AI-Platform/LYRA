@@ -43,6 +43,7 @@
       font-size:.8125rem; color:#dc2626; margin-bottom:14px; display:none;
     }
   </style>
+  <script src="/js/session.js"></script>
 </head>
 <body>
 <div class="auth-card">
@@ -72,14 +73,28 @@
 <script>
   // Only a path on this site: never "//other.site" or a full URL.
   function safeNext(next) {
-    return typeof next === 'string' && /^\/(?![\/\\])[A-Za-z0-9\-._~\/?=&#%+]*$/.test(next) ? next : 'index.html';
+    return typeof next === 'string' && /^\/(?![\/\\])[A-Za-z0-9\-._~\/?=&#%+]*$/.test(next) ? next : '/';
+  }
+  // Where to go after signing in: ?next= (set by the server when a page needs sign-in),
+  // else what a page script stored, else the signed-in home page.
+  function takeNext() {
+    const fromUrl = new URLSearchParams(location.search).get('next');
+    const stored = localStorage.getItem('lyra_next');
+    localStorage.removeItem('lyra_next');
+    return safeNext(fromUrl || stored);
   }
 
-  // Redirect if already logged in
-  if (localStorage.getItem('lyra_token')) {
-    const next = localStorage.getItem('lyra_next');
-    localStorage.removeItem('lyra_next');
-    window.location.href = safeNext(next);
+  // Already signed in on this browser: refresh the page cookie first, then continue, so a
+  // members-only page doesn't bounce straight back here.
+  const existing = localStorage.getItem('lyra_token');
+  if (existing) {
+    fetch('/api/users/session', { method: 'POST', headers: { Authorization: 'Bearer ' + existing } })
+      .then(r => {
+        if (r.ok) { location.replace(takeNext()); return; }
+        localStorage.removeItem('lyra_token');
+        localStorage.removeItem('lyra_user');
+      })
+      .catch(() => {});
   }
 
   document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -122,9 +137,7 @@
       }
       localStorage.setItem('lyra_token', data.token);
       localStorage.setItem('lyra_user', JSON.stringify(data.user));
-      const next = localStorage.getItem('lyra_next');
-      localStorage.removeItem('lyra_next');
-      window.location.href = safeNext(next);
+      window.location.href = takeNext();
     } catch (ex) {
       showErr(ex.message);
       btn.disabled = false;
