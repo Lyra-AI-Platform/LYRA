@@ -8,6 +8,7 @@ can be skipped (view-source, curl, scripts off). Here the page itself is withhel
   member    signed in with a paid plan or a trial that hasn't run out (the products)
   watch     signed in with Lyra Watch Pro or any paid plan (Watch Live)
   owner     the site owner only (LYRA_ADMIN_EMAILS); everyone else gets a plain 404
+  unlisted  anyone holding the link, but never linked from the site or listed by search engines
 
 Sign-in comes from the HttpOnly cookie set at login (users_api.set_session). Only GET/HEAD
 are checked here; the APIs still check the bearer token and trial allowances themselves.
@@ -46,6 +47,9 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/api/coshh/", "member", "coshh"),
     ("/watch/live/", "watch", "watch_live"),
     ("/watch/live", "watch", "watch_live"),
+    # Fuelwise's App Store privacy policy: the App Store links to it, Lyra pages don't.
+    ("/fuelwise/privacy/", "unlisted", ""),
+    ("/fuelwise/privacy", "unlisted", ""),
     ("/fuelwise/", "owner", ""),
     ("/fuelwise", "owner", ""),
 )
@@ -94,6 +98,8 @@ def check(request: Request):
     if not found:
         return None
     rule, feature = found
+    if rule == "unlisted":
+        return None
     api = path.startswith("/api/")
     db = session_factory()
     try:
@@ -136,6 +142,8 @@ async def guard(request: Request, call_next):
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
     response.headers["Vary"] = "Cookie"
+    # Following a link out of an unlisted page mustn't tell the other site where it was.
+    response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
 
