@@ -24,9 +24,9 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
-from lyra.api import ratelimit
+from lyra.api import ratelimit, sessions
 from lyra.db.database import get_db
-from lyra.db.models import User
+from lyra.db.models import LoginSession, User
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -47,16 +47,12 @@ def _load_secret() -> str:
         return secret
 
 
+# Sign-in is a server-side session in an HttpOnly cookie (lyra/api/sessions.py). The old site
+# handed out 7-day JWTs that pages kept in localStorage; those are only accepted once more, by
+# POST /session, to move a browser that still holds one onto a session.
 SECRET_KEY  = _load_secret()
 ALGORITHM   = "HS256"
-TOKEN_HOURS = 24 * 7  # 7-day tokens
-
-# Pages are guarded on the server (lyra/api/page_access.py), so a sign-in also sets this
-# cookie. It is HttpOnly (scripts can't read it) and only ever accepted for GETs of pages
-# and read-only data, never for actions, so it can't be used for cross-site request forgery.
-# LYRA_IN is a plain marker the page scripts can see, telling them the cookie exists.
-SESSION_COOKIE = "lyra_session"
-MARKER_COOKIE  = "lyra_in"
+SESSION_COOKIE = sessions.COOKIE
 
 pwd_ctx  = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer   = HTTPBearer(auto_error=False)
@@ -72,6 +68,10 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
 
 class UpdateMeRequest(BaseModel):
     name: Optional[str] = None
@@ -95,51 +95,52 @@ def _hash_password(plain: str) -> str:
 def _verify_password(plain: str, hashed: str) -> bool:
     return pwd_ctx.verify(plain, hashed)
 
-def _create_token(user_id: int) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(hours=TOKEN_HOURS)
-    return jwt.encode({"sub": str(user_id), "exp": expire}, SECRET_KEY, algorithm=ALGORITHM)
+# Checked against when an email has no account, so a wrong email takes as long as a wrong
+# password and the response time doesn't reveal who has an account.
+_NO_ACCOUNT_HASH = pwd_ctx.hash(secrets.token_urlsafe(16))
+
+COMMON_PASSWORDS = {
+    "password", "password1", "password12", "password123", "password1234", "passw0rd", "qwerty",
+    "qwerty123", "qwertyuiop", "letmein", "iloveyou", "welcome1", "welcome123", "admin123",
+    "abc12345", "abcdefgh", "abcd1234", "1q2w3e4r5t", "1qaz2wsx", "zaq12wsx", "football",
+    "baseball", "sunshine", "princess", "dragon123", "monkey123", "trustno1", "superman",
+    "123456789", "1234567890", "0987654321", "11111111", "12341234", "87654321",
+    "lyraauth", "lyraauth123", "changeme", "default1", "whatever",
+}
 
 
-def set_session(response: Response, token: str) -> None:
-    secure = os.getenv("LYRA_INSECURE_COOKIES") != "1"   # plain-http local testing only
-    age = TOKEN_HOURS * 3600
-    response.set_cookie(SESSION_COOKIE, token, max_age=age, httponly=True, secure=secure, samesite="lax", path="/")
-    response.set_cookie(MARKER_COOKIE, "1", max_age=age, httponly=False, secure=secure, samesite="lax", path="/")
+def password_problem(password: str, email: str = "") -> Optional[str]:
+    """Why a new password isn't good enough, or None."""
+    if len(password) < 10:
+        return "Use at least 10 characters"
+    if len(password.encode()) > 72:
+        return "That password is too long (72 characters at most)"
+    low = password.lower()
+    if low in COMMON_PASSWORDS or len(set(low)) < 4:
+        return "That password is too easy to guess. Try a few unrelated words"
+    name = email.split("@")[0].lower()
+    if len(name) >= 4 and name in low:
+        return "Don't put your email address in your password"
+    return None
 
 
-def clear_session(response: Response) -> None:
-    for name in (SESSION_COOKIE, MARKER_COOKIE):
-        response.delete_cookie(name, path="/")
+def get_current_user(request: Request, db: Session = Depends(get_db)) -> User:
+    """FastAPI dependency: the signed-in user, or 401. Anything that changes something must
+    also come from this site's own pages (sessions.same_origin), or it's refused with 403."""
+    user = sessions.user_from_cookie(request, db)
+    if not user:
+        raise HTTPException(status_code=401, detail="Not signed in")
+    if request.method not in sessions.SAFE_METHODS and not sessions.same_origin(request):
+        raise HTTPException(status_code=403, detail="Refused: this request didn't come from lyraauth.com")
+    return user
 
 
-def user_from_cookie(request: Request, db: Session) -> Optional[User]:
-    token = request.cookies.get(SESSION_COOKIE)
-    if not token:
-        return None
+def _user_from_old_token(token: str, db: Session) -> Optional[User]:
     try:
         user_id = int(jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])["sub"])
     except (JWTError, KeyError, ValueError):
         return None
     return db.query(User).filter(User.id == user_id, User.is_active == True).first()  # noqa: E712
-
-
-def get_current_user(
-    creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-    db: Session = Depends(get_db),
-) -> User:
-    """FastAPI dependency: decode JWT and return the User row."""
-    if not creds:
-        raise HTTPException(status_code=401, detail="Not authenticated")
-    try:
-        payload = jwt.decode(creds.credentials, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id = int(payload["sub"])
-    except (JWTError, KeyError, ValueError):
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
-
-    user = db.query(User).filter(User.id == user_id, User.is_active == True).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
 
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -157,8 +158,9 @@ def register(req: RegisterRequest, request: Request, response: Response, db: Ses
     email = req.email.lower().strip()
     if not EMAIL_RE.match(email) or len(email) > 254:
         raise HTTPException(400, "Enter a valid email address")
-    if not 8 <= len(req.password) <= 128:
-        raise HTTPException(400, "Password must be 8 to 128 characters")
+    problem = password_problem(req.password, email)
+    if problem:
+        raise HTTPException(400, problem)
     if len(req.name) > 80:
         raise HTTPException(400, "Name is too long")
     # Owner emails carry admin rights, so nobody else may claim one by signing up first.
@@ -176,9 +178,8 @@ def register(req: RegisterRequest, request: Request, response: Response, db: Ses
     db.commit()
     db.refresh(user)
 
-    token = _create_token(user.id)
-    set_session(response, token)
-    return {"token": token, "user": UserOut.model_validate(user)}
+    sessions.start(db, user, request, response)
+    return {"user": UserOut.model_validate(user)}
 
 
 @router.post("/login")
@@ -189,31 +190,83 @@ def login(req: LoginRequest, request: Request, response: Response, db: Session =
     ratelimit.check(ip_key, limit=20, window=900, record=False)
     ratelimit.check(email_key, limit=10, window=900, record=False)
     user = db.query(User).filter(User.email == email).first()
-    if not user or len(req.password) > 128 or not _verify_password(req.password, user.password_hash):
+    ok = len(req.password) <= 128 and _verify_password(req.password, user.password_hash if user else _NO_ACCOUNT_HASH)
+    if not user or not ok:
         ratelimit.record(ip_key)
         ratelimit.record(email_key)
-        raise HTTPException(401, "Invalid email or password")
+        raise HTTPException(401, "That email and password don't match an account")
     if not user.is_active:
         raise HTTPException(403, "Account disabled")
+    if pwd_ctx.needs_update(user.password_hash):
+        user.password_hash = _hash_password(req.password)
 
-    token = _create_token(user.id)
-    set_session(response, token)
-    return {"token": token, "user": UserOut.model_validate(user)}
+    sessions.start(db, user, request, response)
+    return {"user": UserOut.model_validate(user)}
 
 
 @router.post("/session")
-def session(response: Response, creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
-            user: User = Depends(get_current_user)):
-    """Turn a sign-in held by the page (bearer token) into the page cookie. For accounts that
-    signed in before the cookie existed; the token keeps its own expiry."""
-    set_session(response, creds.credentials)
+def move_old_sign_in(request: Request, response: Response, creds: Optional[HTTPAuthorizationCredentials] = Depends(bearer),
+                     db: Session = Depends(get_db)):
+    """For browsers signed in by the old site: swap the token it kept in page storage for a
+    session. The page deletes the token either way."""
+    if not sessions.same_origin(request, strict=True):
+        raise HTTPException(403, "Refused: this request didn't come from lyraauth.com")
+    user = _user_from_old_token(creds.credentials, db) if creds else None
+    if not user:
+        raise HTTPException(401, "Not signed in")
+    sessions.start(db, user, request, response)
     return {"ok": True}
 
 
 @router.post("/logout")
-def logout(response: Response):
-    clear_session(response)
+def logout(request: Request, response: Response, db: Session = Depends(get_db)):
+    sessions.end(db, request, response)
     return {"ok": True}
+
+
+@router.get("/sessions")
+def list_sessions(request: Request, db: Session = Depends(get_db)):
+    """Every browser signed in to this account, newest first."""
+    found = sessions.current(request, db)
+    if not found:
+        raise HTTPException(401, "Not signed in")
+    here, user = found
+    rows = (db.query(LoginSession).filter(LoginSession.user_id == user.id)
+            .order_by(LoginSession.last_seen.desc()).all())
+    return [{"id": r.id, "current": r.id == here.id, "created_at": r.created_at, "last_seen": r.last_seen,
+             "ip": r.ip, "user_agent": r.user_agent} for r in rows]
+
+
+@router.delete("/sessions/{session_id}")
+def end_session(session_id: int, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    n = db.query(LoginSession).filter(LoginSession.id == session_id, LoginSession.user_id == user.id).delete()
+    db.commit()
+    if not n:
+        raise HTTPException(404, "No such session")
+    return {"ok": True}
+
+
+@router.post("/sessions/end-others")
+def end_other_sessions(request: Request, user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    here, _ = sessions.current(request, db)
+    return {"ended": sessions.end_all(db, user.id, keep=here.id)}
+
+
+@router.post("/password")
+def change_password(req: PasswordChange, request: Request, user: User = Depends(get_current_user),
+                    db: Session = Depends(get_db)):
+    """Needs the current password. Every other browser is signed out afterwards."""
+    ratelimit.check(f"password:{user.id}", limit=5, window=900, record=False)
+    if len(req.current_password) > 128 or not _verify_password(req.current_password, user.password_hash):
+        ratelimit.record(f"password:{user.id}")
+        raise HTTPException(400, "Your current password isn't right")
+    problem = password_problem(req.new_password, user.email)
+    if problem:
+        raise HTTPException(400, problem)
+    user.password_hash = _hash_password(req.new_password)
+    db.commit()
+    here, _ = sessions.current(request, db)
+    return {"ok": True, "signed_out_elsewhere": sessions.end_all(db, user.id, keep=here.id)}
 
 
 @router.get("/me")

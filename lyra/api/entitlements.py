@@ -16,16 +16,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, Optional
 
 from fastapi import Depends, HTTPException
-try:  # PyJWT; python-jose (unmaintained, pulls in a vulnerable ecdsa) only where PyJWT isn't installed yet
-    import jwt
-    from jwt import PyJWTError as JWTError
-except ImportError:
-    from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
 from lyra.db.database import get_db
 from lyra.db.models import TrialUsage, User
-from lyra.api.users_api import ALGORITHM, SECRET_KEY, get_current_user
+from lyra.api.users_api import get_current_user
 
 PAID_TIERS = ("starter", "pro", "business", "enterprise")
 TRIAL_DAYS = int(os.environ.get("LYRA_TRIAL_DAYS", 14))
@@ -120,12 +115,7 @@ def require_paid(feature: str):
     return dep
 
 
-def user_from_token(token: Optional[str], db: Session) -> Optional[User]:
-    """Decode a bearer token outside the HTTP dependency system (WebSockets)."""
-    if not token:
-        return None
-    try:
-        user_id = int(jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])["sub"])
-    except (JWTError, KeyError, ValueError):
-        return None
-    return db.query(User).filter(User.id == user_id, User.is_active == True).first()  # noqa: E712
+def user_from_conn(conn, db: Session) -> Optional[User]:
+    """The signed-in user outside the HTTP dependency system (WebSockets, middleware)."""
+    from lyra.api import sessions
+    return sessions.user_from_cookie(conn, db)

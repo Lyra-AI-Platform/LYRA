@@ -10,7 +10,7 @@ can be skipped (view-source, curl, scripts off). Here the page itself is withhel
   owner     the site owner only (LYRA_ADMIN_EMAILS); everyone else gets a plain 404
   unlisted  anyone holding the link, but never linked from the site or listed by search engines
 
-Sign-in comes from the HttpOnly cookie set at login (users_api.set_session). Only GET/HEAD
+Sign-in comes from the session cookie (lyra/api/sessions.py). Only GET/HEAD
 are checked here; the APIs still check the bearer token and trial allowances themselves.
 """
 import posixpath
@@ -22,7 +22,8 @@ from fastapi import Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 
 from lyra.api import entitlements
-from lyra.api.users_api import _admin_emails, user_from_cookie
+from lyra.api import sessions
+from lyra.api.users_api import _admin_emails
 from lyra.db.database import SessionLocal
 from lyra.db.models import User
 
@@ -37,6 +38,8 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/dashboard/login.html", "guest", ""),
     ("/dashboard/register.html", "guest", ""),
     ("/home/", "account", ""),
+    ("/account/", "account", ""),
+    ("/account", "account", ""),
     ("/home", "account", ""),
     ("/dashboard/chat.html", "member", "chat"),
     ("/dashboard/", "account", ""),
@@ -103,11 +106,10 @@ def check(request: Request):
     api = path.startswith("/api/")
     db = session_factory()
     try:
-        user = user_from_cookie(request, db)
-        if not user and api:
-            # Scripts and agents may send the usual bearer token instead of the cookie.
-            auth = request.headers.get("authorization", "")
-            user = entitlements.user_from_token(auth[7:].strip() if auth.lower().startswith("bearer ") else "", db)
+        user = sessions.user_from_cookie(request, db)
+        # A session ended elsewhere (sign out everywhere, password change, expiry) leaves its
+        # cookie behind; clear it so the page scripts stop thinking they're signed in.
+        request.state.stale_session = not user and bool(request.cookies.get(sessions.COOKIE))
         if rule == "guest":
             # Already signed in: skip the sign-in form and go where it was going to send them.
             if not user:
@@ -138,6 +140,8 @@ async def guard(request: Request, call_next):
     if not rule_for(request.url.path):
         return await call_next(request)
     response = check(request) or await call_next(request)
+    if getattr(request.state, "stale_session", False):
+        sessions.clear_cookies(response)
     # Never let a browser or Cloudflare keep a copy of a members-only page.
     response.headers["Cache-Control"] = "no-store"
     response.headers["X-Robots-Tag"] = "noindex, nofollow"
@@ -151,10 +155,14 @@ def signed_in_home(request: Request, website_dir) -> Optional[FileResponse]:
     """The home page a signed-in visitor gets at "/" instead of the marketing page."""
     db = session_factory()
     try:
-        user = user_from_cookie(request, db)
+        user = sessions.user_from_cookie(request, db)
     finally:
         db.close()
     if not user:
-        return None
+        if not request.cookies.get(sessions.COOKIE):
+            return None
+        public = FileResponse(str(website_dir / "index.html"), headers={"Cache-Control": "no-store"})
+        sessions.clear_cookies(public)
+        return public
     return FileResponse(str(website_dir / "home" / "index.html"),
                         headers={"Cache-Control": "no-store", "Vary": "Cookie"})

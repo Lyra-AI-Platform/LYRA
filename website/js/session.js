@@ -1,35 +1,40 @@
 /* Signed-in state on every page.
-   - Accounts that signed in before pages were guarded on the server have a token but no
-     page cookie: swap one for the other once, so members-only pages open for them.
-   - When signed in, "Sign in / Create account" links become "My Lyra" and "Sign out",
-     and a small "My Lyra" button stays in the corner so every product is one click away.
-   - lyraSignOut() clears both the token and the cookie. */
+   Sign-in lives in an HttpOnly cookie the server checks (lyra/api/sessions.py); page scripts
+   never see it, they just call the APIs and the browser sends it. lyra_in is a plain marker
+   saying a sign-in exists.
+   - window.lyraSignedIn       whether this browser is signed in
+   - window.lyraToLogin()      off to sign in, coming back here afterwards
+   - window.lyraSignOut(to)    end the session on the server and leave
+   - Browsers signed in by the old site kept a token in localStorage: it is swapped once for
+     a session and deleted.
+   - When signed in, "Sign in / Create account" links become "My Lyra" and "Sign out", and a
+     small "My Lyra" button stays in the corner so every product is one click away. */
 (function () {
-  var token = null;
-  try { token = localStorage.getItem('lyra_token'); } catch (e) {}
   var marker = /(?:^|;\s*)lyra_in=1/.test(document.cookie);
+  window.lyraSignedIn = marker;
 
+  window.lyraToLogin = function () {
+    location.href = '/dashboard/login.html?next=' + encodeURIComponent(location.pathname + location.search);
+  };
   window.lyraSignOut = function (to) {
-    try { localStorage.removeItem('lyra_token'); localStorage.removeItem('lyra_user'); localStorage.removeItem('lyra_next'); } catch (e) {}
     fetch('/api/users/logout', { method: 'POST', credentials: 'same-origin' })
       .catch(function () {})
       .then(function () { location.href = to || '/'; });
   };
 
-  if (token && !marker) {
-    fetch('/api/users/session', { method: 'POST', credentials: 'same-origin', headers: { Authorization: 'Bearer ' + token } })
-      .then(function (r) {
-        if (r.status === 401) { try { localStorage.removeItem('lyra_token'); } catch (e) {} return; }
-        // A members-only page may have sent us to sign in; now the cookie exists, go back.
-        if (r.ok && /\/dashboard\/(login|register)\.html$/.test(location.pathname)) location.replace('/');
-      })
+  var legacy = null;
+  try {
+    legacy = localStorage.getItem('lyra_token');
+    localStorage.removeItem('lyra_token');
+    localStorage.removeItem('lyra_user');
+  } catch (e) {}
+  if (legacy && !marker) {
+    fetch('/api/users/session', { method: 'POST', credentials: 'same-origin', headers: { Authorization: 'Bearer ' + legacy } })
+      .then(function (r) { if (r.ok) location.reload(); })
       .catch(function () {});
-  } else if (!token && marker) {
-    // Cookie without a token (storage cleared): sign out fully so the two can't disagree.
-    fetch('/api/users/logout', { method: 'POST', credentials: 'same-origin' }).catch(function () {});
   }
 
-  if (!token) return;
+  if (!marker) return;
 
   function relabel() {
     var links = document.querySelectorAll('a[href$="login.html"], a[href*="login.html?"]');

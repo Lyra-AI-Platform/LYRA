@@ -90,3 +90,21 @@ def test_credits_cannot_go_negative():
         except Exception:  # noqa: BLE001
             pass
     assert spent == 3 and watch_access.wallet(uid, s).balance == 0
+
+
+def test_training_data_is_owner_only(monkeypatch):
+    from lyra.authenticator.api import router as auth_router
+    app, Session = make_app(auth_router)
+    monkeypatch.setenv("LYRA_ADMIN_EMAILS", "owner@example.com")
+    assert TestClient(app).get("/api/auth/training/export").status_code == 401
+    _, customer = signed_in(Session, email="customer@example.com")
+    assert TestClient(app).get("/api/auth/training/export", headers=customer).status_code == 403
+    _, owner = signed_in(Session, email="owner@example.com")
+    assert TestClient(app).get("/api/auth/training/export", headers=owner).status_code == 200
+
+
+def test_sites_cant_be_registered_without_an_account():
+    from lyra.authenticator.api import router as auth_router
+    app, _ = make_app(auth_router)
+    r = TestClient(app).post("/api/auth/register", json={"domain": "spam.example", "email": "x@spam.example"})
+    assert r.status_code == 410

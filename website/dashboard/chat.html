@@ -351,8 +351,7 @@
    ════════════════════════════════════════ */
 
 /* ── Auth guard ── */
-const token = localStorage.getItem('lyra_token');
-if (!token) { window.location.href = 'login.html'; }
+if (!window.lyraSignedIn) window.lyraToLogin();
 
 /* ── T&C gate ── */
 if (!localStorage.getItem('lyra_terms_agreed')) {
@@ -381,7 +380,7 @@ let _streamEl      = null;   // current streaming <div>
 let _statusEl      = null;   // status pill element
 
 /* ── Load user info ── */
-fetch('/api/users/me', { headers: { Authorization: 'Bearer ' + token } })
+fetch('/api/users/me')
   .then(r => r.ok ? r.json() : null)
   .then(u => { if (u) document.getElementById('user-email').textContent = u.email || ''; })
   .catch(() => {});
@@ -392,7 +391,7 @@ function signOut() { window.lyraSignOut('/dashboard/login.html'); }
 function connectWS(convId) {
   if (ws) { try { ws.close(); } catch {} }
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}?token=${encodeURIComponent(token)}`);
+  ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}`);
 
   ws.addEventListener('message', e => handleWSMsg(JSON.parse(e.data)));
   ws.addEventListener('close',   () => { if (isStreaming) finishStream(); });
@@ -541,9 +540,8 @@ async function sendMessage(text) {
 async function createConversation() {
   const res = await fetch('/api/chat/conversations/new', {
     method: 'POST',
-    headers: { Authorization: 'Bearer ' + token },
   });
-  if (res.status === 401) { localStorage.removeItem('lyra_token'); window.location.href = 'login.html'; return; }
+  if (res.status === 401) { window.lyraToLogin(); return; }
   const data = await res.json();
   currentConvId = data.conversation_id;
   connectWS(currentConvId);
@@ -568,8 +566,7 @@ function startNewChat() {
 async function loadConversations() {
   try {
     const res = await fetch('/api/chat/conversations', {
-      headers: { Authorization: 'Bearer ' + token },
-    });
+      });
     const data = await res.json();
     renderConvList(data.conversations || []);
   } catch {}
@@ -604,7 +601,6 @@ async function loadConversation(convId, itemEl) {
   if (itemEl) itemEl.classList.add('active');
 
   const res = await fetch(`/api/chat/conversations/${convId}`, {
-    headers: { Authorization: 'Bearer ' + token },
   });
   const data = await res.json();
   const msgs = data.messages || [];

@@ -4,9 +4,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from lyra.api.users_api import _create_token
+import hashlib
+import secrets
+from datetime import datetime, timedelta, timezone
+
+from lyra.api import sessions
 from lyra.db.database import get_db
-from lyra.db.models import Base, User
+from lyra.db.models import Base, LoginSession, User
 
 
 def make_app(*routers):
@@ -35,4 +39,15 @@ def signed_in(Session, tier="free", email=None):
     s.commit()
     uid = u.id
     s.close()
-    return uid, {"Authorization": f"Bearer {_create_token(uid)}"}
+    return uid, {"Cookie": f"{sessions.COOKIE}={session_token(Session, uid)}"}
+
+
+def session_token(Session, user_id):
+    """A live sign-in for user_id: the value of the session cookie."""
+    token, now = secrets.token_urlsafe(32), datetime.now(timezone.utc)
+    s = Session()
+    s.add(LoginSession(user_id=user_id, token_hash=hashlib.sha256(token.encode()).hexdigest(),
+                       created_at=now, last_seen=now, expires_at=now + timedelta(days=30)))
+    s.commit()
+    s.close()
+    return token

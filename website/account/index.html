@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Account &amp; security · Lyra</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/main.css" />
+  <script src="/js/session.js"></script>
+  <style>
+    :root {
+      --ink: #14120e; --paper: #faf9f7; --sheet: #ffffff; --rule: rgba(20,18,14,.09);
+      --open: #15803d; --warn: #b45309; --signal: #e11d48;
+      --mono: 'JetBrains Mono', 'SF Mono', monospace; --serif: 'Instrument Serif', Georgia, serif;
+    }
+    body {
+      background:
+        radial-gradient(1200px 500px at 85% -10%, rgba(225,29,72,.07), transparent 60%),
+        linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 32px,
+        var(--paper);
+      min-height: 100vh;
+    }
+    .top { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:760px; margin:0 auto; padding:20px 24px; }
+    .brand { font-weight:600; font-size:15px; }
+    .top-actions { display:flex; gap:8px; }
+    .top-actions .btn { padding:7px 14px; font-size:13px; }
+    main { max-width:760px; margin:0 auto; padding:24px 24px 96px; }
+    .kicker { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+    h1 { font-family:var(--serif); font-weight:400; font-size:clamp(2.2rem,6vw,3.4rem); line-height:1.05; margin:10px 0 6px; }
+    .lede { color:var(--muted); margin:0 0 28px; }
+
+    .card {
+      background:var(--sheet); border:1px solid var(--rule); border-radius:12px; padding:22px; margin-bottom:16px;
+      opacity:0; animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;
+    }
+    .card:nth-of-type(2) { animation-delay:.06s; } .card:nth-of-type(3) { animation-delay:.12s; }
+    .card h2 { font-size:16px; margin:0 0 4px; }
+    .card > p { font-size:13px; color:var(--muted); margin:0 0 16px; }
+    .row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--rule); font-size:14px; }
+    .row:first-of-type { border-top:0; }
+    .row .k { color:var(--muted); }
+    .row .v { font-family:var(--mono); font-size:13px; text-align:right; overflow-wrap:anywhere; }
+
+    form { display:grid; gap:12px; max-width:420px; }
+    label { font-size:13px; font-weight:600; display:block; margin-bottom:5px; }
+    input[type=password] {
+      width:100%; padding:10px 12px; border:1px solid rgba(20,18,14,.18); border-radius:8px; font:inherit; background:var(--paper);
+    }
+    input[type=password]:focus { outline:2px solid var(--ink); outline-offset:1px; }
+    .hint { font-size:12px; color:var(--muted); margin-top:4px; }
+    .msg { font-size:13px; padding:10px 12px; border-radius:8px; display:none; }
+    .msg.ok { display:block; background:rgba(21,128,61,.08); color:var(--open); }
+    .msg.err { display:block; background:rgba(225,29,72,.08); color:var(--signal); }
+
+    .device { display:flex; align-items:center; gap:14px; padding:14px 0; border-top:1px solid var(--rule); }
+    .device:first-child { border-top:0; }
+    .device .ico { font-size:22px; width:28px; text-align:center; }
+    .device .what { flex:1; min-width:0; }
+    .device .what b { display:block; font-size:14px; }
+    .device .what span { font-family:var(--mono); font-size:11.5px; color:var(--muted); }
+    .here { font-family:var(--mono); font-size:11px; color:var(--open); border:1px solid rgba(21,128,61,.3); border-radius:999px; padding:3px 8px; white-space:nowrap; }
+    .btn-small { padding:6px 12px; font-size:12px; }
+    .actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .danger { color:var(--signal); border-color:rgba(225,29,72,.35); }
+    @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+    @media (prefers-reduced-motion: reduce) { .card { animation:none; opacity:1; } }
+    @media (max-width:560px) { .top { padding:16px; } main { padding:12px 16px 80px; } .card { padding:18px 16px; } }
+  </style>
+</head>
+<body>
+<header class="top">
+  <a href="/" class="brand">✦ Lyra AI</a>
+  <div class="top-actions">
+    <a class="btn btn-outline" href="/">My Lyra</a>
+    <button class="btn btn-outline" type="button" id="signout">Sign out</button>
+  </div>
+</header>
+
+<main>
+  <div class="kicker">Your account</div>
+  <h1>Account &amp; security</h1>
+  <p class="lede">Your sign-in details, your password, and every browser that's signed in as you.</p>
+
+  <section class="card">
+    <h2>Profile</h2>
+    <p>The email you sign in with. To change it, email <a href="mailto:support@lyraauth.com">support@lyraauth.com</a> from this address.</p>
+    <div class="row"><span class="k">Name</span><span class="v" id="p-name">…</span></div>
+    <div class="row"><span class="k">Email</span><span class="v" id="p-email">…</span></div>
+    <div class="row"><span class="k">Member since</span><span class="v" id="p-since">…</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Password</h2>
+    <p>Changing it signs out every other browser.</p>
+    <form id="pw-form" novalidate>
+      <input type="text" autocomplete="username" id="pw-user" hidden />
+      <div>
+        <label for="pw-current">Current password</label>
+        <input type="password" id="pw-current" autocomplete="current-password" required />
+      </div>
+      <div>
+        <label for="pw-new">New password</label>
+        <input type="password" id="pw-new" autocomplete="new-password" minlength="10" maxlength="72" required />
+        <div class="hint">At least 10 characters. A few unrelated words are easy to remember and hard to guess.</div>
+      </div>
+      <div class="msg" id="pw-msg" role="status"></div>
+      <div><button class="btn btn-primary" type="submit" id="pw-btn">Change password</button></div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Signed-in browsers</h2>
+    <p>If you don't recognise one, sign it out and change your password.</p>
+    <div id="devices"><div class="device"><span class="what"><span>Loading…</span></span></div></div>
+    <div class="actions">
+      <button class="btn btn-outline btn-small danger" type="button" id="end-others">Sign out everywhere else</button>
+    </div>
+    <div class="msg" id="dev-msg" role="status" style="margin-top:12px"></div>
+  </section>
+</main>
+
+<script>
+(function () {
+  if (!window.lyraSignedIn) { window.lyraToLogin(); return; }
+  const $ = (id) => document.getElementById(id);
+  $('signout').onclick = () => window.lyraSignOut('/');
+
+  async function call(url, opts = {}) {
+    const r = await fetch(url, { ...opts, headers: { 'Content-Type': 'application/json', ...(opts.headers || {}) } });
+    if (r.status === 401) { window.lyraToLogin(); throw new Error('Please sign in again.'); }
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(typeof body.detail === 'string' ? body.detail : 'Something went wrong. Try again.');
+    return body;
+  }
+  function say(id, text, ok) { const m = $(id); m.textContent = text; m.className = 'msg ' + (ok ? 'ok' : 'err'); }
+  const when = (iso) => {
+    const d = new Date(iso.endsWith('Z') || iso.includes('+') ? iso : iso + 'Z');
+    const mins = (Date.now() - d) / 60000;
+    if (mins < 2) return 'active now';
+    if (mins < 60) return `active ${Math.round(mins)} min ago`;
+    if (mins < 2880) return `active ${Math.round(mins / 60)} h ago`;
+    return 'active ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+  };
+  function device(ua) {
+    ua = ua || '';
+    const os = /iPhone|iPad/.test(ua) ? 'iPhone / iPad' : /Android/.test(ua) ? 'Android' : /Mac OS X/.test(ua) ? 'Mac'
+             : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : 'Unknown device';
+    const br = /Edg\//.test(ua) ? 'Edge' : /OPR\//.test(ua) ? 'Opera' : /Firefox\//.test(ua) ? 'Firefox'
+             : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : 'Browser';
+    return { name: `${br} on ${os}`, ico: /iPhone|Android/.test(ua) ? '📱' : '💻' };
+  }
+
+  call('/api/users/me').then((me) => {
+    $('p-name').textContent = me.name || '—';
+    $('p-email').textContent = me.email;
+    $('pw-user').value = me.email;
+    $('p-since').textContent = new Date(me.created_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  }).catch(() => {});
+
+  async function loadDevices() {
+    const rows = await call('/api/users/sessions');
+    const box = $('devices');
+    box.replaceChildren(...rows.map((s) => {
+      const d = device(s.user_agent);
+      const item = document.createElement('div'); item.className = 'device';
+      const ico = document.createElement('span'); ico.className = 'ico'; ico.textContent = d.ico;
+      const what = document.createElement('div'); what.className = 'what';
+      const b = document.createElement('b'); b.textContent = d.name;
+      const meta = document.createElement('span'); meta.textContent = `${when(s.last_seen)}${s.ip ? ' · ' + s.ip : ''}`;
+      what.append(b, meta);
+      item.append(ico, what);
+      if (s.current) {
+        const here = document.createElement('span'); here.className = 'here'; here.textContent = 'This browser';
+        item.append(here);
+      } else {
+        const out = document.createElement('button'); out.type = 'button'; out.className = 'btn btn-outline btn-small';
+        out.textContent = 'Sign out';
+        out.onclick = async () => {
+          out.disabled = true;
+          try { await call(`/api/users/sessions/${s.id}`, { method: 'DELETE' }); await loadDevices(); say('dev-msg', 'Signed out.', true); }
+          catch (e) { out.disabled = false; say('dev-msg', e.message); }
+        };
+        item.append(out);
+      }
+      return item;
+    }));
+    $('end-others').hidden = rows.length < 2;
+  }
+  loadDevices().catch((e) => say('dev-msg', e.message));
+
+  $('end-others').onclick = async () => {
+    try {
+      const r = await call('/api/users/sessions/end-others', { method: 'POST' });
+      say('dev-msg', r.ended ? `Signed out ${r.ended} other browser${r.ended === 1 ? '' : 's'}.` : 'No other browsers were signed in.', true);
+      await loadDevices();
+    } catch (e) { say('dev-msg', e.message); }
+  };
+
+  $('pw-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const current = $('pw-current').value, next = $('pw-new').value;
+    if (!current) return say('pw-msg', 'Enter your current password.');
+    if (next.length < 10) return say('pw-msg', 'Use at least 10 characters for the new password.');
+    $('pw-btn').disabled = true;
+    try {
+      const r = await call('/api/users/password', { method: 'POST', body: JSON.stringify({ current_password: current, new_password: next }) });
+      $('pw-form').reset();
+      say('pw-msg', 'Password changed.' + (r.signed_out_elsewhere ? ` ${r.signed_out_elsewhere} other browser${r.signed_out_elsewhere === 1 ? ' was' : 's were'} signed out.` : ''), true);
+      loadDevices().catch(() => {});
+    } catch (err) { say('pw-msg', err.message); }
+    $('pw-btn').disabled = false;
+  });
+})();
+</script>
+</body>
+</html>

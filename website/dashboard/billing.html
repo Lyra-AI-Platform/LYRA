@@ -189,8 +189,7 @@
 
 <script>
   const API = '/api';
-  const token = localStorage.getItem('lyra_token');
-  if (!token) window.location.href = 'login.html';
+  if (!window.lyraSignedIn) window.lyraToLogin();
 
   const params = new URLSearchParams(location.search);
   if (params.get('success'))   document.getElementById('msg-success').style.display = 'block';
@@ -205,7 +204,7 @@
   if (wantPlan) document.getElementById('plan-' + wantPlan)?.scrollIntoView({ block: 'center' });
 
   function signOut() { window.lyraSignOut('/dashboard/login.html'); }
-  function authH() { return { 'Content-Type':'application/json', 'Authorization':'Bearer '+token }; }
+  function authH() { return { 'Content-Type':'application/json' }; }
 
   const TIER_LABELS = {
     free:       { name:'Trial',           sub:'14 days · 1 site · 1,000 verifications · 3 Tremor readings · 20 chat messages' },

@@ -58,13 +58,15 @@ class ChatRequest(BaseModel):
 
 @router.websocket("/ws/{conversation_id}")
 async def chat_websocket(websocket: WebSocket, conversation_id: str):
-    """WebSocket endpoint for real-time streaming chat. Needs ?token=<jwt>; every message
+    """WebSocket endpoint for real-time streaming chat, for a signed-in browser on this site's
+    own pages (a page elsewhere can't open it with the visitor's cookie); every message
     spends one trial allowance for unpaid accounts (see lyra/api/entitlements.py)."""
     from lyra.api import entitlements
     from lyra.db.database import SessionLocal
     db = SessionLocal()
     try:
-        user = entitlements.user_from_token(websocket.query_params.get("token"), db)
+        from lyra.api import sessions
+        user = entitlements.user_from_conn(websocket, db) if sessions.same_origin(websocket, strict=True) else None
         if not user:
             await websocket.close(code=4401)
             return

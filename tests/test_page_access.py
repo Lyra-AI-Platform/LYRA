@@ -15,9 +15,8 @@ from fastapi.staticfiles import StaticFiles  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from lyra.api import page_access, ratelimit, users_api  # noqa: E402
-from lyra.api.users_api import _create_token  # noqa: E402
 from lyra.db.models import User  # noqa: E402
-from _watchdb import make_app  # noqa: E402
+from _watchdb import make_app, session_token  # noqa: E402
 
 WEBSITE = Path(__file__).resolve().parent.parent / "website"
 
@@ -50,8 +49,9 @@ def _client(app, Session=None, tier="free", days_old=0, email=None):
                  created_at=datetime.now(timezone.utc) - timedelta(days=days_old))
         s.add(u)
         s.commit()
-        c.cookies.set(users_api.SESSION_COOKIE, _create_token(u.id))
+        uid = u.id
         s.close()
+        c.cookies.set(users_api.SESSION_COOKIE, session_token(Session, uid))
     return c
 
 
@@ -65,7 +65,7 @@ def test_public_pages_stay_open(site, path):
     assert _client(app).get(path).status_code == 200
 
 
-@pytest.mark.parametrize("path", MEMBERS + ["/dashboard/", "/dashboard/billing.html", "/home/", "/watch/live/"])
+@pytest.mark.parametrize("path", MEMBERS + ["/dashboard/", "/dashboard/billing.html", "/home/", "/account/", "/watch/live/"])
 def test_signed_out_visitors_are_sent_to_sign_in(site, path):
     app, _ = site
     r = _client(app).get(path)

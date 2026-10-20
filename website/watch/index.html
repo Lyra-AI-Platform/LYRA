@@ -275,16 +275,14 @@
   const link = (u, text) => safeUrl(u) ? el("a", { href: u, target: "_blank", rel: "noopener nofollow", text }) : document.createTextNode(text);
   const money = (v) => v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `$${(v / 1e3).toFixed(0)}K` : `$${Math.round(v)}`;
   const ago = (ts) => { if (!ts) return "never"; const h = (Date.now() / 1000 - ts) / 3600; return h < 1 ? "under an hour ago" : h < 48 ? `${Math.round(h)} h ago` : `${Math.round(h / 24)} days ago`; };
-  let token = null;
-  try { token = localStorage.getItem("lyra_token"); } catch {}
   // Signed-in Watch Pro members get the full records; everyone else the free view.
-  const api = (p) => fetch(`/api/watch/${p}`, token ? { headers: { Authorization: `Bearer ${token}` } } : {})
+  const api = (p) => fetch(`/api/watch/${p}`)
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
   const proLink = (text) => el("a", { class: "chip aff", href: "/watch/account/", text: `🔒 ${text}` });
 
   async function loadAd() {
     try {
-      const ad = await fetch("/api/ads/slot", token ? { headers: { Authorization: `Bearer ${token}` } } : {}).then((r) => r.json());
+      const ad = await fetch("/api/ads/slot").then((r) => r.json());
       if (ad.kind === "none") return;
       $("adSlot").replaceChildren(el("a", { class: "ad", href: ad.url, rel: ad.kind === "sponsor" ? "sponsored noopener" : "",
         target: ad.kind === "sponsor" ? "_blank" : "_self" },

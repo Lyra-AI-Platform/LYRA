@@ -151,17 +151,15 @@ const money = (v) => v ? "$" + Number(v).toLocaleString(undefined, {maximumFract
 let currentTicker = "";
 
 const LOGIN_URL = "/dashboard/login.html";
-let token = null, viewer = {};
-try { token = localStorage.getItem("lyra_token"); viewer = JSON.parse(localStorage.getItem("lyra_user") || "{}"); } catch {}
 
 function toLogin() {
-  try { localStorage.setItem("lyra_next", location.pathname + location.search); localStorage.removeItem("lyra_token"); } catch {}
+  try { localStorage.setItem("lyra_next", location.pathname + location.search); } catch {}
   location.href = LOGIN_URL;
 }
-if (!token) toLogin();
+if (!window.lyraSignedIn) toLogin();
 
 async function api(path, opts = {}) {
-  const r = await fetch(path, { ...opts, headers: { ...(opts.headers || {}), Authorization: "Bearer " + token } });
+  const r = await fetch(path, { ...opts, headers: { ...(opts.headers || {}) } });
   if (r.status === 401) { toLogin(); throw new Error("Please sign in"); }
   if (r.status === 429) throw new Error("You've hit the hourly limit — try again a bit later.");
   if (r.status === 402) {

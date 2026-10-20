@@ -180,13 +180,12 @@
 
 <script>
   const API = '/api';
-  let token = localStorage.getItem('lyra_token');
   let sites = [];
 
-  if (!token) window.location.href = 'login.html';
+  if (!window.lyraSignedIn) window.lyraToLogin();
 
   function authHeaders() {
-    return { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token };
+    return { 'Content-Type': 'application/json' };
   }
 
   function signOut() { window.lyraSignOut('/dashboard/login.html'); }
@@ -381,6 +380,7 @@
     btn.disabled = true; btn.textContent = 'Exporting...';
     try {
       const res = await fetch('/api/auth/training/export', { headers: authHeaders() });
+      if (res.status === 403) { toast('Training data export for customer accounts is coming soon.', 4000); return; }
       if (!res.ok) throw new Error('Export failed');
       const d = await res.json();
       if (!d.records || d.records.length === 0) {

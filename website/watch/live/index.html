@@ -190,8 +190,7 @@
     return ago(pub) + (e.published && late > 1800 ? ` · caught ${ago(e.ts)}` : "");
   };
   const ago = (ts) => { const s = Date.now() / 1000 - ts; return s < 60 ? "just now" : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`; };
-  let token = null;
-  try { token = localStorage.getItem("lyra_token"); } catch {}
+  const signedIn = window.lyraSignedIn;
 
   let events = [], filter = "", unseen = 0, retry = 1000;
   const baseTitle = document.title;
@@ -329,9 +328,9 @@
     $("conn").textContent = "Connecting…";
     let resp;
     try {
-      resp = await fetch("/api/watch/live/stream", { headers: { Authorization: `Bearer ${token}`, Accept: "text/event-stream" } });
+      resp = await fetch("/api/watch/live/stream", { headers: { Accept: "text/event-stream" } });
     } catch { return reconnect(); }
-    if (resp.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} return gate("signin", await teaser()); }
+    if (resp.status === 401) return gate("signin", await teaser());
     if (resp.status === 402) return gate("subscribe", await teaser());
     if (!resp.ok || !resp.body) return reconnect();
     $("conn").textContent = "";
@@ -369,13 +368,13 @@
   }
 
   async function start() {
-    if (!token) return gate("signin", await teaser());
-    const r = await fetch("/api/watch/live/recent?limit=200", { headers: { Authorization: `Bearer ${token}` } });
-    if (r.status === 401) { try { localStorage.removeItem("lyra_token"); } catch {} return gate("signin", await teaser()); }
+    if (!signedIn) return gate("signin", await teaser());
+    const r = await fetch("/api/watch/live/recent?limit=200");
+    if (r.status === 401) return gate("signin", await teaser());
     if (r.status === 402) return gate("subscribe", await teaser());
     if (r.ok) { events = (await r.json()).events; renderFeed(); renderSide(); stage(events[0]); }
     try {
-      const b = await fetch("/api/watch/live/buzz", { headers: { Authorization: `Bearer ${token}` } }).then((x) => x.json());
+      const b = await fetch("/api/watch/live/buzz").then((x) => x.json());
       for (const row of b.people || []) buzz.set(row.slug, row);
       $("buzzNote").textContent = `Mentions on Hacker News and Bluesky${b.reddit ? " and Reddit" : ""} in the last 24 hours. Dot colour is tone.`;
     } catch {}

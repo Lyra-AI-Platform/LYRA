@@ -14,7 +14,8 @@ from sqlalchemy.orm import Session
 
 from lyra.authenticator.engine import challenge_engine, ChallengeResponse
 from lyra.db.database import get_db
-from lyra.db.models import Site, UsageRecord, VerifiedToken
+from lyra.api.users_api import _admin_emails, get_current_user
+from lyra.db.models import Site, UsageRecord, User, VerifiedToken
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["lyraauth"])
@@ -184,37 +185,12 @@ async def server_verify(req: ServerVerifyRequest, db: Session = Depends(get_db))
 # ── Legacy site registration (kept for backwards compat) ──────────────────────
 
 @router.post("/register")
-async def register_site_legacy(request: Request, db: Session = Depends(get_db)):
-    """
-    Quick site registration without a user account.
-    Prefer the dashboard flow (/dashboard → create site) for full features.
-    """
-    body = await request.json()
-    domain = body.get("domain", "")
-    email  = body.get("email") or body.get("contact_email", "")
-    if not domain or not email:
-        raise HTTPException(400, "domain and email required")
-
-    site = Site(name=domain, domain=domain)
-    # Assign to a guest user slot — sites without user_id get no dashboard access
-    # (They still work for verification but can't be managed)
-    db.add(site)
-    try:
-        db.commit()
-        db.refresh(site)
-    except Exception:
-        db.rollback()
-        raise HTTPException(500, "Could not register site")
-
-    return {
-        "success": True,
-        "site_key": site.site_key,
-        "secret_key": site.secret_key,
-        "message": (
-            "Keep your secret_key private — server-side only. "
-            "Create an account at lyraauth.com/dashboard to manage your site."
-        ),
-    }
+async def register_site_legacy():
+    """Gone: it handed out keys to anyone without an account, which skipped the plan limits.
+    Sites are added from the dashboard (POST /api/sites, signed in)."""
+    raise HTTPException(410, {"error": "use_dashboard",
+                              "message": "Create a free account and add your site at https://lyraauth.com/dashboard/ "
+                                         "to get your site key and secret key."})
 
 
 # ── Training data endpoints ───────────────────────────────────────────────────
@@ -223,8 +199,16 @@ async def register_site_legacy(request: Request, db: Session = Depends(get_db)):
 async def training_stats():
     return challenge_engine.get_training_stats()
 
+def _owner(user: User = Depends(get_current_user)) -> User:
+    # Records aren't tagged with the site they came from yet, so an export is everyone's data:
+    # only the site owner may take it.
+    if user.email.lower() not in _admin_emails():
+        raise HTTPException(403, "Training data export for customer accounts is coming soon.")
+    return user
+
+
 @router.get("/training/export")
-async def export_training(date: Optional[str] = None):
+async def export_training(date: Optional[str] = None, _: User = Depends(_owner)):
     records = challenge_engine.export_training_data(date)
     return {"count": len(records), "records": records}
 

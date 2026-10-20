@@ -70,6 +70,7 @@
 <header class="top">
   <a href="/" class="brand">✦ Lyra AI</a>
   <div class="top-actions">
+    <a class="btn btn-outline" href="/account/">Account</a>
     <a class="btn btn-outline" href="/dashboard/billing.html">Billing</a>
     <button class="btn btn-outline" type="button" id="signout">Sign out</button>
   </div>
@@ -94,11 +95,7 @@
 
 <script>
 (function () {
-  let token = null;
-  try { token = localStorage.getItem('lyra_token'); } catch (e) {}
-  // This page is only served with the sign-in cookie; without the token too, start clean.
-  if (!token) { window.lyraSignOut('/dashboard/login.html'); return; }
-  const H = { Authorization: 'Bearer ' + token };
+  // Only served to a signed-in browser (lyra/api/page_access.py); the cookie does the rest.
   document.getElementById('signout').onclick = () => window.lyraSignOut('/');
   document.getElementById('today').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -111,6 +108,7 @@
     { id: 'sites', ico: '🛡️', name: 'LyraAuth sites', text: 'Your sites, keys, usage and training data.', href: '/dashboard/', need: 'account' },
   ];
   const ACCOUNT = [
+    { ico: '🔒', name: 'Account & security', text: 'Password, signed-in browsers, sign out everywhere.', href: '/account/' },
     { ico: '💳', name: 'Billing & plan', text: 'Change plan, invoices, cancel.', href: '/dashboard/billing.html' },
     { ico: '🔑', name: 'Watch Pro & API keys', text: 'Subscription, API keys and credits for agents.', href: '/watch/account/' },
     { ico: '📚', name: 'Documentation', text: 'Install the widget and call the APIs.', href: '/pages/docs.html' },
@@ -147,7 +145,7 @@
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   async function get(url) {
-    const r = await fetch(url, { headers: H });
+    const r = await fetch(url);
     if (r.status === 401) { window.lyraSignOut('/dashboard/login.html'); throw new Error('signed out'); }
     return r.ok ? r.json() : null;
   }

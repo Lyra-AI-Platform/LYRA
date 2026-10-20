@@ -143,6 +143,21 @@ class ApiKey(Base):
     last_used  = Column(DateTime(timezone=True), nullable=True)
 
 
+class LoginSession(Base):
+    """One signed-in browser. The cookie holds a random ID; only its hash is stored, so a
+    copy of the database can't be used to sign in. Deleting the row signs that browser out."""
+    __tablename__ = "login_sessions"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=_now)
+    last_seen  = Column(DateTime(timezone=True), default=_now)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    ip         = Column(String, default="")
+    user_agent = Column(String, default="")
+
+
 class CreditPurchase(Base):
     """One row per paid Stripe checkout, so a repeated webhook never adds credits twice."""
     __tablename__ = "credit_purchases"

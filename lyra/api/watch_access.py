@@ -125,7 +125,7 @@ def identify(cost_name: str):
     """FastAPI dependency: who is asking. API keys are charged here; everyone else is free."""
     cost = COSTS[cost_name]
 
-    def dep(response: Response, db: Session = Depends(get_db), authorization: str = Header(""),
+    def dep(request: Request, response: Response, db: Session = Depends(get_db), authorization: str = Header(""),
             x_lyra_key: str = Header("")) -> Viewer:
         bearer = authorization[7:].strip() if authorization.lower().startswith("bearer ") else ""
         key = x_lyra_key.strip() or (bearer if bearer.startswith("lw_") else "")
@@ -134,7 +134,7 @@ def identify(cost_name: str):
             response.headers["X-Lyra-Credits-Remaining"] = str(v.credits_left)
             response.headers["X-Lyra-Credits-Charged"] = str(cost)
             return v
-        user = entitlements.user_from_token(bearer, db) if bearer else None
+        user = entitlements.user_from_conn(request, db)
         if has_watch(user, db):
             return Viewer("subscriber", user)
         return Viewer("public", user)

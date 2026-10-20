@@ -53,16 +53,16 @@
 
   <form id="reg-form" novalidate>
     <div class="field">
-      <label>Name</label>
+      <label for="name">Name</label>
       <input type="text" id="name" autocomplete="name" placeholder="Your name" />
     </div>
     <div class="field">
-      <label>Email</label>
+      <label for="email">Email</label>
       <input type="text" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com" />
     </div>
     <div class="field">
-      <label>Password</label>
-      <input type="password" id="password" autocomplete="new-password" placeholder="Min. 8 characters" />
+      <label for="password">Password</label>
+      <input type="password" id="password" autocomplete="new-password" placeholder="At least 10 characters" minlength="10" maxlength="72" />
     </div>
     <button type="submit" class="auth-btn" id="submit-btn">Create account</button>
   </form>
@@ -78,11 +78,6 @@
   // A plan picked on the pricing table goes straight to checkout after sign-up.
   const plan = new URLSearchParams(location.search).get('plan');
   const afterSignup = /^(starter|pro|business|enterprise)$/.test(plan || '') ? '/dashboard/billing.html?plan=' + plan : '/';
-  if (localStorage.getItem('lyra_token')) {
-    fetch('/api/users/session', { method: 'POST', headers: { Authorization: 'Bearer ' + localStorage.getItem('lyra_token') } })
-      .then(r => { if (r.ok) location.replace(afterSignup); else localStorage.removeItem('lyra_token'); })
-      .catch(() => {});
-  }
 
   document.getElementById('reg-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -103,7 +98,7 @@
     if (!email) { showErr('Please enter your email address.'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
     if (!password) { showErr('Please enter a password.'); return; }
-    if (password.length < 8) { showErr('Password must be at least 8 characters.'); return; }
+    if (password.length < 10) { showErr('Use at least 10 characters. A few unrelated words work well.'); return; }
 
     btn.disabled = true;
     btn.textContent = 'Creating account...';
@@ -126,8 +121,6 @@
             : 'Registration failed.';
         throw new Error(msg);
       }
-      localStorage.setItem('lyra_token', data.token);
-      localStorage.setItem('lyra_user', JSON.stringify(data.user));
       window.location.href = afterSignup;
     } catch (ex) {
       showErr(ex.message);
