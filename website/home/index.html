@@ -9,141 +9,165 @@
   <link rel="apple-touch-icon" href="/img/logo-mark.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="/js/session.js"></script>
-  <script src="/js/appnav.js"></script>
+  <script src="/js/topnav.js"></script>
   <style>
     :root {
-      --ink: #14120e; --paper: #faf9f7; --sheet: #ffffff; --rule: rgba(20,18,14,.09);
-      --open: #15803d; --trial: #b45309; --locked: #a8a5a0; --signal: #e11d48;
+      --ink: #14120e; --paper: #faf9f7; --sheet: #ffffff; --rule: rgba(20,18,14,.09); --rule-hi: rgba(20,18,14,.2);
+      --open: #15803d; --trial: #b45309; --locked: #a8a5a0; --signal: #e11d48; --rose: #fb7185;
       --mono: 'JetBrains Mono', 'SF Mono', monospace; --serif: 'Instrument Serif', Georgia, serif;
     }
-    body {
+    body { background: var(--paper); min-height: 100vh; font-family: Inter, system-ui, -apple-system, sans-serif; }
+
+    /* The editorial band, continuing the sign-in page's dark panel under the tab menu */
+    .band {
+      color: var(--paper); position: relative; overflow: hidden;
       background:
-        radial-gradient(1200px 500px at 85% -10%, rgba(225,29,72,.07), transparent 60%),
-        radial-gradient(900px 500px at -10% 10%, rgba(180,83,9,.06), transparent 60%),
-        linear-gradient(var(--rule) 1px, transparent 1px) 0 0 / 100% 32px,
-        var(--paper);
-      min-height: 100vh;
+        radial-gradient(800px 420px at 105% -20%, rgba(225,29,72,.38), transparent 60%),
+        radial-gradient(700px 480px at -15% 130%, rgba(180,83,9,.30), transparent 60%),
+        linear-gradient(rgba(250,249,247,.055) 1px, transparent 1px) 0 0 / 100% 32px,
+        #14120e;
     }
-    .top { display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:1080px; margin:0 auto; padding:20px 24px; }
-    .brand { font-weight:600; font-size:15px; }
-    .top-actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .top-actions .btn { padding:7px 14px; font-size:13px; }
-    main { max-width:1080px; margin:0 auto; padding:24px 24px 96px; }
+    .band-in { max-width: 1240px; margin: 0 auto; padding: 56px 20px 64px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 40px; align-items: end; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(250,249,247,.55); }
+    .band h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.8rem, 6.4vw, 5.4rem); line-height: .98; letter-spacing: -.015em; margin: 14px 0 22px; color: var(--paper); }
+    .band h1 em { color: var(--rose); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { font-family: var(--mono); font-size: 12px; padding: 7px 11px; border: 1px solid rgba(250,249,247,.16); border-radius: 999px; background: rgba(250,249,247,.05); color: rgba(250,249,247,.85); white-space: nowrap; }
+    .chip b { color: var(--paper); font-weight: 600; }
+    .chip.warn { border-color: rgba(251,191,36,.45); color: #fcd34d; }
+    .chip a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 
-    .hello { padding:40px 0 28px; border-bottom:1px solid var(--rule); margin-bottom:28px; }
-    .kicker { font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
-    .hello h1 { font-family:var(--serif); font-weight:400; font-size:clamp(2.4rem,6vw,4.2rem); letter-spacing:-.01em; line-height:1.02; margin:10px 0 14px; }
-    .hello h1 em { color:var(--signal); }
-    .status { display:flex; flex-wrap:wrap; gap:8px; }
-    .chip { font-family:var(--mono); font-size:12px; padding:6px 10px; border:1px solid var(--rule); border-radius:999px; background:var(--sheet); white-space:nowrap; }
-    .chip b { font-weight:600; }
-    .chip.warn { border-color:rgba(180,83,9,.35); color:var(--trial); }
+    .quick { display: grid; gap: 10px; }
+    .quick a {
+      display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 12px; text-decoration: none; color: var(--paper);
+      border: 1px solid rgba(250,249,247,.12); background: rgba(250,249,247,.04); transition: border-color .15s, background .15s, transform .15s;
+    }
+    .quick a:hover { border-color: rgba(250,249,247,.32); background: rgba(250,249,247,.08); transform: translateX(3px); opacity: 1; }
+    .quick a.primary { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+    .quick a.primary:hover { background: #fff; }
+    .quick .n { font-family: var(--mono); font-size: 11px; opacity: .55; width: 22px; }
+    .quick b { font-size: 15px; font-weight: 600; }
+    .quick small { display: block; font-size: 12.5px; opacity: .65; margin-top: 2px; }
+    .quick .arr { margin-left: auto; opacity: .5; }
 
-    h2.group { font-family:var(--mono); font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); margin:34px 0 12px; }
-    .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:12px; }
+    main { max-width: 1240px; margin: 0 auto; padding: 8px 20px 96px; }
+    .group-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 44px 0 14px; padding-bottom: 10px; border-bottom: 1px solid var(--rule); }
+    .group-head h2 { font-family: var(--serif); font-weight: 400; font-size: 2rem; letter-spacing: -.01em; }
+    .group-head span { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
     .tile {
-      position:relative; display:flex; flex-direction:column; gap:6px; min-height:132px;
-      padding:18px 18px 16px; background:var(--sheet); border:1px solid var(--rule); border-radius:12px;
-      transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-      opacity:0; animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;
+      position: relative; display: flex; flex-direction: column; gap: 6px; min-height: 150px; padding: 20px; background: var(--sheet);
+      border: 1px solid var(--rule); border-radius: 14px; text-decoration: none; color: var(--ink);
+      transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+      opacity: 0; animation: rise .5s cubic-bezier(.2,.7,.2,1) forwards;
     }
-    .tile:hover { opacity:1; transform:translateY(-2px); border-color:rgba(20,18,14,.22); box-shadow:0 10px 30px rgba(20,18,14,.08); }
-    .tile:focus-visible { outline:2px solid var(--ink); outline-offset:2px; }
-    .tile .ico { font-size:20px; line-height:1; }
-    .tile h3 { font-size:15px; margin-top:6px; }
-    .tile p { font-size:13px; line-height:1.5; margin:0; }
-    .tile .state { margin-top:auto; padding-top:8px; font-family:var(--mono); font-size:11px; letter-spacing:.04em; display:flex; align-items:center; gap:6px; }
-    .state::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; }
-    .state.open { color:var(--open); } .state.trial { color:var(--trial); } .state.locked { color:var(--locked); }
-    .state.info { color:var(--muted); } .state.info::before { display:none; }
-    .tile.locked h3, .tile.locked p { color:var(--muted); }
-    .tile.feature { background:var(--ink); border-color:var(--ink); }
-    .tile.feature h3 { color:var(--paper); } .tile.feature p { color:rgba(250,249,247,.65); }
-    .tile.feature .state.open { color:#4ade80; }
-    @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
-    @media (prefers-reduced-motion: reduce) { .tile { animation:none; opacity:1; } .tile:hover { transform:none; } }
-    @media (max-width:560px) { .top { padding:16px; } main { padding:12px 16px 80px; } .hello { padding-top:20px; } }
+    .tile:hover { opacity: 1; transform: translateY(-3px); border-color: var(--rule-hi); box-shadow: 0 16px 40px -18px rgba(20,18,14,.35); }
+    .tile:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+    .tile .ic { width: 38px; height: 38px; border-radius: 10px; background: var(--ink); color: var(--paper); display: grid; place-items: center; }
+    .tile h3 { font-size: 16px; margin-top: 8px; }
+    .tile p { font-size: 13.5px; line-height: 1.5; margin: 0; color: var(--muted); }
+    .tile .state { margin-top: auto; padding-top: 10px; font-family: var(--mono); font-size: 11px; letter-spacing: .04em; display: flex; align-items: center; gap: 6px; }
+    .state::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .state.open { color: var(--open); } .state.trial { color: var(--trial); } .state.locked { color: var(--locked); }
+    .state.info { color: var(--muted); } .state.info::before { display: none; }
+    .tile.locked h3 { color: var(--muted); } .tile.locked .ic { background: #d6d3ce; }
+    .tile.feature { background: var(--ink); border-color: var(--ink); color: var(--paper);
+      background-image: radial-gradient(400px 200px at 110% -20%, rgba(225,29,72,.35), transparent 60%); }
+    .tile.feature h3 { color: var(--paper); } .tile.feature p { color: rgba(250,249,247,.65); } .tile.feature .ic { background: var(--rose); color: var(--ink); }
+    .tile.feature .state.open { color: #4ade80; }
+    @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .reveal { opacity: 0; transform: translateY(12px); animation: rise .6s cubic-bezier(.2,.7,.2,1) forwards; }
+    .r1 { animation-delay: .05s; } .r2 { animation-delay: .12s; } .r3 { animation-delay: .2s; }
+    @media (prefers-reduced-motion: reduce) { .tile, .reveal { animation: none; opacity: 1; transform: none; } .tile:hover, .quick a:hover { transform: none; } }
+    @media (max-width: 860px) { .band-in { grid-template-columns: 1fr; padding: 36px 16px 40px; gap: 28px; } main { padding: 4px 16px 80px; } .group-head h2 { font-size: 1.6rem; } }
   </style>
 </head>
-<body>
-<header class="top" data-appnav-hide>
-  <a href="/" class="brand"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="vertical-align:-6px;margin-right:8px;border-radius:6px" />Lyra AI</a>
-  <div class="top-actions">
-    <a class="btn btn-outline" href="/account/">Account</a>
-    <a class="btn btn-outline" href="/dashboard/billing.html">Billing</a>
-    <button class="btn btn-outline" type="button" id="signout">Sign out</button>
+<body data-appnav="drawer">
+
+<section class="band">
+  <div class="band-in">
+    <div>
+      <div class="kicker reveal r1" id="today">Your Lyra</div>
+      <h1 class="reveal r2" id="greet">Welcome back.</h1>
+      <div class="chips reveal r3" id="status"><span class="chip">Loading your plan…</span></div>
+    </div>
+    <nav class="quick reveal r3" aria-label="Quick actions">
+      <a class="primary" href="/market"><span class="n">01</span><span><b>Open today's Tremor reading</b><small>Market stress, with the news behind it</small></span><span class="arr">→</span></a>
+      <a href="/dashboard/chat.html"><span class="n">02</span><span><b>Ask Lyra</b><small>Private chat that can search the web</small></span><span class="arr">→</span></a>
+      <a href="/watch/live/"><span class="n">03</span><span><b>Watch who's moving markets</b><small>The live stream</small></span><span class="arr">→</span></a>
+    </nav>
   </div>
-</header>
+</section>
 
 <main>
-  <section class="hello">
-    <div class="kicker" id="today">Your Lyra</div>
-    <h1 id="greet">Welcome back.</h1>
-    <div class="status" id="status"><span class="chip">Loading your plan…</span></div>
-  </section>
-
-  <h2 class="group">Your products</h2>
+  <div class="group-head"><h2>Your products</h2><span>Everything in your plan</span></div>
   <div class="grid" id="products"></div>
 
-  <h2 class="group">Account &amp; developer</h2>
+  <div class="group-head"><h2>Account &amp; developers</h2><span>Settings, billing, keys</span></div>
   <div class="grid" id="account"></div>
 
-  <h2 class="group">Explore</h2>
+  <div class="group-head"><h2>Explore</h2><span>More from Lyra Labs</span></div>
   <div class="grid" id="explore"></div>
 </main>
 
 <script>
 (function () {
   // Only served to a signed-in browser (lyra/api/page_access.py); the cookie does the rest.
-  document.getElementById('signout').onclick = () => window.lyraSignOut('/');
   document.getElementById('today').textContent = new Date().toLocaleDateString(undefined, { weekday: 'long', day: 'numeric', month: 'long' });
 
+  const I = {
+    chart: 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6', chat: 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z',
+    live: 'M12 12m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4M5 5a10 10 0 0 0 0 14M19 19a10 10 0 0 0 0-14',
+    flask: 'M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7.5 15h9', shield: 'M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6zM9 12l2 2 4-4',
+    lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4', card: 'M3 6h18v12H3zM3 10h18M7 15h3', key: 'M15 7a4 4 0 1 1-3.9 4.9L4 19v2h3v-2h2v-2h2l1.1-1.1A4 4 0 0 1 15 7z',
+    book: 'M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2zM4 21V5M8 7h7', people: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 21a5 5 0 0 0-4-5',
+    pulse: 'M3 12h4l3-8 4 16 3-8h4', mega: 'M3 10v4l11 5V5zM14 8a4 4 0 0 1 0 8', home: 'M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z',
+    msg: 'M4 4h16v12H8l-4 4z', link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  };
   // access: open | trial | locked | info. Locked tiles go to the page that unlocks them.
   const PRODUCTS = [
-    { id: 'market', ico: '📈', name: 'Tremor Index', text: 'Market stress readings, news and history.', href: '/market', need: 'member', feature: true },
-    { id: 'chat', ico: '✦', name: 'Lyra chat', text: 'Ask Lyra anything; it searches the web when it needs to.', href: '/dashboard/chat.html', need: 'member' },
-    { id: 'watch_live', ico: '🔴', name: 'Lyra Watch Live', text: 'The real-time stream of who is moving markets.', href: '/watch/live/', need: 'watch', unlock: '/watch/account/?need=watch' },
-    { id: 'coshh', ico: '⚗️', name: 'COSHH database', text: 'Safety data sheets, exposure limits and spectra.', href: '/coshh/', need: 'member' },
-    { id: 'sites', ico: '🛡️', name: 'LyraAuth sites', text: 'Your sites, keys, usage and training data.', href: '/dashboard/', need: 'account' },
+    { id: 'market', ico: 'chart', name: 'Tremor Index', text: 'Market stress readings, news and history.', href: '/market', need: 'member', feature: true },
+    { id: 'chat', ico: 'chat', name: 'Lyra chat', text: 'Ask Lyra anything; it searches the web when it needs to.', href: '/dashboard/chat.html', need: 'member' },
+    { id: 'watch_live', ico: 'live', name: 'Lyra Watch Live', text: 'The real-time stream of who is moving markets.', href: '/watch/live/', need: 'watch', unlock: '/watch/account/?need=watch' },
+    { id: 'coshh', ico: 'flask', name: 'COSHH database', text: 'Safety data sheets, exposure limits and spectra.', href: '/coshh/', need: 'member' },
+    { id: 'sites', ico: 'shield', name: 'LyraAuth sites', text: 'Your sites, keys, usage and training data.', href: '/dashboard/', need: 'account' },
   ];
   const ACCOUNT = [
-    { ico: '🔒', name: 'Account & security', text: 'Password, signed-in browsers, sign out everywhere.', href: '/account/' },
-    { ico: '💳', name: 'Billing & plan', text: 'Change plan, invoices, cancel.', href: '/dashboard/billing.html' },
-    { ico: '🔑', name: 'Watch Pro & API keys', text: 'Subscription, API keys and credits for agents.', href: '/watch/account/' },
-    { ico: '📚', name: 'Documentation', text: 'Install the widget and call the APIs.', href: '/pages/docs.html' },
+    { ico: 'lock', name: 'Account & security', text: 'Password, signed-in browsers, sign out everywhere.', href: '/account/' },
+    { ico: 'link', name: 'Connected accounts', text: 'Sign in with Google, Apple or GitHub.', href: '/account/#links' },
+    { ico: 'card', name: 'Billing & plan', text: 'Change plan, invoices, cancel.', href: '/dashboard/billing.html' },
+    { ico: 'key', name: 'Watch Pro & API keys', text: 'Subscription, API keys and credits for agents.', href: '/watch/account/' },
+    { ico: 'book', name: 'Documentation', text: 'Install the widget and call the APIs.', href: '/pages/docs.html' },
+    { ico: 'msg', name: 'Send feedback', text: 'Ideas, bugs, praise. A person reads every one.', href: '/feedback/' },
   ];
   const EXPLORE = [
-    { ico: '👥', name: 'Lyra Watch directory', text: 'Every public figure we track.', href: '/watch/' },
-    { ico: '🧪', name: 'Tremor methodology', text: 'Backtest and track record.', href: '/tremor/' },
-    { ico: '📣', name: 'Advertise', text: 'Sponsor slots on Lyra Watch.', href: '/advertise/' },
-    { ico: '🏢', name: 'Lyra Labs', text: 'Everything we make.', href: '/company/' },
-    { ico: '🏠', name: 'Public homepage', text: 'What visitors see.', href: '/index.html' },
+    { ico: 'people', name: 'Lyra Watch directory', text: 'Every public figure we track.', href: '/watch/' },
+    { ico: 'pulse', name: 'Tremor methodology', text: 'Backtest and track record.', href: '/tremor/' },
+    { ico: 'mega', name: 'Advertise', text: 'Sponsor slots on Lyra Watch.', href: '/advertise/' },
+    { ico: 'shield', name: 'Lyra Labs', text: 'Everything we make.', href: '/company/' },
+    { ico: 'home', name: 'Public homepage', text: 'What visitors see.', href: '/index.html' },
   ];
 
   let n = 0;
+  const svg = (k) => `<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${I[k]}"/></svg>`;
   function tile(t, access, stateText) {
     const a = document.createElement('a');
     const locked = access === 'locked';
     a.className = 'tile' + (locked ? ' locked' : '') + (t.feature && !locked ? ' feature' : '');
     a.href = locked ? (t.unlock || '/dashboard/billing.html?need=' + (t.id || '')) : t.href;
-    a.style.animationDelay = (n++ * 45) + 'ms';
-    const ico = document.createElement('span'); ico.className = 'ico'; ico.textContent = t.ico;
+    a.style.animationDelay = (n++ * 40) + 'ms';
+    const ico = document.createElement('span'); ico.className = 'ic'; ico.innerHTML = svg(t.ico);
     const h = document.createElement('h3'); h.textContent = t.name;
     const p = document.createElement('p'); p.textContent = t.text;
     const s = document.createElement('span'); s.className = 'state ' + access; s.textContent = stateText;
     a.append(ico, h, p, s);
     return a;
   }
-  function fill(id, items, fn) {
-    const box = document.getElementById(id);
-    box.replaceChildren(...items.map(fn));
-  }
-  function chip(html, warn) {
-    const c = document.createElement('span'); c.className = 'chip' + (warn ? ' warn' : ''); c.innerHTML = html; return c;
-  }
+  const fill = (id, items, fn) => document.getElementById(id).replaceChildren(...items.map(fn));
+  function chip(html, warn) { const c = document.createElement('span'); c.className = 'chip' + (warn ? ' warn' : ''); c.innerHTML = html; return c; }
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   async function get(url) {
@@ -152,12 +176,17 @@
     return r.ok ? r.json() : null;
   }
 
+  // Draw the tiles straight away; the plan only changes their labels.
+  fill('products', PRODUCTS, t => tile(t, 'info', 'Open →'));
+  fill('account', ACCOUNT, t => tile(t, 'info', 'Open →'));
+  fill('explore', EXPLORE, t => tile(t, 'info', 'Open →'));
+
   Promise.all([get('/api/users/me'), get('/api/billing/status'), get('/api/watch/account').catch(() => null)])
     .then(([me, bill, watch]) => {
-      const name = (me && me.name) || '';
+      const name = ((me && me.name) || '').split(' ')[0];
       const hour = new Date().getHours();
       const part = hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening';
-      document.getElementById('greet').innerHTML = `Good ${part}${name ? ', <em>' + esc(name) + '</em>' : ''}.`;
+      document.getElementById('greet').innerHTML = `Good ${part}${name ? ',<br><em>' + esc(name) + '</em>' : ''}.`;
 
       const paid = !!(bill && bill.paid);
       const trial = bill && bill.trial;
@@ -167,11 +196,12 @@
       st.replaceChildren();
       const tier = (bill && bill.tier) || (me && me.tier) || 'free';
       st.append(chip('Plan <b>' + esc(paid ? tier[0].toUpperCase() + tier.slice(1) : 'Trial') + '</b>'));
-      if (trial) st.append(trial.expired ? chip('Trial ended · <b>choose a plan</b>', true)
+      if (trial) st.append(trial.expired ? chip('Trial ended · <a href="/dashboard/billing.html"><b>choose a plan</b></a>', true)
                                          : chip('<b>' + trial.days_left + '</b> trial day' + (trial.days_left === 1 ? '' : 's') + ' left', trial.days_left <= 3));
       st.append(chip('Watch Pro <b>' + (watchOn ? 'on' : 'off') + '</b>'));
       if (watch && watch.credits) st.append(chip('API credits <b>' + Number(watch.credits.balance).toLocaleString() + '</b>'));
 
+      n = 0;
       fill('products', PRODUCTS, t => {
         if (t.need === 'account') return tile(t, 'open', 'Open');
         if (t.need === 'watch') return watchOn ? tile(t, 'open', 'Open') : tile(t, 'locked', 'Needs Watch Pro · unlock');
@@ -180,8 +210,6 @@
         const left = trial.remaining && trial.remaining[t.id];
         return tile(t, 'trial', left == null ? 'Trial' : `Trial · ${left} left`);
       });
-      fill('account', ACCOUNT, t => tile(t, 'info', 'Open →'));
-      fill('explore', EXPLORE, t => tile(t, 'info', 'Open →'));
     })
     .catch(() => {});
 })();
