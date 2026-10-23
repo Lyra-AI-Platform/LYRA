@@ -64,13 +64,14 @@ class RegisterRequest(BaseModel):
     email: str
     password: str
     name: str = ""
+    website: str = ""      # hidden from people; only form-filling bots put anything here
 
 class LoginRequest(BaseModel):
     email: str
     password: str
 
 class PasswordChange(BaseModel):
-    current_password: str
+    current_password: str = ""     # not needed by an account that has no password yet
     new_password: str
 
 class UpdateMeRequest(BaseModel):
@@ -93,7 +94,19 @@ def _hash_password(plain: str) -> str:
     return pwd_ctx.hash(plain)
 
 def _verify_password(plain: str, hashed: str) -> bool:
-    return pwd_ctx.verify(plain, hashed)
+    try:
+        return pwd_ctx.verify(plain, hashed)
+    except ValueError:   # NO_PASSWORD, or anything else that isn't a password hash
+        return False
+
+
+# Accounts made by signing in with Google, Apple or GitHub (oauth_api.py) have no password
+# until they set one; nothing can match this value.
+NO_PASSWORD = "!no-password"
+
+
+def has_password(user: User) -> bool:
+    return bool(user.password_hash) and user.password_hash != NO_PASSWORD
 
 # Checked against when an email has no account, so a wrong email takes as long as a wrong
 # password and the response time doesn't reveal who has an account.
@@ -163,6 +176,8 @@ def register(req: RegisterRequest, request: Request, response: Response, db: Ses
         raise HTTPException(400, problem)
     if len(req.name) > 80:
         raise HTTPException(400, "Name is too long")
+    if req.website:
+        raise HTTPException(400, "We couldn't create that account")
     # Owner emails carry admin rights, so nobody else may claim one by signing up first.
     if email in _admin_emails() and os.getenv("LYRA_ALLOW_ADMIN_SIGNUP") != "1":
         raise HTTPException(403, "This email can't be registered here")
@@ -190,7 +205,8 @@ def login(req: LoginRequest, request: Request, response: Response, db: Session =
     ratelimit.check(ip_key, limit=20, window=900, record=False)
     ratelimit.check(email_key, limit=10, window=900, record=False)
     user = db.query(User).filter(User.email == email).first()
-    ok = len(req.password) <= 128 and _verify_password(req.password, user.password_hash if user else _NO_ACCOUNT_HASH)
+    usable = user and has_password(user)
+    ok = len(req.password) <= 128 and _verify_password(req.password, user.password_hash if usable else _NO_ACCOUNT_HASH) and bool(usable)
     if not user or not ok:
         ratelimit.record(ip_key)
         ratelimit.record(email_key)
@@ -255,9 +271,10 @@ def end_other_sessions(request: Request, user: User = Depends(get_current_user),
 @router.post("/password")
 def change_password(req: PasswordChange, request: Request, user: User = Depends(get_current_user),
                     db: Session = Depends(get_db)):
-    """Needs the current password. Every other browser is signed out afterwards."""
+    """Needs the current password, unless the account has none yet (made with Google, Apple or
+    GitHub). Every other browser is signed out afterwards."""
     ratelimit.check(f"password:{user.id}", limit=5, window=900, record=False)
-    if len(req.current_password) > 128 or not _verify_password(req.current_password, user.password_hash):
+    if has_password(user) and (len(req.current_password) > 128 or not _verify_password(req.current_password, user.password_hash)):
         ratelimit.record(f"password:{user.id}")
         raise HTTPException(400, "Your current password isn't right")
     problem = password_problem(req.new_password, user.email)

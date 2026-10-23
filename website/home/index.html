@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>My Lyra</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/logo-mark.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="/js/session.js"></script>
+  <script src="/js/appnav.js"></script>
   <style>
     :root {
       --ink: #14120e; --paper: #faf9f7; --sheet: #ffffff; --rule: rgba(20,18,14,.09);
@@ -67,8 +69,8 @@
   </style>
 </head>
 <body>
-<header class="top">
-  <a href="/" class="brand">✦ Lyra AI</a>
+<header class="top" data-appnav-hide>
+  <a href="/" class="brand"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="vertical-align:-6px;margin-right:8px;border-radius:6px" />Lyra AI</a>
   <div class="top-actions">
     <a class="btn btn-outline" href="/account/">Account</a>
     <a class="btn btn-outline" href="/dashboard/billing.html">Billing</a>

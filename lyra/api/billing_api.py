@@ -25,13 +25,27 @@ STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
 APP_URL               = os.getenv("APP_URL", "https://lyraauth.com")
 MANAGED_PAYMENTS      = os.getenv("STRIPE_MANAGED_PAYMENTS", "1") != "0"
 
-# One Stripe Price ID per plan — set these env vars after creating products in Stripe dashboard
-PRICE_IDS = {
-    "starter":    os.getenv("STRIPE_STARTER_PRICE_ID", ""),
-    "pro":        os.getenv("STRIPE_PRO_PRICE_ID", ""),
-    "business":   os.getenv("STRIPE_BUSINESS_PRICE_ID", ""),
-    "enterprise": os.getenv("STRIPE_ENTERPRISE_PRICE_ID", ""),
-}
+# One Stripe Price per plan. STRIPE_<PLAN>_PRICE_ID wins when set; otherwise the price is found
+# in Stripe by its lookup key (lyra_<plan>_monthly, already on the live Lyra prices), so the
+# plans work as soon as STRIPE_SECRET_KEY is set and a price can be swapped in Stripe alone.
+PLANS = ("starter", "pro", "business", "enterprise")
+PRICE_IDS = {plan: os.getenv(f"STRIPE_{plan.upper()}_PRICE_ID", "") for plan in PLANS}
+LOOKUP_KEYS = {plan: f"lyra_{plan}_monthly" for plan in PLANS}
+
+
+def _resolve_prices() -> None:
+    """Fill in any PRICE_IDS left empty from the Stripe lookup keys (once per process)."""
+    missing = [p for p in PLANS if not PRICE_IDS[p]]
+    if not missing or not STRIPE_SECRET_KEY:
+        return
+    try:
+        found = _stripe().Price.list(lookup_keys=[LOOKUP_KEYS[p] for p in missing], active=True, limit=10)
+    except Exception as e:  # noqa: BLE001 — Stripe down or key wrong: checkout reports it below
+        logger.warning("Couldn't look up Stripe prices: %s", e)
+        return
+    by_key = {pr["lookup_key"]: pr["id"] for pr in found["data"]}
+    for p in missing:
+        PRICE_IDS[p] = by_key.get(LOOKUP_KEYS[p], "")
 
 # Lazy-import stripe so the app starts even without it installed
 def _stripe():
@@ -51,7 +65,7 @@ def billing_status(user: User = Depends(get_current_user), db: Session = Depends
         **entitlements.status(user, db),
         "stripe_customer_id": user.stripe_customer_id,
         "has_subscription": bool(user.stripe_subscription_id),
-        "payments_configured": bool(os.getenv("STRIPE_SECRET_KEY")) and any(PRICE_IDS.values()),
+        "payments_configured": bool(STRIPE_SECRET_KEY),
         "payments_mode": "live" if os.getenv("STRIPE_SECRET_KEY", "").startswith(("sk_live_", "rk_live_")) else "test",
     }
 
@@ -70,10 +84,12 @@ def create_checkout(
         raise HTTPException(503, "Stripe not configured. Set STRIPE_SECRET_KEY env var.")
 
     plan = req.plan.lower()
+    if plan not in PLANS:
+        raise HTTPException(400, "No such plan")
+    _resolve_prices()
     price_id = PRICE_IDS.get(plan, "")
     if not price_id:
-        raise HTTPException(503, f"Stripe price ID not configured for plan '{plan}'. "
-                                  f"Set STRIPE_{plan.upper()}_PRICE_ID env var.")
+        raise HTTPException(503, f"No active Stripe price for the {plan} plan (lookup key {LOOKUP_KEYS[plan]}).")
 
     if user.stripe_subscription_id and entitlements.is_paid(user):
         # A second checkout would start a second subscription; plan changes go through the portal.
@@ -161,15 +177,17 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
         customer_id     = data.get("customer")
         subscription_id = data.get("id")
         status          = data.get("status")
-        # Determine plan from price ID
-        price_id = ""
+        # The plan comes from the price: its lyra_plan metadata or lookup key, else a configured ID.
+        # This Stripe account also sells ChemWarden plans; a price that isn't a Lyra plan is ignored.
         items = data.get("items", {}).get("data", [])
-        if items:
-            price_id = items[0].get("price", {}).get("id", "")
-        plan = next((p for p, pid in PRICE_IDS.items() if pid and pid == price_id), "pro")
+        price = items[0].get("price", {}) if items else {}
+        _resolve_prices()
+        plan = (price.get("metadata") or {}).get("lyra_plan") \
+            or next((p for p, k in LOOKUP_KEYS.items() if k == price.get("lookup_key")), None) \
+            or next((p for p, pid in PRICE_IDS.items() if pid and pid == price.get("id")), None)
 
         user = db.query(User).filter(User.stripe_customer_id == customer_id).first()
-        if user:
+        if user and plan in PLANS:
             user.stripe_subscription_id = subscription_id
             user.tier = plan if status in ("active", "trialing") else "free"
             db.commit()

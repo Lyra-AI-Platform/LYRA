@@ -5,12 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Account &amp; security · Lyra</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/logo-mark.svg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
   <link rel="stylesheet" href="/css/main.css" />
   <script src="/js/session.js"></script>
+  <script src="/js/appnav.js"></script>
   <style>
     :root {
       --ink: #14120e; --paper: #faf9f7; --sheet: #ffffff; --rule: rgba(20,18,14,.09);
@@ -37,7 +39,7 @@
       background:var(--sheet); border:1px solid var(--rule); border-radius:12px; padding:22px; margin-bottom:16px;
       opacity:0; animation:rise .5s cubic-bezier(.2,.7,.2,1) forwards;
     }
-    .card:nth-of-type(2) { animation-delay:.06s; } .card:nth-of-type(3) { animation-delay:.12s; }
+    .card:nth-of-type(2) { animation-delay:.06s; } .card:nth-of-type(3) { animation-delay:.12s; } .card:nth-of-type(4) { animation-delay:.18s; }
     .card h2 { font-size:16px; margin:0 0 4px; }
     .card > p { font-size:13px; color:var(--muted); margin:0 0 16px; }
     .row { display:flex; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--rule); font-size:14px; }
@@ -72,8 +74,8 @@
   </style>
 </head>
 <body>
-<header class="top">
-  <a href="/" class="brand">✦ Lyra AI</a>
+<header class="top" data-appnav-hide>
+  <a href="/" class="brand"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="vertical-align:-6px;margin-right:8px;border-radius:6px" />Lyra AI</a>
   <div class="top-actions">
     <a class="btn btn-outline" href="/">My Lyra</a>
     <button class="btn btn-outline" type="button" id="signout">Sign out</button>
@@ -83,7 +85,7 @@
 <main>
   <div class="kicker">Your account</div>
   <h1>Account &amp; security</h1>
-  <p class="lede">Your sign-in details, your password, and every browser that's signed in as you.</p>
+  <p class="lede">Your sign-in details, connected accounts, your password, and every browser that's signed in as you.</p>
 
   <section class="card">
     <h2>Profile</h2>
@@ -94,11 +96,18 @@
   </section>
 
   <section class="card">
+    <h2>Connected accounts</h2>
+    <p>Sign in with any of these instead of a password. Nothing is posted anywhere, and only your name and email are shared.</p>
+    <div id="links"><div class="device"><span class="what"><span>Loading…</span></span></div></div>
+    <div class="msg" id="link-msg" role="status" style="margin-top:12px"></div>
+  </section>
+
+  <section class="card">
     <h2>Password</h2>
     <p>Changing it signs out every other browser.</p>
     <form id="pw-form" novalidate>
       <input type="text" autocomplete="username" id="pw-user" hidden />
-      <div>
+      <div id="pw-current-row">
         <label for="pw-current">Current password</label>
         <input type="password" id="pw-current" autocomplete="current-password" required />
       </div>
@@ -192,6 +201,53 @@
   }
   loadDevices().catch((e) => say('dev-msg', e.message));
 
+  // Connected Google / Apple / GitHub accounts (lyra/api/oauth_api.py).
+  const NAMES = { google: 'Google', apple: 'Apple', github: 'GitHub' };
+  const ICONS = { google: 'G', apple: '◆', github: '◎' };
+  let hasPassword = true;
+  async function loadLinks() {
+    const info = await call('/api/oauth/identities');
+    hasPassword = info.has_password;
+    $('pw-current-row').hidden = !hasPassword;
+    $('pw-btn').textContent = hasPassword ? 'Change password' : 'Set a password';
+    const byProvider = Object.fromEntries(info.connected.map((c) => [c.provider, c]));
+    $('links').replaceChildren(...Object.keys(NAMES).map((p) => {
+      const c = byProvider[p];
+      const item = document.createElement('div'); item.className = 'device';
+      const ico = document.createElement('span'); ico.className = 'ico'; ico.textContent = ICONS[p]; ico.style.fontWeight = '700';
+      const what = document.createElement('div'); what.className = 'what';
+      const b = document.createElement('b'); b.textContent = NAMES[p];
+      const meta = document.createElement('span');
+      meta.textContent = c ? `Connected${c.email ? ' · ' + c.email : ''}` : info.available[p] ? 'Not connected' : 'Coming soon';
+      what.append(b, meta);
+      item.append(ico, what);
+      if (c) {
+        const out = document.createElement('button'); out.type = 'button'; out.className = 'btn btn-outline btn-small';
+        out.textContent = 'Disconnect';
+        out.onclick = async () => {
+          out.disabled = true;
+          try { await call(`/api/oauth/${p}`, { method: 'DELETE' }); await loadLinks(); say('link-msg', `${NAMES[p]} disconnected.`, true); }
+          catch (e) { out.disabled = false; say('link-msg', e.message); }
+        };
+        item.append(out);
+      } else if (info.available[p]) {
+        const a = document.createElement('a'); a.className = 'btn btn-primary btn-small';
+        a.href = `/api/oauth/${p}/start?link=1`; a.textContent = 'Connect';
+        item.append(a);
+      }
+      return item;
+    }));
+  }
+  loadLinks().catch((e) => say('link-msg', e.message));
+  {
+    const q = new URLSearchParams(location.search);
+    const p = NAMES[q.get('connected') || q.get('provider')] || 'That provider';
+    const ERR = { linked_elsewhere: `That ${p} account is already connected to a different Lyra account.`, unavailable: `${p} sign-in isn't set up yet.`,
+                  cancelled: 'Connecting was cancelled.', expired: 'That took too long. Please try again.', provider_error: `${p} didn't complete the connection. Try again.` };
+    if (q.get('connected')) say('link-msg', `${p} is connected. You can now sign in with it.`, true);
+    else if (q.get('error')) say('link-msg', ERR[q.get('error')] || ERR.provider_error);
+  }
+
   $('end-others').onclick = async () => {
     try {
       const r = await call('/api/users/sessions/end-others', { method: 'POST' });
@@ -203,13 +259,15 @@
   $('pw-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const current = $('pw-current').value, next = $('pw-new').value;
-    if (!current) return say('pw-msg', 'Enter your current password.');
+    if (hasPassword && !current) return say('pw-msg', 'Enter your current password.');
     if (next.length < 10) return say('pw-msg', 'Use at least 10 characters for the new password.');
     $('pw-btn').disabled = true;
     try {
       const r = await call('/api/users/password', { method: 'POST', body: JSON.stringify({ current_password: current, new_password: next }) });
       $('pw-form').reset();
-      say('pw-msg', 'Password changed.' + (r.signed_out_elsewhere ? ` ${r.signed_out_elsewhere} other browser${r.signed_out_elsewhere === 1 ? ' was' : 's were'} signed out.` : ''), true);
+      const was = hasPassword;
+      loadLinks().catch(() => {});
+      say('pw-msg', (was ? 'Password changed.' : 'Password set. You can now sign in with your email too.') + (r.signed_out_elsewhere ? ` ${r.signed_out_elsewhere} other browser${r.signed_out_elsewhere === 1 ? ' was' : 's were'} signed out.` : ''), true);
       loadDevices().catch(() => {});
     } catch (err) { say('pw-msg', err.message); }
     $('pw-btn').disabled = false;

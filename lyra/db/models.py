@@ -158,6 +158,37 @@ class LoginSession(Base):
     user_agent = Column(String, default="")
 
 
+class OAuthIdentity(Base):
+    """A Google, Apple or GitHub account that signs in as `user_id` (lyra/api/oauth_api.py).
+    `subject` is the provider's stable ID for the person; the email can change, it can't."""
+    __tablename__ = "oauth_identities"
+    __table_args__ = (UniqueConstraint("provider", "subject", name="uq_oauth_provider_subject"),)
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    provider   = Column(String, nullable=False)        # google | apple | github
+    subject    = Column(String, nullable=False)
+    email      = Column(String, default="")
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
+class Feedback(Base):
+    """A message sent from /feedback/ (lyra/api/feedback_api.py). Kept even if emailing it fails."""
+    __tablename__ = "feedback"
+
+    id         = Column(Integer, primary_key=True)
+    kind       = Column(String, default="other")
+    message    = Column(Text, nullable=False)
+    email      = Column(String, default="")
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=True)
+    rating     = Column(Integer, nullable=True)
+    page       = Column(String, default="")
+    ip         = Column(String, default="")
+    user_agent = Column(String, default="")
+    emailed    = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
 class CreditPurchase(Base):
     """One row per paid Stripe checkout, so a repeated webhook never adds credits twice."""
     __tablename__ = "credit_purchases"

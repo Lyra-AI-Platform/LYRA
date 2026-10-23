@@ -8,4 +8,6 @@
   <url><loc>https://lyraauth.com/tremor/</loc><changefreq>daily</changefreq><priority>0.7</priority></url>
   <url><loc>https://lyraauth.com/coshh/</loc><changefreq>weekly</changefreq><priority>0.6</priority></url>
   <url><loc>https://lyraauth.com/llms.txt</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
+  <url><loc>https://lyraauth.com/feedback/</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://lyraauth.com/dashboard/register.html</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
 </urlset>

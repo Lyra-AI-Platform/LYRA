@@ -3,130 +3,132 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-  <meta http-equiv="Pragma" content="no-cache" />
-  <meta http-equiv="Expires" content="0" />
-  <title>Create Account — LyraAuth</title>
-  <link rel="stylesheet" href="../css/main.css" />
-  <style>
-    body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
-    .auth-card {
-      width:100%; max-width:400px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--radius); padding:36px;
-      box-shadow:0 4px 24px rgba(0,0,0,0.06);
-    }
-    .auth-logo { font-size:.9375rem; font-weight:600; color:var(--text); margin-bottom:28px; }
-    .auth-card h1 { font-size:1.375rem; margin-bottom:6px; }
-    .auth-card > p { font-size:.875rem; margin-bottom:28px; }
-    .field { margin-bottom:16px; }
-    .field label { display:block; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:6px; }
-    .field input {
-      width:100%; padding:10px 14px;
-      border:1px solid var(--border-hi); border-radius:7px;
-      font-size:.9375rem; font-family:inherit;
-      background:var(--bg); color:var(--text); outline:none;
-    }
-    .field input:focus { border-color:var(--text); }
-    .auth-btn {
-      width:100%; padding:11px; margin-top:8px;
-      background:var(--text); color:var(--bg);
-      border:none; border-radius:7px;
-      font-size:.9375rem; font-weight:600; cursor:pointer; font-family:inherit;
-    }
-    .auth-btn:disabled { opacity:.5; cursor:not-allowed; }
-    .auth-footer { margin-top:20px; text-align:center; font-size:.8125rem; color:var(--muted); }
-    .auth-footer a { color:var(--text); font-weight:500; }
-    .error-box { background:#fef2f2; border:1px solid #fca5a5; border-radius:7px; padding:10px 14px; font-size:.8125rem; color:#dc2626; margin-bottom:14px; display:none; }
-    .terms-note { font-size:.75rem; color:var(--dim); margin-top:12px; text-align:center; line-height:1.5; }
-    .terms-note a { color:var(--muted); }
-  </style>
+  <title>Create your account — Lyra</title>
+  <meta name="description" content="Create a Lyra account with Google, Apple, GitHub or your email. 14-day free trial, no card needed." />
+  <link rel="canonical" href="https://lyraauth.com/dashboard/register.html" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/logo-mark.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/auth.css" />
   <script src="/js/session.js"></script>
+  <script>
+    // A plan picked on the pricing table goes straight to checkout after sign-up, whichever way they sign up.
+    window.lyraPlan = (function (p) { return /^(starter|pro|business|enterprise)$/.test(p || '') ? p : null; })(new URLSearchParams(location.search).get('plan'));
+    if (window.lyraPlan) window.lyraAuthNext = '/dashboard/billing.html?plan=' + window.lyraPlan;
+  </script>
+  <script src="/js/auth.js"></script>
 </head>
-<body>
-<div class="auth-card">
-  <div class="auth-logo">✦ LyraAuth</div>
-  <h1>Create account</h1>
-  <p>Free forever for small sites. No credit card required.</p>
-
-  <div class="error-box" id="error"></div>
-
-  <form id="reg-form" novalidate>
-    <div class="field">
-      <label for="name">Name</label>
-      <input type="text" id="name" autocomplete="name" placeholder="Your name" />
+<body data-verb="Sign up with">
+<div class="auth">
+  <aside class="auth-side" aria-hidden="true">
+    <a href="/" class="brand"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:9px;border-radius:7px" />Lyra</a>
+    <div class="pitch rise d1">
+      <div class="kicker">14 days free · no card</div>
+      <h2>One account for <em>every</em> Lyra product.</h2>
+      <ul>
+        <li><span><b>Start in seconds</b> with Google, Apple or GitHub, or just an email.</span></li>
+        <li><span><b>Try everything</b>: Tremor Index, Lyra chat, COSHH and LyraAuth.</span></li>
+        <li><span><b>Your data stays yours.</b> No ads, no tracking cookies, export or delete any time.</span></li>
+        <li><span><b>Cancel in one click</b> from Billing. No calls, no forms.</span></li>
+      </ul>
     </div>
-    <div class="field">
-      <label for="email">Email</label>
-      <input type="text" id="email" autocomplete="email" inputmode="email" placeholder="you@example.com" />
-    </div>
-    <div class="field">
-      <label for="password">Password</label>
-      <input type="password" id="password" autocomplete="new-password" placeholder="At least 10 characters" minlength="10" maxlength="72" />
-    </div>
-    <button type="submit" class="auth-btn" id="submit-btn">Create account</button>
-  </form>
+    <div class="foot"><span>HttpOnly sessions</span><span>bcrypt passwords</span><span>UK · Lyra Labs</span></div>
+  </aside>
 
-  <p class="terms-note">By registering you agree to our <a href="../pages/terms.html">Terms</a> and <a href="../pages/privacy.html">Privacy Policy</a>.</p>
+  <main class="auth-main">
+    <div class="card">
+      <a href="/" class="mobile-brand"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:9px;border-radius:7px" />Lyra</a>
+      <h1 class="rise d1">Create your account</h1>
+      <p class="lede rise d2">Already with us? <a href="login.html" id="swap">Sign in</a>.</p>
 
-  <div class="auth-footer">
-    Already have an account? <a href="login.html">Sign in</a>
-  </div>
+      <div class="alert" id="alert"></div>
+
+      <div class="providers rise d3" id="providers"></div>
+
+      <div class="divider rise d3">or with email</div>
+
+      <form id="reg-form" class="rise d4" novalidate>
+        <div class="field">
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" autocomplete="name" placeholder="Ada Lovelace" maxlength="80" />
+        </div>
+        <div class="field">
+          <label for="email">Work or personal email</label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required />
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="password" name="password" autocomplete="new-password" placeholder="At least 10 characters" minlength="10" maxlength="72" required aria-describedby="pw-hint" />
+            <button type="button" class="reveal" aria-controls="password" aria-pressed="false">Show</button>
+          </div>
+          <div class="meter" id="meter" data-score="0" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+          <p class="hint" id="pw-hint">Three or four unrelated words make a strong password.</p>
+        </div>
+        <div class="hp" aria-hidden="true"><label for="website">Leave this empty</label><input type="text" id="website" name="website" tabindex="-1" autocomplete="off" /></div>
+        <label class="check"><input type="checkbox" id="agree" required /> <span>I agree to the <a href="/pages/terms.html" target="_blank" rel="noopener">Terms of Service</a> and have read the <a href="/pages/privacy.html" target="_blank" rel="noopener">Privacy Policy</a>.</span></label>
+        <button type="submit" class="btn-main" id="submit-btn"><span class="spin" aria-hidden="true"></span><span class="label">Create account</span></button>
+      </form>
+
+      <div class="trust rise d5"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Encrypted connection · signing up with a provider shares only your name and email</div>
+    </div>
+  </main>
 </div>
 
 <script>
-  // A plan picked on the pricing table goes straight to checkout after sign-up.
-  const plan = new URLSearchParams(location.search).get('plan');
-  const afterSignup = /^(starter|pro|business|enterprise)$/.test(plan || '') ? '/dashboard/billing.html?plan=' + plan : '/';
+  var COMMON = ['password', 'qwerty', 'letmein', 'iloveyou', 'welcome', 'admin', '123456', 'abc123', 'lyraauth', 'changeme', 'football', 'sunshine', 'princess', 'dragon', 'monkey', 'superman', 'trustno1'];
+  var pw = document.getElementById('password');
+  var email = document.getElementById('email');
 
-  document.getElementById('reg-form').addEventListener('submit', async (e) => {
+  // Mirrors the server's rules (users_api.password_problem), so people hear about a weak
+  // password while typing instead of after pressing the button.
+  function problem(p, mail) {
+    if (p.length < 10) return 'Use at least 10 characters.';
+    if (new TextEncoder().encode(p).length > 72) return 'That password is too long (72 characters at most).';
+    var low = p.toLowerCase();
+    if (COMMON.some(function (w) { return low === w || low.indexOf(w) === 0 && low.length < w.length + 4; }) || new Set(low).size < 4) return 'That password is too easy to guess. Try a few unrelated words.';
+    var name = (mail.split('@')[0] || '').toLowerCase();
+    if (name.length >= 4 && low.indexOf(name) !== -1) return 'Don’t put your email address in your password.';
+    return null;
+  }
+  function score(p) {
+    if (!p) return 0;
+    var s = 0;
+    if (p.length >= 10) s++;
+    if (p.length >= 14) s++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p) || /\s/.test(p)) s++;
+    if (/\d/.test(p) || /[^A-Za-z0-9\s]/.test(p)) s++;
+    return problem(p, email.value) ? Math.min(s, 1) : Math.max(s, 2);
+  }
+  pw.addEventListener('input', function () { document.getElementById('meter').setAttribute('data-score', String(score(pw.value))); });
+
+  document.getElementById('reg-form').addEventListener('submit', function (e) {
     e.preventDefault();
-    const btn = document.getElementById('submit-btn');
-    const errBox = document.getElementById('error');
+    var btn = document.getElementById('submit-btn');
+    var name = document.getElementById('name').value.trim();
+    var mail = email.value.trim();
+    lyraAuth.hide();
+    [email, pw].forEach(function (el) { el.removeAttribute('aria-invalid'); });
 
-    const name     = document.getElementById('name').value.trim();
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail)) { email.setAttribute('aria-invalid', 'true'); email.focus(); return lyraAuth.show('Enter a valid email address.'); }
+    var why = problem(pw.value, mail);
+    if (why) { pw.setAttribute('aria-invalid', 'true'); pw.focus(); return lyraAuth.show(why); }
+    if (!document.getElementById('agree').checked) return lyraAuth.show('Please agree to the Terms to create an account.');
 
-    // Client-side validation
-    function showErr(msg) {
-      errBox.textContent = msg;
-      errBox.style.display = 'block';
-    }
-    errBox.style.display = 'none';
-
-    if (!email) { showErr('Please enter your email address.'); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('Please enter a valid email address.'); return; }
-    if (!password) { showErr('Please enter a password.'); return; }
-    if (password.length < 10) { showErr('Use at least 10 characters. A few unrelated words work well.'); return; }
-
-    btn.disabled = true;
-    btn.textContent = 'Creating account...';
-
-    try {
-      const res = await fetch('/api/users/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+    lyraAuth.busy(btn, true, 'Creating your account…');
+    lyraAuth.post('/api/users/register', { name: name, email: mail, password: pw.value, website: document.getElementById('website').value })
+      .then(function () {
+        var next = window.lyraAuthNext || lyraAuth.takeNext();
+        lyraAuth.clearNext();
+        location.href = next;
+      })
+      .catch(function (ex) {
+        var msg = ex.message === 'Email already registered' ? 'There’s already an account with that email. Sign in instead, or use the provider you signed up with.' : ex.message;
+        lyraAuth.show(msg);
+        lyraAuth.busy(btn, false, 'Create account');
       });
-      let data;
-      try { data = await res.json(); } catch {
-        throw new Error('Server unavailable — please try again in a moment.');
-      }
-      if (!res.ok) {
-        const msg = typeof data.detail === 'string'
-          ? data.detail
-          : Array.isArray(data.detail)
-            ? data.detail[0]?.msg || 'Registration failed.'
-            : 'Registration failed.';
-        throw new Error(msg);
-      }
-      window.location.href = afterSignup;
-    } catch (ex) {
-      showErr(ex.message);
-      btn.disabled = false;
-      btn.textContent = 'Create account';
-    }
   });
 </script>
 </body>

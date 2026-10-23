@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chat with Lyra — Lyra AI</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>✦</text></svg>" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/img/logo-mark.svg" />
   <link rel="stylesheet" href="../css/main.css" />
   <style>
     html, body { height: 100%; overflow: hidden; }
@@ -235,8 +236,9 @@
     @media (max-width: 640px) { .chat-sidebar { display: none; } }
   </style>
   <script src="/js/session.js"></script>
+  <script src="/js/appnav.js"></script>
 </head>
-<body>
+<body data-appnav="drawer">
 
 <!-- ══ T&C Overlay ══ -->
 <div class="tc-overlay" id="tc-overlay">
@@ -265,7 +267,7 @@
 
 <!-- ══ Nav ══ -->
 <nav class="chat-nav">
-  <div class="chat-nav-logo"><span>✦</span> Lyra AI</div>
+  <div class="chat-nav-logo"><button type="button" class="btn btn-outline" data-appnav-toggle aria-controls="lyra-appnav" aria-expanded="false" style="padding:6px 11px;font-size:.8125rem;margin-right:10px;">☰ Menu</button><span>✦</span> Lyra AI</div>
   <div class="chat-nav-right">
     <span style="font-size:.8125rem;color:var(--muted);" id="user-email"></span>
     <a href="index.html" class="btn btn-outline" style="padding:6px 13px;font-size:.8125rem;">Dashboard</a>

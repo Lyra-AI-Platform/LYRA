@@ -7,8 +7,9 @@
    - window.lyraSignOut(to)    end the session on the server and leave
    - Browsers signed in by the old site kept a token in localStorage: it is swapped once for
      a session and deleted.
-   - When signed in, "Sign in / Create account" links become "My Lyra" and "Sign out", and a
-     small "My Lyra" button stays in the corner so every product is one click away. */
+   - When signed in, "Sign in / Create account" links become "My Lyra" and "Sign out", and the
+     Lyra menu (appnav.js) is on every page: built in on member pages, a corner "Menu" button
+     elsewhere. */
 (function () {
   var marker = /(?:^|;\s*)lyra_in=1/.test(document.cookie);
   window.lyraSignedIn = marker;
@@ -56,15 +57,25 @@
         a.textContent = 'Open My Lyra →';
       }
     }
-    if (location.pathname !== '/' && !document.getElementById('lyra-home-pill')) {
-      var pill = document.createElement('a');
+    // Pages without the menu built in (marketing pages, the product apps) get it as a drawer,
+    // opened from a corner button, so every product is one click away from anywhere.
+    if (!document.querySelector('script[src="/js/appnav.js"]')) {
+      if (!document.body.hasAttribute('data-appnav')) document.body.setAttribute('data-appnav', 'drawer');
+      var nav = document.createElement('script');
+      nav.src = '/js/appnav.js';
+      document.head.appendChild(nav);
+    }
+    if (document.body.getAttribute('data-appnav') === 'drawer' && !document.querySelector('[data-appnav-toggle]') && !document.getElementById('lyra-home-pill')) {
+      var pill = document.createElement('button');
+      pill.type = 'button';
       pill.id = 'lyra-home-pill';
-      pill.href = '/';
-      pill.textContent = '✦ My Lyra';
-      pill.setAttribute('aria-label', 'My Lyra: all your products');
+      pill.setAttribute('data-appnav-toggle', '');
+      pill.setAttribute('aria-controls', 'lyra-appnav');
+      pill.textContent = '✦ Menu';
+      pill.setAttribute('aria-label', 'Open the Lyra menu: all your products');
       pill.style.cssText = 'position:fixed;right:16px;bottom:16px;z-index:9999;padding:9px 16px;border-radius:999px;' +
         'background:#14120e;color:#faf9f7;font:600 13px/1 Inter,system-ui,sans-serif;text-decoration:none;' +
-        'box-shadow:0 6px 24px rgba(20,18,14,.25);opacity:1';
+        'box-shadow:0 6px 24px rgba(20,18,14,.25);opacity:1;border:0;cursor:pointer';
       document.body.appendChild(pill);
     }
   }

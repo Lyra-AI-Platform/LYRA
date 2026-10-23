@@ -7,6 +7,7 @@ Run: python -m lyra.main  OR  uvicorn lyra.main:app --reload
 """
 import logging
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +30,8 @@ from lyra.api.experiment_api import router as experiment_router
 from lyra.authenticator.api import router as auth_router
 from lyra.api.ingestion_api import router as ingestion_router
 from lyra.api.users_api import router as users_router
+from lyra.api.oauth_api import router as oauth_router
+from lyra.api.feedback_api import router as feedback_router
 from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
@@ -95,6 +98,24 @@ async def local_only_guard(request, call_next):
     return await call_next(request)
 
 
+# Most of the site's 404s are vulnerability scanners asking for files no Lyra install has
+# (.env, .git, WordPress, PHP admin panels). Answer them at once, before any page work, with a
+# tiny response Cloudflare may keep, instead of a full not-found page each time.
+SCANNER = re.compile(
+    r"(^|/)\.(env|git|svn|hg|aws|ssh|docker|vscode|idea|DS_Store|htaccess|htpasswd)(\b|/|$)"
+    r"|\.(php\d?|asp|aspx|jsp|cgi|sql|bak|old|swp)$"
+    r"|^/(wp-|wordpress|xmlrpc|phpmyadmin|pma|cgi-bin|vendor/phpunit|actuator|server-status|boaform|owa/|"
+    r"autodiscover|ecp/|remote/login|hudson|jenkins|solr/|console/|manager/html|telescope|_ignition)", re.I)
+
+
+@app.middleware("http")
+async def scanner_guard(request, call_next):
+    if SCANNER.search(request.url.path):
+        return Response("Not found", status_code=404, media_type="text/plain",
+                        headers={"Cache-Control": "public, max-age=86400", "X-Robots-Tag": "noindex"})
+    return await call_next(request)
+
+
 # Members-only pages are withheld on the server until the visitor is signed in and entitled.
 app.middleware("http")(page_access.guard)
 
@@ -112,6 +133,8 @@ app.include_router(experiment_router)
 app.include_router(auth_router)
 app.include_router(ingestion_router)
 app.include_router(users_router)
+app.include_router(oauth_router)
+app.include_router(feedback_router)
 app.include_router(sites_router)
 app.include_router(billing_router)
 app.include_router(intelligence_router)
@@ -305,10 +328,11 @@ async def on_shutdown():
 
 
 # Pages use inline scripts, so 'unsafe-inline' stays; everything else is locked to this site
-# (plus Google Fonts and Stripe Checkout).
+# (plus Google Fonts, Stripe Checkout and the Google / Apple / GitHub sign-in pages, which
+# Apple reaches with a form post back to us).
 CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
        "font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; "
-       "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com; object-src 'none'; "
+       "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com https://accounts.google.com https://appleid.apple.com https://github.com; object-src 'none'; "
        "upgrade-insecure-requests")
 
 if SERVE_WEBSITE:
@@ -328,7 +352,22 @@ if SERVE_WEBSITE:
         response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         if response.headers.get("content-type", "").startswith("text/html"):
             response.headers.setdefault("Content-Security-Policy", CSP)
+        if request.method in ("GET", "HEAD") and response.status_code == 200:
+            response.headers.setdefault("Cache-Control", cache_policy(request.url.path))
         return response
+
+    STATIC_EXT = (".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff2", ".txt", ".xml")
+
+    def cache_policy(path: str) -> str:
+        """How long browsers and Cloudflare may keep a public file. Members-only pages set
+        no-store themselves (page_access.py) and APIs set their own, so this only decides for
+        the rest. Static files are kept a day at the edge; public pages five minutes, served
+        stale while Cloudflare refetches, so a burst of visitors costs the NAS one request."""
+        if path == "/" or path.startswith("/api/") or page_access.rule_for(path):
+            return "no-cache"
+        if path.lower().endswith(STATIC_EXT):
+            return "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
+        return "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
 
     # Mounted last so every API route above takes priority over static files.
     app.mount("/", StaticFiles(directory=str(WEBSITE_DIR), html=True), name="website")

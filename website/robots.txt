@@ -4,6 +4,9 @@ Allow: /api/watch/
 Disallow: /api/
 Disallow: /market
 Disallow: /dashboard/
+Allow: /dashboard/register.html
+Disallow: /home/
+Disallow: /account/
 
 # AI search and answer agents (not training) may read Lyra Watch so they can cite and link it.
 User-agent: OAI-SearchBot

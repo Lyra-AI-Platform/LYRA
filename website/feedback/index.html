@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send feedback — Lyra</title>
+  <meta name="description" content="Tell the Lyra team what to build, fix or keep. Every message is read by a person." />
+  <link rel="canonical" href="https://lyraauth.com/feedback/" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/auth.css" />
+  <script src="/js/session.js"></script>
+  <style>
+    .fb { max-width: 640px; margin: 0 auto; padding: 28px 16px 80px; }
+    .fb-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+    .fb-top a { text-decoration: none; font-weight: 600; font-size: 15px; display: inline-flex; align-items: center; gap: 8px; }
+    .fb-top a img { width: 26px; height: 26px; }
+    .fb-top .back { font-weight: 500; font-size: 13.5px; color: var(--muted); }
+    .fb h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 7vw, 4rem); line-height: 1; letter-spacing: -.01em; }
+    .fb h1 em { color: var(--signal); }
+    .fb .lede { color: var(--muted); font-size: 15px; line-height: 1.6; margin: 14px 0 30px; max-width: 520px; }
+    .panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; padding: 26px; box-shadow: 0 20px 50px -30px rgba(20,18,14,.25); }
+    .kinds { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 18px; }
+    .kinds label { cursor: pointer; }
+    .kinds input { position: absolute; opacity: 0; pointer-events: none; }
+    .kinds span { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 6px; border: 1px solid var(--rule-hi); border-radius: 10px; font-size: 12.5px; font-weight: 600; transition: all .15s; text-align: center; }
+    .kinds span b { font-size: 18px; font-weight: 400; }
+    .kinds input:checked + span { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .kinds input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+    textarea { width: 100%; min-height: 160px; resize: vertical; padding: 12px 14px; border: 1px solid var(--rule-hi); border-radius: 10px; font: 15px/1.55 inherit; font-family: inherit; background: var(--paper); color: var(--ink); }
+    textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(20,18,14,.08); }
+    .count { text-align: right; font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .stars { display: flex; gap: 4px; flex-direction: row-reverse; justify-content: flex-end; }
+    .stars input { position: absolute; opacity: 0; }
+    .stars label { font-size: 26px; color: var(--rule-hi); cursor: pointer; transition: color .1s, transform .1s; line-height: 1; }
+    .stars label:hover, .stars label:hover ~ label, .stars input:checked ~ label { color: #f59e0b; }
+    .stars input:focus-visible + label { outline: 2px solid var(--ink); border-radius: 4px; }
+    .row2 { display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: end; }
+    .done { text-align: center; padding: 30px 10px; display: none; }
+    .done h2 { font-family: var(--serif); font-weight: 400; font-size: 2.4rem; }
+    .done p { color: var(--muted); margin-top: 8px; }
+    .done code { font-family: var(--mono); background: var(--paper); padding: 2px 8px; border-radius: 6px; }
+    @media (max-width: 560px) { .kinds { grid-template-columns: repeat(3, 1fr); } .row2 { grid-template-columns: 1fr; } .panel { padding: 20px 16px; } }
+  </style>
+</head>
+<body>
+<div class="fb">
+  <div class="fb-top"><a href="/"><img src="/img/logo-mark.svg" alt="" width="26" height="26" />Lyra</a><a class="back" href="/">← Back to Lyra</a></div>
+  <h1 class="rise d1">Tell us <em>straight.</em></h1>
+  <p class="lede rise d2">An idea, a bug, a thing you love or hate. Every message goes to the founder's inbox and gets read by a person. Leave your email if you'd like a reply.</p>
+
+  <div class="panel rise d3">
+    <form id="fb-form" novalidate>
+      <div class="alert" id="alert"></div>
+      <fieldset style="border:0">
+        <legend class="field" style="font-size:13px;font-weight:600;margin-bottom:8px">What's it about?</legend>
+        <div class="kinds">
+          <label><input type="radio" name="kind" value="idea" checked /><span><b>💡</b>Idea</span></label>
+          <label><input type="radio" name="kind" value="bug" /><span><b>🐞</b>Bug</span></label>
+          <label><input type="radio" name="kind" value="praise" /><span><b>♥</b>Praise</span></label>
+          <label><input type="radio" name="kind" value="billing" /><span><b>💳</b>Billing</span></label>
+          <label><input type="radio" name="kind" value="other" /><span><b>✦</b>Other</span></label>
+        </div>
+      </fieldset>
+      <div class="field">
+        <label for="message">Your message</label>
+        <textarea id="message" maxlength="5000" required placeholder="What happened, what you expected, or what you'd like Lyra to do…"></textarea>
+        <div class="count" id="count">0 / 5000</div>
+      </div>
+      <div class="row2">
+        <div class="field" style="margin:0">
+          <label for="email">Email for a reply <span style="font-weight:400;color:var(--muted)">(optional)</span></label>
+          <input type="email" id="email" autocomplete="email" placeholder="you@example.com" />
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600;margin-bottom:6px">How's Lyra so far?</div>
+          <div class="stars" role="radiogroup" aria-label="Rating out of 5">
+            <input type="radio" name="rating" id="r5" value="5" /><label for="r5" title="5 stars">★</label>
+            <input type="radio" name="rating" id="r4" value="4" /><label for="r4" title="4 stars">★</label>
+            <input type="radio" name="rating" id="r3" value="3" /><label for="r3" title="3 stars">★</label>
+            <input type="radio" name="rating" id="r2" value="2" /><label for="r2" title="2 stars">★</label>
+            <input type="radio" name="rating" id="r1" value="1" /><label for="r1" title="1 star">★</label>
+          </div>
+        </div>
+      </div>
+      <div class="hp" aria-hidden="true"><label for="website">Leave this empty</label><input type="text" id="website" tabindex="-1" autocomplete="off" /></div>
+      <button type="submit" class="btn-main" id="send"><span class="spin" aria-hidden="true"></span><span class="label">Send feedback</span></button>
+      <p class="legal">We use what you send only to answer and improve Lyra. See the <a href="/pages/privacy.html">Privacy Policy</a>.</p>
+    </form>
+    <div class="done" id="done" role="status">
+      <h2>Thank you.</h2>
+      <p>It's on its way to the team. Your reference is <code id="ref"></code>.</p>
+      <p style="margin-top:22px"><a class="provider" style="display:inline-flex;width:auto;padding:10px 18px" href="/">Back to Lyra</a></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var started = Date.now();
+  var msg = document.getElementById('message');
+  var from = new URLSearchParams(location.search).get('from') || document.referrer.replace(location.origin, '') || '';
+  msg.addEventListener('input', function () { document.getElementById('count').textContent = msg.value.length + ' / 5000'; });
+  var kind = new URLSearchParams(location.search).get('kind');
+  if (kind) { var k = document.querySelector('input[name=kind][value="' + kind.replace(/[^a-z]/g, '') + '"]'); if (k) k.checked = true; }
+  if (window.lyraSignedIn) {
+    fetch('/api/users/me').then(function (r) { return r.ok ? r.json() : null; }).then(function (me) { if (me && !document.getElementById('email').value) document.getElementById('email').value = me.email; }).catch(function () {});
+  }
+  function show(text) { var a = document.getElementById('alert'); a.className = 'alert show error'; a.textContent = text; a.setAttribute('role', 'alert'); }
+
+  document.getElementById('fb-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('send');
+    if (msg.value.trim().length < 3) { msg.focus(); return show('Write a few words so we know what you mean.'); }
+    var rating = document.querySelector('input[name=rating]:checked');
+    btn.disabled = true; btn.querySelector('.label').textContent = 'Sending…';
+    fetch('/api/feedback', {
+      method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        kind: document.querySelector('input[name=kind]:checked').value, message: msg.value,
+        email: document.getElementById('email').value.trim(), rating: rating ? Number(rating.value) : null,
+        page: from.slice(0, 200), website: document.getElementById('website').value, started_at: started
+      })
+    }).then(function (r) {
+      return r.json().catch(function () { return {}; }).then(function (d) {
+        if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : 'Couldn’t send that. Please try again.');
+        document.getElementById('ref').textContent = d.reference;
+        document.getElementById('fb-form').style.display = 'none';
+        document.getElementById('done').style.display = 'block';
+      });
+    }).catch(function (ex) {
+      show(ex.message || 'Couldn’t reach Lyra. Please try again.');
+      btn.disabled = false; btn.querySelector('.label').textContent = 'Send feedback';
+    });
+  });
+})();
+</script>
+</body>
+</html>

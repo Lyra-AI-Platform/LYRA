@@ -1,7 +1,7 @@
 # Lyra AI Platform — Dependencies
 # SaaS layer
 sqlalchemy>=2.0.0
-PyJWT>=2.10.1
+PyJWT[crypto]>=2.10.1
 passlib[bcrypt]>=1.7.4
 bcrypt==4.0.1                 # passlib breaks on bcrypt>=4.1 (signup/login crash)
 stripe>=7.0.0

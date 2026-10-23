@@ -91,11 +91,12 @@
     @media(max-width:540px) { .dash-body { padding:24px 16px 60px; } }
   </style>
   <script src="/js/session.js"></script>
+  <script src="/js/appnav.js"></script>
 </head>
 <body>
 
-<nav class="dash-nav">
-  <div class="dash-nav-logo">✦ LyraAuth</div>
+<nav class="dash-nav" data-appnav-hide>
+  <div class="dash-nav-logo"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="border-radius:6px" />LyraAuth</div>
   <div class="dash-nav-right">
     <span class="user-pill" id="user-email"></span>
     <a href="chat.html" class="btn btn-primary" style="padding:6px 14px;font-size:.8125rem;">✦ Chat with Lyra</a>
