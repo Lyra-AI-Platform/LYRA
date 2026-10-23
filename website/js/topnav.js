@@ -12,7 +12,7 @@
     ['/dashboard/chat.html', 'Lyra chat', 'Ask anything; it searches the web when needed', 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z'],
     ['/watch/live/', 'Watch Live', 'Real-time stream of who is moving markets', 'M12 12m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4'],
     ['/watch/', 'Watch directory', 'Every public figure we track', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 21a5 5 0 0 0-4-5'],
-    ['/coshh/', 'COSHH database', 'Safety data sheets, exposure limits, spectra', 'M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3'],
+    ['/news/', 'Newswire', 'Global news and new research, with filters', 'M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5'],
     ['/dashboard/', 'LyraAuth sites', 'Your sites, keys, usage and training data', 'M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6zM9 12l2 2 4-4'],
   ];
   var TABS = [
@@ -20,6 +20,7 @@
     ['#products', 'Products', null],
     ['/index.html#how-it-works', 'How it works', null],
     ['/index.html#integrate', 'Integrate', null],
+    ['/news/', 'News', /^\/news/],
     ['/dashboard/billing.html', 'Pricing', /billing\.html$/],
     ['/tremor/', 'Tremor Index', /^\/(tremor|market)/],
     ['/watch/', 'Watch', /^\/watch\/?$/],

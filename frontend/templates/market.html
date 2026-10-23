@@ -132,6 +132,11 @@
   </section>
 
   <section class="full">
+    <h2>Politicians, policy &amp; research <a href="/news/" style="float:right;font-size:13px;font-weight:400">Lyra Newswire →</a></h2>
+    <div id="wire"><p class="empty">Politicians, policy news from around the world and new research appear after an analysis.</p></div>
+  </section>
+
+  <section class="full">
     <h2>Insider, fund and politician trades</h2>
     <div id="money"><p class="empty">Insider, fund and politician trades appear after an analysis.</p></div>
   </section>
@@ -259,6 +264,26 @@ async function loadPeople(ticker, company) {
   } catch { $("people").innerHTML = `<p class="empty">Lyra Watch is unavailable right now.</p>`; }
 }
 
+// Lyra Newswire on this company: politicians and policy news worldwide, other coverage, new research.
+async function loadWire(ticker) {
+  const box = $("wire");
+  box.innerHTML = `<p class="empty">Searching global news and research for ${esc(ticker)}…</p>`;
+  try {
+    const d = await fetch("/api/wire/ticker/" + encodeURIComponent(ticker)).then(r => r.json());
+    const ago = (t) => { const s = Date.now() / 1000 - t; return s < 86400 ? Math.max(1, Math.round(s / 3600)) + " h ago" : Math.round(s / 86400) + " d ago"; };
+    const flag = (c) => c && c.length === 2 ? String.fromCodePoint(...[...c].map(x => 127397 + x.charCodeAt(0))) + " " : "";
+    const list = (rows) => rows.length ? `<ul class="people">${rows.map(r => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a>
+      <span class="muted">${flag(r.country)}${esc(r.source)} · ${ago(r.published)}</span></li>`).join("")}</ul>` : `<p class="empty">Nothing in the last 30 days.</p>`;
+    const people = d.people_in_coverage.length ? `<p>${d.people_in_coverage.map(([n, c]) =>
+      `<a class="tag" href="/news/?people=${encodeURIComponent(n)}&tickers=${encodeURIComponent(ticker)}">${esc(n)} · ${c}</a>`).join(" ")}</p>` : "";
+    box.innerHTML = `${people ? `<h3 style="font-size:14px;margin:4px 0">Public figures in its coverage</h3>${people}` : ""}
+      <h3 style="font-size:14px;margin:14px 0 4px">Politics &amp; policy</h3>${list(d.politics_and_policy)}
+      <h3 style="font-size:14px;margin:14px 0 4px">Coverage worldwide <span class="muted">(${d.news_total_30d.toLocaleString()} in 30 days)</span></h3>${list(d.news)}
+      <h3 style="font-size:14px;margin:14px 0 4px">New research</h3>${list(d.research)}
+      <p class="muted"><a href="/news/?tickers=${encodeURIComponent(ticker)}">Search everything about ${esc(ticker)} with filters →</a></p>`;
+  } catch { box.innerHTML = `<p class="empty">The newswire is unavailable right now.</p>`; }
+}
+
 function tradeRows(trades, status) {
   if (!trades.length) {
     const msg = status && status.status === "failed" ? "Source unavailable — this data could not be checked"
@@ -336,6 +361,7 @@ $("lookup").onsubmit = async (e) => {
     renderReading(r);
     renderMoney(r.smart_money, r.sources);
     loadPeople(currentTicker, r.company);
+    loadWire(currentTicker);
     loadArticles({ ticker: currentTicker });
     loadLearning();
   } catch (err) {
@@ -358,7 +384,7 @@ loadVix();
 loadLearning();
 // /market?t=NVDA opens straight onto a reading (links from Lyra Watch use this).
 (function deepLink() {
-  const t = (new URLSearchParams(location.search).get("t") || "").trim().toUpperCase();
+  const t = (new URLSearchParams(location.search).get("t") || new URLSearchParams(location.search).get("ticker") || "").trim().toUpperCase();
   if (/^[A-Z0-9.\-]{1,10}$/.test(t)) { $("ticker").value = t; $("lookup").requestSubmit(); }
 })();
 </script>

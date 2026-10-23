@@ -18,7 +18,7 @@
       { href: '/dashboard/chat.html', ico: 'chat', name: 'Lyra chat', need: 'member', match: /chat\.html$/ },
       { href: '/watch/live/', ico: 'live', name: 'Watch Live', need: 'watch', match: /^\/watch\/live/ },
       { href: '/watch/', ico: 'people', name: 'Watch directory', match: /^\/watch\/?$/ },
-      { href: '/coshh/', ico: 'flask', name: 'COSHH database', need: 'member', match: /^\/coshh/ },
+      { href: '/news/', ico: 'book', name: 'Newswire', match: /^\/news/ },
       { href: '/dashboard/', ico: 'shield', name: 'LyraAuth sites', match: /^\/dashboard\/(index\.html)?$/ },
     ]],
     ['Developers', [

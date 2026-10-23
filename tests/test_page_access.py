@@ -56,7 +56,7 @@ def _client(app, Session=None, tier="free", days_old=0, email=None):
 
 
 PUBLIC = ["/pages/privacy.html", "/pages/docs.html", "/watch/", "/tremor/", "/company/", "/dashboard/login.html"]
-MEMBERS = ["/coshh/", "/dashboard/chat.html", "/market"]
+MEMBERS = ["/dashboard/chat.html", "/market"]
 
 
 @pytest.mark.parametrize("path", PUBLIC)
@@ -144,7 +144,7 @@ def test_a_forged_or_expired_cookie_is_ignored(site):
     app, _ = site
     c = _client(app)
     c.cookies.set(users_api.SESSION_COOKIE, "not-a-token")
-    assert c.get("/coshh/").status_code == 303
+    assert c.get("/dashboard/chat.html").status_code == 303
 
 
 def test_sign_in_sets_the_cookie_and_the_homepage_changes(site):
@@ -158,15 +158,15 @@ def test_sign_in_sets_the_cookie_and_the_homepage_changes(site):
     home = c.get("/")
     assert home.status_code == 200 and "MARKETING-PAGE" not in home.text
     assert home.headers["cache-control"] == "no-store"
-    assert c.get("/coshh/").status_code == 200
+    assert c.get("/dashboard/chat.html").status_code == 200
     c.post("/api/users/logout")
     assert "MARKETING-PAGE" in c.get("/").text
-    assert c.get("/coshh/").status_code == 303
+    assert c.get("/dashboard/chat.html").status_code == 303
 
 
 def test_signed_in_users_skip_the_sign_in_form_but_never_leave_the_site(site):
     app, Session = site
     c = _client(app, Session)
-    assert c.get("/dashboard/login.html?next=/coshh/").headers["location"] == "/coshh/"
+    assert c.get("/dashboard/login.html?next=/dashboard/chat.html").headers["location"] == "/dashboard/chat.html"
     for bad in ("//evil.example", "https://evil.example", "/\\evil.example"):
         assert c.get("/dashboard/login.html", params={"next": bad}).headers["location"] == "/"

@@ -32,6 +32,7 @@ from lyra.api.ingestion_api import router as ingestion_router
 from lyra.api.users_api import router as users_router
 from lyra.api.oauth_api import router as oauth_router
 from lyra.api.feedback_api import router as feedback_router
+from lyra.api.wire_api import router as wire_router
 from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
@@ -39,7 +40,6 @@ from lyra.api.market_api import router as market_router
 from lyra.api.watch_api import router as watch_router
 from lyra.api.watch_access import router as watch_account_router
 from lyra.api.ads_api import router as ads_router
-from lyra.api.coshh_api import router as coshh_router
 from lyra.api import page_access
 
 logging.basicConfig(
@@ -119,6 +119,20 @@ async def scanner_guard(request, call_next):
 # Members-only pages are withheld on the server until the visitor is signed in and entitled.
 app.middleware("http")(page_access.guard)
 
+# COSHH moved to its own site, ChemWarden. Old links and bookmarks land there instead of a 404.
+# Registered after the page guard so it runs first (the last middleware added is the outermost).
+CHEMWARDEN = "https://chemwarden.com"
+
+
+@app.middleware("http")
+async def coshh_moved(request, call_next):
+    path = request.url.path.lower().rstrip("/")
+    if path in ("/coshh", "/pages/coshh.html") or path.startswith("/coshh/") or path.startswith("/api/coshh"):
+        if path.startswith("/api/"):
+            return JSONResponse({"detail": "COSHH moved to https://chemwarden.com"}, status_code=410)
+        return Response(status_code=301, headers={"Location": CHEMWARDEN, "Cache-Control": "public, max-age=86400"})
+    return await call_next(request)
+
 if STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -135,6 +149,7 @@ app.include_router(ingestion_router)
 app.include_router(users_router)
 app.include_router(oauth_router)
 app.include_router(feedback_router)
+app.include_router(wire_router)
 app.include_router(sites_router)
 app.include_router(billing_router)
 app.include_router(intelligence_router)
@@ -142,7 +157,6 @@ app.include_router(market_router)
 app.include_router(watch_router)
 app.include_router(watch_account_router)
 app.include_router(ads_router)
-app.include_router(coshh_router)
 
 
 FAVICON = ("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>"
@@ -297,6 +311,9 @@ async def on_startup():
     from lyra.watch.live import loop as live_loop, signals_loop
     live_loop.start()
     signals_loop.start()
+    # Global newswire: news in every language and new research, collected for as long as Lyra runs
+    from lyra.newswire.collector import collector as newswire
+    newswire.start()
 
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
@@ -321,6 +338,8 @@ async def on_shutdown():
     learning_loop.stop()
     from lyra.watch.service import refresh_loop
     refresh_loop.stop()
+    from lyra.newswire.collector import collector as newswire
+    newswire.stop()
     from lyra.watch.live import loop as live_loop, signals_loop
     live_loop.stop()
     signals_loop.stop()
