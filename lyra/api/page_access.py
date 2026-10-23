@@ -50,11 +50,16 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/api/coshh/", "member", "coshh"),
     ("/watch/live/", "watch", "watch_live"),
     ("/watch/live", "watch", "watch_live"),
-    # Fuelwise's App Store privacy policy: the App Store links to it, Lyra pages don't.
+    # FuelTrack's App Store privacy policy: the App Store links to it, Lyra pages don't.
+    # /fuelwise/privacy/ is its old address and now just redirects to the new one.
+    ("/fueltrack/privacy/", "unlisted", ""),
+    ("/fueltrack/privacy", "unlisted", ""),
     ("/fuelwise/privacy/", "unlisted", ""),
     ("/fuelwise/privacy", "unlisted", ""),
     ("/admin/", "owner", ""),
     ("/admin", "owner", ""),
+    ("/fueltrack/", "owner", ""),
+    ("/fueltrack", "owner", ""),
     ("/fuelwise/", "owner", ""),
     ("/fuelwise", "owner", ""),
 )

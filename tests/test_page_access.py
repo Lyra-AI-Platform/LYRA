@@ -125,19 +125,23 @@ def test_owner_pages_are_invisible_to_everyone_else(site, monkeypatch):
     for c in (_client(app), _client(app, Session, tier="pro")):
         assert c.get("/fuelwise/").status_code == 404
         assert c.get("/fuelwise/drafts/notes.html").status_code == 404
+        assert c.get("/fueltrack/").status_code == 404
 
 
-def test_fuelwise_privacy_opens_from_its_link_but_is_never_listed(site):
+def test_fueltrack_privacy_opens_from_its_link_but_is_never_listed(site):
     app, _ = site
-    r = _client(app).get("/fuelwise/privacy/")
-    assert r.status_code == 200
-    assert "noindex" in r.headers["x-robots-tag"]
-    assert r.headers["referrer-policy"] == "no-referrer"
+    for path in ("/fueltrack/privacy/", "/fuelwise/privacy/"):
+        r = _client(app).get(path)
+        assert r.status_code == 200
+        assert "noindex" in r.headers["x-robots-tag"]
+        assert r.headers["referrer-policy"] == "no-referrer"
     # no Lyra page links to it
     for page in WEBSITE.rglob("*.html"):
-        if "fuelwise" not in page.parts:
-            assert "/fuelwise/privacy" not in page.read_text(encoding="utf-8"), page
-    assert "fuelwise" not in (WEBSITE / "sitemap.xml").read_text().lower()
+        if "fuelwise" not in page.parts and "fueltrack" not in page.parts:
+            text = page.read_text(encoding="utf-8")
+            assert "/fuelwise/privacy" not in text and "/fueltrack/privacy" not in text, page
+    sitemap = (WEBSITE / "sitemap.xml").read_text().lower()
+    assert "fuelwise" not in sitemap and "fueltrack" not in sitemap
 
 
 def test_a_forged_or_expired_cookie_is_ignored(site):
