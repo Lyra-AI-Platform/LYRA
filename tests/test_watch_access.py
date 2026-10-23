@@ -152,3 +152,32 @@ def test_pricing_is_public_and_machine_readable():
     c, _ = _app()
     p = c.get("/api/watch/account/pricing").json()
     assert p["watch_pro"]["price_cents"] > 0 and p["api_credits"]["cost_per_request"]["person"] == 1
+
+
+def test_free_lists_are_a_taste_and_say_what_is_held_back():
+    _people(20)
+    c, Session = _app()
+    body = c.get("/api/watch/people?limit=100").json()
+    assert len(body["people"]) == watch_api.FREE_PEOPLE and body["locked"] == 20 - watch_api.FREE_PEOPLE
+    assert body["unlock"] == "/watch/account/"
+    uid, pro = signed_in(Session, "free")
+    s = Session()
+    s.add(WatchSubscription(user_id=uid, status="active"))
+    s.commit()
+    full = c.get("/api/watch/people?limit=100", headers=pro).json()
+    assert len(full["people"]) == 20 and "locked" not in full
+
+
+def test_free_profiles_and_feed_are_trimmed(monkeypatch):
+    profile = {"slug": "x", "name": "X", "summary": {"companies": []},
+               "moves": [{"type": "trade", "title": f"m{i}", "date": f"2026-10-{i + 1:02d}"} for i in range(9)],
+               "trades": [{"t": i} for i in range(2)]}
+    monkeypatch.setattr(watch_api, "load_roster", lambda: [{"slug": "x", "name": "X"}])
+    monkeypatch.setattr(service, "load_profile", lambda slug: profile)
+    monkeypatch.setattr(watch_api.service, "feed", lambda limit, kind="": [{"title": f"m{i}"} for i in range(min(limit, 30))])
+    c, _ = _app()
+    p = c.get("/api/watch/figures/x").json()
+    assert len(p["moves"]) == watch_api.FREE_PROFILE_ITEMS and p["locked"]["more"] == {"moves": 6}
+    assert len(p["trades"]) == 2
+    f = c.get("/api/watch/feed?limit=30").json()
+    assert len(f["moves"]) == watch_api.FREE_MOVES and f["locked"] == 30 - watch_api.FREE_MOVES

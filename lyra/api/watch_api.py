@@ -25,7 +25,17 @@ _hits: Dict[str, Deque[float]] = defaultdict(deque)
 router = APIRouter(prefix="/api/watch", tags=["watch"])
 
 
-FREE_LEADERS = 5   # rows of Who moves markets anyone can see
+# What anyone sees without Watch Pro: a taste of each list, enough to judge it. The rest is for
+# subscribers and API keys. Every free answer says how much more there is and where to unlock it.
+FREE_LEADERS = 5       # rows of Who moves markets
+FREE_PEOPLE = 12       # people per list or search
+FREE_MOVES = 10        # latest moves in the feed
+FREE_FEED_ITEMS = 10   # stories in the JSON feed (an hour behind as well)
+FREE_PROFILE_ITEMS = 3 # trades, moves and other records per profile
+
+
+def _locked(total: int, shown: int) -> Dict:
+    return {"locked": max(0, total - shown), "unlock": "/watch/account/"}
 
 
 def _public(response: Response, request: Request, viewer: Viewer = None):
@@ -52,12 +62,26 @@ async def figures(response: Response, request: Request, category: str = ""):
 
 
 @router.get("/figures/{slug}")
-async def figure(slug: str, response: Response, request: Request):
-    _public(response, request)
+async def figure(slug: str, response: Response, request: Request, viewer: Viewer = Depends(identify("person"))):
+    _public(response, request, viewer)
     person = next((p for p in load_roster() if p["slug"] == slug), None)
     if not person:
         raise HTTPException(404, "Not on the watchlist")
-    return service.load_profile(slug) or {**service.card(person), "pending": True}
+    profile = service.load_profile(slug)
+    if not profile:
+        return {**service.card(person), "pending": True}
+    if viewer.full:
+        return profile
+    # Free: the first few of each record, and how many more there are.
+    out, more = {}, {}
+    for k, v in profile.items():
+        if isinstance(v, list) and len(v) > FREE_PROFILE_ITEMS:
+            out[k], more[k] = v[:FREE_PROFILE_ITEMS], len(v) - FREE_PROFILE_ITEMS
+        else:
+            out[k] = v
+    if more:
+        out["locked"] = {"more": more, "unlock": "/watch/account/"}
+    return out
 
 
 @router.get("/people")
@@ -67,7 +91,11 @@ async def people(response: Response, request: Request, q: str = "", watched: str
     `ticker` (e.g. NVDA) keeps the people whose coverage names that company."""
     _public(response, request, viewer)
     flag = {"": None, "true": True, "false": False}.get(watched.lower())
-    out = service.people_list(q[:80], flag, min(max(limit, 1), 500 if viewer.full else 150), ticker=ticker[:10])
+    wanted = min(max(limit, 1), 500)
+    out = service.people_list(q[:80], flag, wanted, ticker=ticker[:10])
+    if not viewer.full:
+        out.update(_locked(len(out["people"]), FREE_PEOPLE))
+        out["people"] = out["people"][:FREE_PEOPLE]
     out["people"] = [_shape(r, viewer) for r in out["people"]]
     return out
 
@@ -140,7 +168,8 @@ async def json_feed(response: Response, request: Request, viewer: Viewer = Depen
     base = "https://lyraauth.com"
     items = []
     # Free: an hour behind. Subscribers and API keys: real time. X content stays on the site either way.
-    for e in live.hub.recent(100, delay=0 if viewer.full else live.TEASER_DELAY, include_x=False):
+    for e in live.hub.recent(100 if viewer.full else FREE_FEED_ITEMS, delay=0 if viewer.full else live.TEASER_DELAY,
+                             include_x=False):
         named = [p for p in e.get("people", [])]
         items.append({
             "id": e["id"], "url": e["url"], "title": e["title"],
@@ -163,11 +192,15 @@ async def json_feed(response: Response, request: Request, viewer: Viewer = Depen
 
 
 @router.get("/feed")
-async def feed(response: Response, request: Request, kind: str = "", limit: int = 80):
-    _public(response, request)
+async def feed(response: Response, request: Request, kind: str = "", limit: int = 80,
+               viewer: Viewer = Depends(identify("feed"))):
+    _public(response, request, viewer)
     if kind not in ("", "trade", "statement"):
         raise HTTPException(400, "kind must be trade or statement")
-    return {"moves": service.feed(min(max(limit, 1), 200), kind)}
+    moves = service.feed(min(max(limit, 1), 200), kind)
+    if viewer.full:
+        return {"moves": moves}
+    return {"moves": moves[:FREE_MOVES], **_locked(len(moves), FREE_MOVES)}
 
 
 # ── Live (subscribers) ─────────────────────────────────────────────────────

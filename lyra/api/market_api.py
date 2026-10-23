@@ -93,17 +93,29 @@ async def public_backtest(response: Response, request: Request):
     return backtest.load_result() or {"available": False}
 
 
+FREE_TRACK_ROWS = 15        # settled readings shown to visitors without a plan
+FREE_TRACK_MIN_AGE = 30 * 86400   # ...and only ones at least this old, never current calls
+
+
 @router.get("/public/track-record")
-async def public_track_record(response: Response, request: Request):
-    """Every saved reading with its later outcome. Append-only: nothing is removed."""
-    _public(response, request)
+async def public_track_record(response: Response, request: Request, db: Session = Depends(get_db)):
+    """Every saved reading with its later outcome. Append-only: nothing is removed.
+    The headline numbers (hit rate, counts) are for everyone, so anyone can judge the model.
+    The full list of readings is for members; visitors see a sample of old, settled ones."""
+    from lyra.api.page_access import is_member
     rows = get_store().track_record(500)
     graded = [r for r in rows if r["evaluated"]]
     expected = {"BUY": "boom", "SELL": "bust", "HOLD": "flat"}
     hits = sum(expected.get(r["action"]) == r["outcome"] for r in graded)
-    return {"stats": get_store().prediction_stats(),
-            "hit_rate": round(hits / len(graded), 4) if graded else None,
-            "readings": rows}
+    out = {"stats": get_store().prediction_stats(), "hit_rate": round(hits / len(graded), 4) if graded else None}
+    user = entitlements.user_from_conn(request, db)
+    if user and is_member(user):
+        response.headers["Cache-Control"] = "private, no-store"
+        return {**out, "readings": rows}
+    _public(response, request)
+    old = [r for r in graded if (r.get("created_at") or time.time()) < time.time() - FREE_TRACK_MIN_AGE]
+    return {**out, "readings": old[:FREE_TRACK_ROWS], "locked": max(0, len(rows) - min(len(old), FREE_TRACK_ROWS)),
+            "unlock": "/dashboard/register.html?next=/tremor/"}
 
 
 @router.get("/public/sample")

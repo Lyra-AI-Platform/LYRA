@@ -11,6 +11,27 @@
      Lyra menu (appnav.js) is on every page: built in on member pages, a corner "Menu" button
      elsewhere. */
 (function () {
+  // Smoother moves between pages, for everyone: a short cross-fade (browsers with cross-document
+  // view transitions) and pages fetched as soon as a link is hovered or pressed, so the next one
+  // is usually ready by the time the click lands. Sign-out and API links are never prefetched.
+  try {
+    var vt = document.createElement('style');
+    vt.textContent = '@view-transition{navigation:auto}' +
+      '::view-transition-old(root){animation:lyra-out .18s ease both}' +
+      '::view-transition-new(root){animation:lyra-in .26s cubic-bezier(.2,.7,.2,1) both}' +
+      '@keyframes lyra-out{to{opacity:0}}@keyframes lyra-in{from{opacity:0;transform:translateY(6px)}}' +
+      '@media (prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation:none}}';
+    document.head.appendChild(vt);
+    if (HTMLScriptElement.supports && HTMLScriptElement.supports('speculationrules')) {
+      var rules = document.createElement('script');
+      rules.type = 'speculationrules';
+      rules.textContent = JSON.stringify({ prefetch: [{ source: 'document', eagerness: 'moderate', where: { and: [
+        { href_matches: '/*' }, { not: { href_matches: '/api/*' } }, { not: { selector_matches: '[data-no-prefetch], [href^="mailto:"]' } }
+      ] } }] });
+      document.head.appendChild(rules);
+    }
+  } catch (e) {}
+
   var marker = /(?:^|;\s*)lyra_in=1/.test(document.cookie);
   window.lyraSignedIn = marker;
 

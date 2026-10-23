@@ -47,7 +47,8 @@ def pricing() -> Dict:
     return {
         "currency": CURRENCY,
         "free": {"price": 0, "includes": ["live preview one hour behind", "top 5 of Who moves markets",
-                                           "people directory and summaries", "JSON feed one hour behind"]},
+                                           "12 people per list or search, with summaries", "the 10 latest moves",
+                                           "the first 3 records of each profile", "JSON feed one hour behind (10 stories)"]},
         "watch_pro": {"price_cents": PRO_CENTS, "interval": "month",
                       "includes": ["real-time live stream", "full Who moves markets record", "every person's market impact",
                                    "said & traded", "ad-free"],
