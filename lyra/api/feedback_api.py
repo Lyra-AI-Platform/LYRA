@@ -4,10 +4,12 @@
   GET  /api/feedback        the owner (LYRA_ADMIN_EMAILS) reads the latest 200
 
 Every message is stored first, so none is lost when email isn't set up or fails. It is then
-emailed to LYRA_FEEDBACK_TO (default: the first LYRA_ADMIN_EMAILS address) by whichever is set:
+emailed to LYRA_FEEDBACK_TO (default: the first LYRA_ADMIN_EMAILS address, else support@lyraauth.com) by whichever is set:
 
-  RESEND_API_KEY (+ LYRA_MAIL_FROM, a sender on a domain verified with Resend)
-  SMTP_HOST, SMTP_PORT (587), SMTP_USER, SMTP_PASSWORD (+ LYRA_MAIL_FROM)
+  RESEND_API_KEY (+ LYRA_MAIL_FROM, default "Lyra <support@lyraauth.com>")
+  SMTP_HOST, SMTP_PORT (587), SMTP_USER, SMTP_PASSWORD (+ LYRA_MAIL_FROM): for iCloud Mail,
+  smtp.mail.me.com, your Apple ID and an app-specific password; the sender must be an
+  iCloud custom-domain address such as support@lyraauth.com
 
 Bots are kept out by a hidden field, a minimum time on the page and per-address limits.
 """
@@ -46,11 +48,11 @@ class FeedbackIn(BaseModel):
 
 
 def recipient() -> str:
-    return os.getenv("LYRA_FEEDBACK_TO") or next(iter(sorted(_admin_emails())), "")
+    return os.getenv("LYRA_FEEDBACK_TO") or next(iter(sorted(_admin_emails())), "") or "support@lyraauth.com"
 
 
 def _sender() -> str:
-    return os.getenv("LYRA_MAIL_FROM", "Lyra feedback <feedback@lyraauth.com>")
+    return os.getenv("LYRA_MAIL_FROM", "Lyra <support@lyraauth.com>")
 
 
 def send_email(to: str, subject: str, text: str, reply_to: str = "") -> bool:
