@@ -33,8 +33,15 @@ UPGRADE_URL = "/dashboard/billing.html"
 FEATURE_NAMES = {"market": "Tremor Index readings", "chat": "Lyra chat messages", "watch_live": "Lyra Watch Live"}
 
 
+def is_admin(user: Optional[User]) -> bool:
+    """The site owner (LYRA_ADMIN_EMAILS): sees and uses everything, approves ads, reads feedback."""
+    admins = {e.strip().lower() for e in os.getenv("LYRA_ADMIN_EMAILS", "").split(",") if e.strip()}
+    return bool(user and user.email and user.email.lower() in admins)
+
+
 def is_paid(user: User) -> bool:
-    return (user.tier or "free") in PAID_TIERS
+    # The owner gets the full version of every product without a subscription.
+    return (user.tier or "free") in PAID_TIERS or is_admin(user)
 
 
 def trial_days_left(user: User) -> int:
@@ -63,6 +70,7 @@ def status(user: User, db: Session) -> Dict:
     return {
         "tier": user.tier or "free",
         "paid": is_paid(user),
+        "admin": is_admin(user),
         "trial": None if is_paid(user) else {
             "days_left": days, "expired": days == 0,
             "used": used, "limits": TRIAL_LIMITS,

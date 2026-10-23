@@ -53,6 +53,8 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     # Fuelwise's App Store privacy policy: the App Store links to it, Lyra pages don't.
     ("/fuelwise/privacy/", "unlisted", ""),
     ("/fuelwise/privacy", "unlisted", ""),
+    ("/admin/", "owner", ""),
+    ("/admin", "owner", ""),
     ("/fuelwise/", "owner", ""),
     ("/fuelwise", "owner", ""),
 )

@@ -80,7 +80,7 @@
     }
     // Pages without the menu built in (marketing pages, the product apps) get it as a drawer,
     // opened from a corner button, so every product is one click away from anywhere.
-    if (!document.querySelector('script[src="/js/appnav.js"]')) {
+    if (!document.querySelector('script[src^="/js/appnav.js"]')) {
       if (!document.body.hasAttribute('data-appnav')) document.body.setAttribute('data-appnav', 'drawer');
       var nav = document.createElement('script');
       nav.src = '/js/appnav.js';

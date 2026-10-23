@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin — Lyra</title>
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/main.css?v=20261023c" />
+  <script src="/js/session.js?v=20261023c"></script>
+  <script src="/js/topnav.js?v=20261023c"></script>
+  <style>
+    :root { --ink:#14120e; --paper:#faf9f7; --sheet:#fff; --rule:rgba(20,18,14,.09); --rule-hi:rgba(20,18,14,.2); --rose:#fb7185; --signal:#e11d48; --ok:#047857;
+            --serif:'Instrument Serif',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }
+    body { background: var(--paper); }
+    main { max-width: 1240px; margin: 0 auto; padding: 36px 20px 96px; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+    h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.4rem, 5vw, 3.6rem); line-height: 1; margin: 8px 0 24px; }
+    h1 em { color: var(--signal); }
+    .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 30px; }
+    .tile { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 16px; }
+    .tile b { display: block; font-family: var(--serif); font-weight: 400; font-size: 2.2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+    .tile span { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+    .tile.hot { background: var(--ink); color: var(--paper); border-color: var(--ink); } .tile.hot span { color: rgba(250,249,247,.6); }
+    section.card { background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; padding: 22px; margin-bottom: 16px; }
+    section.card h2 { font-family: var(--serif); font-weight: 400; font-size: 1.8rem; margin: 0 0 4px; }
+    section.card > p { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+    .row { display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-top: 1px solid var(--rule); }
+    .row:first-of-type { border-top: 0; }
+    .row .what { flex: 1; min-width: 0; }
+    .row .what b { display: block; font-size: 15px; } .row .what p { margin: 3px 0; font-size: 14px; color: var(--muted); }
+    .row small { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+    .pill { font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--rule-hi); white-space: nowrap; }
+    .pill.paid { border-color: rgba(180,83,9,.4); color: #b45309; } .pill.live { border-color: rgba(4,120,87,.4); color: var(--ok); }
+    .acts { display: flex; gap: 6px; flex-wrap: wrap; }
+    .acts button { padding: 7px 12px; border-radius: 8px; border: 1px solid var(--rule-hi); background: var(--sheet); font: 600 13px Inter, system-ui, sans-serif; cursor: pointer; }
+    .acts .yes { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .acts .no { color: var(--signal); border-color: rgba(225,29,72,.35); }
+    .empty { color: var(--muted); font-size: 14px; padding: 10px 0; }
+    .stars { color: #f59e0b; letter-spacing: 1px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 860px) { .grid2 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body data-appnav="drawer">
+<main>
+  <div class="kicker">Owner only</div>
+  <h1>Lyra, <em>at a glance.</em></h1>
+  <div class="tiles" id="tiles"><div class="tile"><b>…</b><span>loading</span></div></div>
+
+  <section class="card">
+    <h2>Ads waiting for you</h2>
+    <p>Sponsors pay first through Stripe; nothing shows on Lyra Watch until you approve it here. Rejecting doesn't refund automatically: refund it in Stripe.</p>
+    <div id="ads"><p class="empty">Loading…</p></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card">
+      <h2>Feedback</h2>
+      <p>Everything sent from /feedback/, newest first.</p>
+      <div id="feedback"><p class="empty">Loading…</p></div>
+    </section>
+    <section class="card">
+      <h2>Systems</h2>
+      <p>Newswire sources that are failing, and Lyra's own model.</p>
+      <div id="systems"><p class="empty">Loading…</p></div>
+    </section>
+  </div>
+</main>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const fmt = (n) => Number(n || 0).toLocaleString();
+  const when = (d) => d ? new Date(/Z|[+-]\d\d:?\d\d$/.test(d) ? d : d + 'Z').toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+  const get = (u) => fetch(u, { credentials: 'same-origin' }).then((r) => { if (r.status === 401) location.href = '/dashboard/login.html?next=/admin/'; return r.ok ? r.json() : null; });
+
+  get('/api/admin/overview').then((o) => {
+    if (!o) return;
+    const t = [[o.ads.waiting_for_approval, 'ads to approve', o.ads.waiting_for_approval > 0], [o.accounts.total, 'accounts'], [o.accounts.new_7d, 'new this week'],
+      [o.accounts.paying, 'paying'], [o.accounts.on_trial, 'on trial'], [o.accounts.watch_pro, 'Watch Pro'], [o.accounts.signed_in_now, 'active now'],
+      [o.feedback.last_7d, 'feedback this week'], [o.newswire.articles, 'newswire items'], [o.newswire.added_last_24h, 'added in 24 h']];
+    $('tiles').innerHTML = t.map(([n, l, hot]) => `<div class="tile${hot ? ' hot' : ''}"><b>${fmt(n)}</b><span>${esc(l)}</span></div>`).join('');
+    const methods = Object.entries(o.accounts.sign_in_methods).map(([k, v]) => `${esc(k)} ${v}`).join(' · ') || 'email only';
+    $('systems').innerHTML = `<div class="row"><div class="what"><b>Lyra's model</b><p>${o.lyra_model.on ? esc(o.lyra_model.name) + ' is on' : 'Not installed on the server yet'}</p></div></div>
+      <div class="row"><div class="what"><b>Sign-in methods</b><p>${methods}</p></div></div>
+      <div class="row"><div class="what"><b>Newswire</b><p>${fmt(o.newswire.articles)} items · ${fmt(o.newswire.countries)} countries · ${fmt(o.newswire.languages)} languages · ${fmt(o.newswire.publishers)} publishers</p>
+      ${o.newswire_failing.length ? `<small>Failing: ${o.newswire_failing.map(esc).join(', ')}</small>` : '<small>All sources answering</small>'}</div></div>`;
+  });
+
+  async function loadAds() {
+    const d = await get('/api/ads/admin');
+    const slots = (d && d.slots) || [];
+    $('ads').innerHTML = slots.length ? '' : '<p class="empty">No ads waiting or running.</p>';
+    for (const s of slots) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      row.innerHTML = `<div class="what"><b>${esc(s.headline)}</b><p>${esc(s.body)}</p><small><a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.url)}</a> · ${s.weeks} week${s.weeks === 1 ? '' : 's'}${s.ends_at ? ' · ends ' + when(s.ends_at) : ''}</small></div>
+        <span class="pill ${esc(s.status)}">${s.status === 'paid' ? 'waiting' : esc(s.status)}</span>
+        <div class="acts">${s.status === 'paid' ? '<button class="yes" data-a="approve">Approve</button><button class="no" data-a="reject">Reject</button>' : '<button class="no" data-a="stop">Stop</button>'}</div>`;
+      row.querySelectorAll('button').forEach((b) => b.onclick = async () => {
+        b.disabled = true;
+        await fetch(`/api/ads/admin/${s.id}/${b.dataset.a}`, { method: 'POST', credentials: 'same-origin' });
+        loadAds();
+      });
+      $('ads').appendChild(row);
+    }
+  }
+  loadAds();
+
+  get('/api/feedback').then((rows) => {
+    rows = rows || [];
+    $('feedback').innerHTML = rows.length ? rows.slice(0, 50).map((f) => `<div class="row"><div class="what"><b>${esc(f.kind)} ${f.rating ? `<span class="stars">${'★'.repeat(f.rating)}</span>` : ''}</b>
+      <p>${esc(f.message)}</p><small>${esc(f.reference)} · ${when(f.created_at)}${f.email ? ` · <a href="mailto:${esc(f.email)}">${esc(f.email)}</a>` : ''}${f.page ? ' · from ' + esc(f.page) : ''}</small></div></div>`).join('')
+      : '<p class="empty">No feedback yet.</p>';
+  });
+})();
+</script>
+</body>
+</html>

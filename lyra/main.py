@@ -33,6 +33,8 @@ from lyra.api.users_api import router as users_router
 from lyra.api.oauth_api import router as oauth_router
 from lyra.api.feedback_api import router as feedback_router
 from lyra.api.wire_api import router as wire_router
+from lyra.api.labs_api import router as labs_router
+from lyra.api.admin_api import router as admin_router
 from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
@@ -150,6 +152,8 @@ app.include_router(users_router)
 app.include_router(oauth_router)
 app.include_router(feedback_router)
 app.include_router(wire_router)
+app.include_router(labs_router)
+app.include_router(admin_router)
 app.include_router(sites_router)
 app.include_router(billing_router)
 app.include_router(intelligence_router)
@@ -196,7 +200,11 @@ def _ollama_model() -> str:
 
 
 @app.get("/api/health")
-async def health():
+async def health(request: Request):
+    # The internals (which model, memory, learning loops) are for the machine itself; the
+    # public only learns that the site is up.
+    if not is_local_request(request):
+        return {"status": "running", "platform": "Lyra AI"}
     from lyra.core.engine import engine
     from lyra.memory.vector_memory import memory
     from lyra.core.auto_learner import auto_learner
@@ -348,11 +356,16 @@ async def on_shutdown():
 
 # Pages use inline scripts, so 'unsafe-inline' stays; everything else is locked to this site
 # (plus Google Fonts, Stripe Checkout and the Google / Apple / GitHub sign-in pages, which
-# Apple reaches with a form post back to us).
-CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-       "font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self'; "
-       "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com https://accounts.google.com https://appleid.apple.com https://github.com; object-src 'none'; "
-       "upgrade-insecure-requests")
+# Apple reaches with a form post back to us). Pages may also call a model on the visitor's own
+# computer (Lyra Labs "On this device"), so localhost is allowed for fetch only.
+def csp() -> str:
+    from lyra.api import adsense
+    ads = adsense.csp_extra()   # Google's ad servers, only while AdSense is switched on
+    return (f"default-src 'self'; script-src 'self' 'unsafe-inline' {ads}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            f"font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' http://localhost:* http://127.0.0.1:* {ads}; "
+            f"frame-src 'self' {ads}; "
+            "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com https://accounts.google.com https://appleid.apple.com https://github.com; object-src 'none'; "
+            "upgrade-insecure-requests")
 
 if SERVE_WEBSITE:
     @app.get("/widget.js")
@@ -370,7 +383,7 @@ if SERVE_WEBSITE:
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
         response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         if response.headers.get("content-type", "").startswith("text/html"):
-            response.headers.setdefault("Content-Security-Policy", CSP)
+            response.headers.setdefault("Content-Security-Policy", csp())
         if request.method in ("GET", "HEAD") and response.status_code == 200:
             response.headers.setdefault("Cache-Control", cache_policy(request.url.path))
         return response
@@ -387,6 +400,35 @@ if SERVE_WEBSITE:
         if path.lower().endswith(STATIC_EXT):
             return "public, max-age=3600, s-maxage=86400, stale-while-revalidate=604800"
         return "public, max-age=60, s-maxage=300, stale-while-revalidate=86400"
+
+    @app.get("/ads.txt", include_in_schema=False)
+    async def ads_txt():
+        from lyra.api import adsense
+        body = adsense.ads_txt()
+        if not body:
+            return Response("Not found", status_code=404, media_type="text/plain")
+        return Response(body, media_type="text/plain", headers={"Cache-Control": "public, max-age=3600"})
+
+    @app.middleware("http")
+    async def adsense_tags(request, call_next):
+        """Put the AdSense tags into public pages (see lyra/api/adsense.py)."""
+        from lyra.api import adsense
+        response = await call_next(request)
+        if (request.method != "GET" or response.status_code != 200 or not adsense.wants_ads(request.url.path)
+                or not response.headers.get("content-type", "").startswith("text/html")):
+            return response
+        from lyra.db.database import SessionLocal
+        db = SessionLocal()
+        try:
+            if adsense.ad_free(request, db):
+                return response
+        finally:
+            db.close()
+        body = b"".join([chunk async for chunk in response.body_iterator])
+        body = body.replace(b"</head>", adsense.head_tags() + b"</head>", 1)
+        headers = {k: v for k, v in response.headers.items() if k.lower() not in ("content-length", "etag")}
+        headers["Vary"] = "Cookie"
+        return Response(body, status_code=200, headers=headers, media_type="text/html")
 
     # Mounted last so every API route above takes priority over static files.
     app.mount("/", StaticFiles(directory=str(WEBSITE_DIR), html=True), name="website")

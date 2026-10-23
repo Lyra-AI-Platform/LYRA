@@ -50,6 +50,13 @@ def _untag(s: str) -> List[str]:
     return [v for v in (s or "").split(",") if v]
 
 
+STOPWORDS = set("""the and for with what whats how why who when where which that this these those from into about over
+under than then them they their there here have has had was were are is be been being will would could should can may
+might must not but any all our your you his her its out off one two new latest recent happening going does did doing
+tell show give explain please much many more most some such also just only very really like want need make made
+""".split())
+
+
 def fts_query(text: str) -> str:
     """User text as a safe FTS5 query: every word must appear (prefix match on the last one).
     Quotes and operators are stripped, so a search can never be a syntax error."""
@@ -138,6 +145,32 @@ class WireStore:
                 d[k] = _untag(d[k])
             out.append(d)
         return {"total": total, "total_capped": total >= 100000, "results": out}
+
+    def relevant(self, text: str, f: Dict, limit: int = 10) -> List[Dict]:
+        """Best matches for a natural-language question: its meaningful words, any of them, ranked
+        by relevance (BM25) and then by date. Used to ground AI answers in real sources."""
+        words = [w for w in "".join(c if c.isalnum() or c in " -" else " " for c in text.lower()).split()
+                 if len(w) > 2 and w not in STOPWORDS][:16]
+        if not words:
+            return []
+        match = " OR ".join(f'"{w}"' for w in words)
+        where, params = self._where({k: v for k, v in f.items() if k != "q"})
+        with self._lock:
+            rows = self._conn.execute(
+                f"""SELECT {','.join('wire.' + c for c in PUBLIC)} FROM wire_fts JOIN wire ON wire.rowid = wire_fts.rowid
+                    WHERE wire_fts MATCH ? AND {where} ORDER BY bm25(wire_fts), wire.published DESC LIMIT ?""",
+                (match, *params, limit * 2)).fetchall()
+        out, seen = [], set()
+        for r in rows:
+            d = dict(r)
+            key = " ".join(d["title"].lower().split())[:120]
+            if key in seen:      # the same story syndicated under several URLs
+                continue
+            seen.add(key)
+            for k in ("topics", "tickers", "people"):
+                d[k] = _untag(d[k])
+            out.append(d)
+        return out[:limit]
 
     def facets(self, f: Dict, top: int = 30) -> Dict:
         """Counts for the filter panel, over the last 30 days of whatever the other filters match."""

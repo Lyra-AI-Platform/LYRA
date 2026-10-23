@@ -12,6 +12,7 @@
     ['/dashboard/chat.html', 'Lyra chat', 'Ask anything; it searches the web when needed', 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z'],
     ['/watch/live/', 'Watch Live', 'Real-time stream of who is moving markets', 'M12 12m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4'],
     ['/watch/', 'Watch directory', 'Every public figure we track', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 21a5 5 0 0 0-4-5'],
+    ['/labs/', 'Lyra Labs', 'Your AI and ours: co-scientist, agents, translator', 'M9 3h6M10 3v6L4.5 18.5A1.7 1.7 0 0 0 6 21h12a1.7 1.7 0 0 0 1.5-2.5L14 9V3M7.5 15h9'],
     ['/news/', 'Newswire', 'Global news and new research, with filters', 'M4 5h13v14H6a2 2 0 0 1-2-2zM17 9h3v8a2 2 0 0 1-2 2M8 9h5M8 13h5'],
     ['/dashboard/', 'LyraAuth sites', 'Your sites, keys, usage and training data', 'M12 3l8 3v6c0 5-3.4 8.4-8 9-4.6-.6-8-4-8-9V6zM9 12l2 2 4-4'],
   ];
@@ -30,6 +31,7 @@
   var SETTINGS = [
     ['/account/', 'Account & security', 'Profile, password, signed-in browsers'],
     ['/account/#links', 'Connected accounts', 'Google, Apple and GitHub sign-in'],
+    ['/labs/', 'Lyra Labs', 'Plug in your AI, pair it with ours'],
     ['/dashboard/billing.html', 'Billing & plan', 'Change plan, invoices, cancel'],
     ['/watch/account/', 'API keys & credits', 'Watch Pro, keys for agents'],
     ['/feedback/', 'Send feedback', 'Ideas, bugs, praise'],
@@ -160,6 +162,16 @@
       document.getElementById('tn-name').textContent = me.name || me.email.split('@')[0];
       document.getElementById('tn-email').textContent = me.email;
       document.getElementById('tn-av').textContent = (me.name || me.email).trim().charAt(0).toUpperCase();
+      // The owner's own menu entry.
+      fetch('/api/admin/overview', { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (o) {
+        if (!o) return;
+        var link = document.createElement('a');
+        link.setAttribute('role', 'menuitem');
+        link.href = '/admin/';
+        link.innerHTML = '<span><b>Admin' + (o.ads.waiting_for_approval ? ' \u00b7 ' + o.ads.waiting_for_approval + ' ad' + (o.ads.waiting_for_approval === 1 ? '' : 's') + ' to approve' : '') + '</b><small>Ads, feedback, accounts, systems</small></span>';
+        var who = document.querySelector('#tn-settings .tn-who');
+        who.after(link);
+      }).catch(function () {});
     }).catch(function () {});
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build);

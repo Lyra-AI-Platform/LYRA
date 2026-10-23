@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<style>
+  body { width: 300px; margin: 0; font: 14px/1.45 -apple-system, "Segoe UI", Inter, system-ui, sans-serif; color: #faf9f7;
+         background: radial-gradient(260px 120px at 110% -10%, rgba(225,29,72,.4), transparent 65%), #14120e; }
+  .in { padding: 16px; }
+  .brand { display: flex; align-items: center; gap: 9px; font-weight: 600; }
+  .brand img { width: 24px; height: 24px; border-radius: 6px; }
+  h1 { font-family: Georgia, serif; font-weight: 400; font-size: 22px; line-height: 1.1; margin: 12px 0 10px; }
+  h1 em { color: #fb7185; }
+  label { display: block; font-size: 12px; color: rgba(250,249,247,.6); margin: 8px 0 4px; }
+  input { width: 100%; box-sizing: border-box; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(250,249,247,.2); background: #1f1c17; color: #faf9f7; font: inherit; }
+  button { width: 100%; margin-top: 12px; padding: 10px; border: 0; border-radius: 9px; background: #faf9f7; color: #14120e; font: 600 14px inherit; cursor: pointer; }
+  p { font-size: 12px; color: rgba(250,249,247,.55); margin: 10px 0 0; }
+  a { color: #faf9f7; }
+</style>
+</head>
+<body>
+  <div class="in">
+    <div class="brand"><img src="icons/48.png" alt="" />Lyra</div>
+    <h1>Explain this page <em>for my country.</em></h1>
+    <label for="from">Page is from (optional)</label>
+    <input id="from" placeholder="e.g. Germany" />
+    <label for="to">Explain it for someone from</label>
+    <input id="to" placeholder="United Kingdom" />
+    <button id="go" type="button">Explain this page</button>
+    <p>Or highlight any text and right-click → <b>Explain with Lyra</b>. Text opens in <a href="https://lyraauth.com/labs/" target="_blank">Lyra Labs</a>; nothing is sent to an AI until you press Run there.</p>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

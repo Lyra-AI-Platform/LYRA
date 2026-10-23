@@ -172,6 +172,21 @@ class OAuthIdentity(Base):
     created_at = Column(DateTime(timezone=True), default=_now)
 
 
+class LabsConnection(Base):
+    """An AI a user plugged into Lyra Labs (lyra/labs/llm.py). The key is encrypted at rest."""
+    __tablename__ = "labs_connections"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    name       = Column(String, default="My AI")
+    kind       = Column(String, nullable=False)          # anthropic | openai
+    base_url   = Column(String, default="")
+    model      = Column(String, default="")
+    key_sealed = Column(Text, nullable=False)
+    key_hint   = Column(String, default="")
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
 class Feedback(Base):
     """A message sent from /feedback/ (lyra/api/feedback_api.py). Kept even if emailing it fails."""
     __tablename__ = "feedback"

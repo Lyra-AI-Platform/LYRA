@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "Lyra — explain any page for your country",
+  "short_name": "Lyra",
+  "version": "1.0.0",
+  "description": "Highlight a rule, notice or article and Lyra translates it and explains it in your own country's terms, using your choice of AI.",
+  "homepage_url": "https://lyraauth.com/labs/",
+  "permissions": ["contextMenus", "activeTab", "scripting", "storage"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_popup": "popup.html", "default_title": "Lyra", "default_icon": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" } },
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" }
+}

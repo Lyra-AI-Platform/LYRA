@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lyra Labs — plug in your AI, pair it with ours</title>
+  <meta name="description" content="Connect Claude, OpenAI or a model on your own computer, pair it 50/50 with Lyra's, and give it live global news and research: a co-scientist, research agents, intent-built pages, a cultural translator and a story engine." />
+  <link rel="canonical" href="https://lyraauth.com/labs/" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/css/main.css?v=20261023c" />
+  <script src="/js/session.js?v=20261023c"></script>
+  <script src="/js/topnav.js?v=20261023c"></script>
+  <style>
+    :root { --ink:#14120e; --paper:#faf9f7; --sheet:#fff; --rule:rgba(20,18,14,.09); --rule-hi:rgba(20,18,14,.2); --rose:#fb7185; --signal:#e11d48; --ok:#047857;
+            --serif:'Instrument Serif',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }
+    body { background: var(--paper); }
+    .band { color: var(--paper); background: radial-gradient(900px 420px at 105% -20%, rgba(225,29,72,.36), transparent 60%),
+      radial-gradient(700px 480px at -15% 130%, rgba(180,83,9,.28), transparent 60%),
+      linear-gradient(rgba(250,249,247,.055) 1px, transparent 1px) 0 0 / 100% 32px, var(--ink); }
+    .band-in { max-width: 1240px; margin: 0 auto; padding: 104px 20px 36px; display: grid; grid-template-columns: minmax(0,1.3fr) minmax(0,1fr); gap: 40px; align-items: end; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(250,249,247,.55); }
+    .band h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.6rem, 5.6vw, 4.6rem); line-height: .98; letter-spacing: -.015em; margin: 12px 0 16px; color: var(--paper); }
+    .band h1 em { color: var(--rose); }
+    .band p { color: rgba(250,249,247,.72); max-width: 600px; line-height: 1.6; margin: 0; }
+    .engine-card { background: rgba(250,249,247,.06); border: 1px solid rgba(250,249,247,.14); border-radius: 16px; padding: 18px; }
+    .engine-card h2 { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: rgba(250,249,247,.6); margin: 0 0 10px; font-weight: 600; }
+    .modes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .modes button { padding: 10px 6px; border-radius: 10px; border: 1px solid rgba(250,249,247,.16); background: none; color: rgba(250,249,247,.8); font: 600 13px Inter, system-ui, sans-serif; cursor: pointer; }
+    .modes button[aria-pressed=true] { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+    .engine-card label { display: block; font-size: 12px; color: rgba(250,249,247,.6); margin: 8px 0 4px; }
+    .engine-card select { width: 100%; padding: 9px 10px; border-radius: 9px; border: 1px solid rgba(250,249,247,.2); background: #1f1c17; color: var(--paper); font: 14px Inter, system-ui, sans-serif; }
+    .engine-note { font-size: 12px; color: rgba(250,249,247,.55); margin-top: 10px; line-height: 1.5; }
+
+    .wrap { max-width: 1240px; margin: 0 auto; padding: 24px 20px 96px; }
+    .apps { display: flex; gap: 6px; flex-wrap: wrap; border-bottom: 1px solid var(--rule); padding-bottom: 12px; margin-bottom: 22px; }
+    .apps button { padding: 9px 14px; border-radius: 999px; border: 1px solid var(--rule-hi); background: var(--sheet); font: 600 13.5px Inter, system-ui, sans-serif; cursor: pointer; color: var(--ink); }
+    .apps button[aria-selected=true] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .grid2 { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 28px; align-items: start; }
+    .panel { background: var(--sheet); border: 1px solid var(--rule); border-radius: 16px; padding: 22px; }
+    .panel h2 { font-family: var(--serif); font-weight: 400; font-size: 2rem; margin: 0 0 6px; line-height: 1.05; }
+    .panel > p { color: var(--muted); font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; }
+    .field input, .field textarea, .field select { width: 100%; padding: 10px 12px; border: 1px solid var(--rule-hi); border-radius: 10px; font: 14.5px/1.45 Inter, system-ui, sans-serif; background: var(--paper); color: var(--ink); }
+    .field textarea { min-height: 110px; resize: vertical; }
+    .run { width: 100%; padding: 12px; border: 0; border-radius: 10px; background: var(--ink); color: var(--paper); font: 600 15px Inter, system-ui, sans-serif; cursor: pointer; }
+    .run:disabled { opacity: .5; cursor: progress; }
+    .note { font-size: 12.5px; color: var(--muted); margin-top: 10px; line-height: 1.5; }
+    .out { min-height: 300px; }
+    .step { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 18px 20px; margin-bottom: 12px; animation: rin .35s cubic-bezier(.2,.7,.2,1) both; }
+    @keyframes rin { from { opacity: 0; transform: translateY(6px); } }
+    .step .who { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .step .who b { color: var(--ink); }
+    .step.busy .who::after { content: ''; width: 12px; height: 12px; border: 2px solid var(--rule-hi); border-top-color: var(--ink); border-radius: 50%; animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .step.err { border-color: rgba(225,29,72,.35); background: #fff1f2; }
+    .md { font-size: 15px; line-height: 1.65; }
+    .md h3 { font-size: 16px; margin: 14px 0 4px; } .md h4 { font-size: 14.5px; margin: 12px 0 4px; }
+    .md ul, .md ol { padding-left: 20px; margin: 6px 0; } .md p { margin: 6px 0; }
+    .md code { font-family: var(--mono); font-size: 13px; background: #f3f1ed; padding: 1px 5px; border-radius: 4px; }
+    .sources { margin-top: 10px; font-size: 13px; } .sources a { color: var(--ink); }
+    .sources li { margin: 3px 0; color: var(--muted); }
+    .empty { color: var(--muted); padding: 40px 0; text-align: center; }
+    .choices { display: grid; gap: 8px; margin-top: 12px; }
+    .choices button { text-align: left; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--rule-hi); background: var(--paper); font: 14.5px Inter, system-ui, sans-serif; cursor: pointer; }
+    .choices button:hover { border-color: var(--ink); }
+    .blocks { display: grid; gap: 14px; }
+    .block { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; }
+    .block h3 { font-family: var(--serif); font-weight: 400; font-size: 1.5rem; margin: 0 0 8px; }
+    .block table { width: 100%; border-collapse: collapse; font-size: 14px; } .block th, .block td { text-align: left; padding: 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    .block .newsrow { padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 14px; } .block .newsrow span { color: var(--muted); font-size: 12px; font-family: var(--mono); }
+    .conn { display: flex; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+    .conn small { color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+    .conn button { margin-left: auto; border: 1px solid var(--rule-hi); background: none; border-radius: 8px; padding: 5px 10px; cursor: pointer; font-size: 12.5px; }
+    .later { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 40px; }
+    .later div { padding: 18px; border-radius: 14px; border: 1px dashed var(--rule-hi); font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+    .later b { display: block; color: var(--ink); margin-bottom: 4px; font-size: 14.5px; }
+    .flash { padding: 10px 12px; border-radius: 10px; font-size: 13.5px; margin-bottom: 12px; display: none; }
+    .flash.show { display: block; } .flash.err { background: #fff1f2; color: #9f1239; } .flash.ok { background: #ecfdf5; color: var(--ok); }
+    @media (max-width: 960px) { .band-in, .grid2 { grid-template-columns: 1fr; } .band-in { padding-top: 84px; } .later { grid-template-columns: 1fr; } }
+    @media (prefers-reduced-motion: reduce) { .step { animation: none; } }
+  </style>
+</head>
+<body data-appnav="drawer">
+
+<nav class="nav" id="nav" data-appnav-hide>
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
+    <ul class="nav-links"><li><a href="/news/">News</a></li><li><a href="/labs/" aria-current="page">Labs</a></li><li><a href="/tremor/">Tremor Index</a></li><li><a href="/watch/">Watch</a></li></ul>
+    <div class="nav-cta"><a href="/dashboard/login.html?next=/labs/" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a><a href="/dashboard/register.html?next=/labs/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Create account</a></div>
+  </div>
+</nav>
+
+<section class="band">
+  <div class="band-in">
+    <div>
+      <div class="kicker">Lyra Labs · experimental</div>
+      <h1>Plug in your AI. <em>Pair it with ours.</em></h1>
+      <p>Bring Claude, any OpenAI-compatible model, or one running on your own computer. Lyra gives it live global news and new research, and can run it 50/50 with Lyra's own model: both answer, critique each other, then agree.</p>
+    </div>
+    <div class="engine-card" aria-label="Engine">
+      <h2>Engine</h2>
+      <div class="modes" id="modes">
+        <button data-m="lyra" aria-pressed="true">Lyra's AI</button>
+        <button data-m="mine" aria-pressed="false">My AI</button>
+        <button data-m="pair" aria-pressed="false">50 / 50</button>
+      </div>
+      <div id="mine-pick"><label for="engine-mine">My AI</label><select id="engine-mine"></select></div>
+      <div class="engine-note" id="engine-note">Loading…</div>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <div class="apps" role="tablist" id="apps">
+    <button role="tab" data-app="ask" aria-selected="true">Ask with sources</button>
+    <button role="tab" data-app="scientist" aria-selected="false">Co-Scientist</button>
+    <button role="tab" data-app="coop" aria-selected="false">Agent co-op</button>
+    <button role="tab" data-app="intent" aria-selected="false">Intent page</button>
+    <button role="tab" data-app="translate" aria-selected="false">Cultural translator</button>
+    <button role="tab" data-app="story" aria-selected="false">Story engine</button>
+    <button role="tab" data-app="connect" aria-selected="false">Your AI ⚙</button>
+  </div>
+
+  <div class="grid2">
+    <div class="panel" id="form-panel"></div>
+    <div class="out" id="out"><p class="empty">Pick an app, write what you want, press run.</p></div>
+  </div>
+
+  <section class="panel" style="margin-top:36px;display:grid;grid-template-columns:auto 1fr auto;gap:20px;align-items:center" id="extension">
+    <img src="/img/logo-mark.svg" alt="" width="64" height="64" style="border-radius:16px" />
+    <div><h2 style="margin:0">Lyra for your browser</h2>
+      <p style="margin:6px 0 0">Highlight a rule, contract or article on any site, right-click <b>Explain with Lyra</b>, and the cultural translator opens with it, ready for your AI. Chrome, Edge, Brave and Arc.</p>
+      <p class="note">Install: download and unzip, open <code>chrome://extensions</code>, switch on Developer mode, then <b>Load unpacked</b> and pick the unzipped folder. Page text goes nowhere until you press Run.</p></div>
+    <a class="run" style="text-decoration:none;text-align:center;padding:12px 18px;width:auto" href="/downloads/lyra-extension.zip" download>Download</a>
+  </section>
+
+  <div class="later">
+    <div><b>Brain–computer translators</b>Need neural-interface hardware; nothing a website can do yet. When consumer devices ship an API, Lyra Labs will connect to it.</div>
+    <div><b>Live neural video sandboxes</b>Real-time, multi-user video generation needs GPU clusters rendering in milliseconds. On the list for when that is affordable.</div>
+    <div><b>Zero-knowledge data vaults</b>Training on rivals' private data without revealing it needs homomorphic encryption that is still far too slow in a browser.</div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const SAFETY = 'Safety rules that override everything else: never give instructions, quantities, synthesis routes or procurement help for weapons, explosives, chemical or biological agents, toxins, or anything meant to harm people; never help with surveillance of a private person, fraud or breaking into systems. For experiments, always include the hazards, required controls and a note that a qualified person must review and supervise the work. Never claim to have run an experiment, browsed a site or taken an action you did not.';
+  const LOCAL_KEY = 'lyra-labs-local';
+  let STATUS = { signed_in: false, member: false, lyra_model: { on: false } };
+  let CONNS = [];
+  let mode = 'lyra';
+  let app = 'ask';
+  const local = (() => { try { return JSON.parse(localStorage.getItem(LOCAL_KEY) || 'null'); } catch (e) { return null; } })();
+
+  // ── Markdown, safely: everything is escaped first, then a few patterns are formatted. ──
+  function md(text, sources) {
+    const lines = esc(text).split('\n');
+    let html = '', list = null;
+    const inline = (s) => s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\[(\d{1,2})\]/g, (m, n) => sources && sources[n - 1] ? `<a href="${esc(sources[n - 1].url)}" target="_blank" rel="noopener nofollow">[${n}]</a>` : m);
+    for (const raw of lines) {
+      const l = raw.trimEnd();
+      const b = l.match(/^\s*(?:[-*•]|\d+[.)])\s+(.*)/);
+      if (b) { if (!list) { html += '<ul>'; list = true; } html += `<li>${inline(b[1])}</li>`; continue; }
+      if (list) { html += '</ul>'; list = null; }
+      if (/^#{1,2}\s/.test(l)) html += `<h3>${inline(l.replace(/^#+\s/, ''))}</h3>`;
+      else if (/^#{3,}\s/.test(l)) html += `<h4>${inline(l.replace(/^#+\s/, ''))}</h4>`;
+      else if (l.trim()) html += `<p>${inline(l)}</p>`;
+    }
+    if (list) html += '</ul>';
+    return html;
+  }
+  function sourceList(sources) {
+    if (!sources || !sources.length) return '';
+    return `<ol class="sources">${sources.map((s) => `<li><a href="${esc(s.url)}" target="_blank" rel="noopener nofollow">${esc(s.title)}</a> · ${esc(s.source)}</li>`).join('')}</ol>`;
+  }
+
+  // ── Engines ──
+  function engineLabel(e) {
+    if (e === 'lyra') return 'Lyra\u2019s AI';
+    if (e === 'local') return 'Your device' + (local && local.model ? ` (${local.model})` : '');
+    const c = CONNS.find((x) => String(x.id) === String(e));
+    return c ? c.name : 'Your AI';
+  }
+  function myEngine() { return $('engine-mine').value || null; }
+  function engines() {
+    if (mode === 'lyra') return ['lyra'];
+    if (mode === 'mine') return [myEngine()];
+    return [myEngine(), 'lyra'];
+  }
+  async function call(engine, system, messages, maxTokens) {
+    system = SAFETY + '\n\n' + system;
+    if (engine === 'local') {
+      if (!local) throw new Error('Set up "On this device" under Your AI first.');
+      if (local.kind === 'ollama') {
+        const r = await fetch(local.url.replace(/\/$/, '') + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: local.model, stream: false, messages: [{ role: 'system', content: system }, ...messages], options: { num_predict: maxTokens || 1500 } }) })
+          .catch(() => { throw new Error('Couldn’t reach your local model. Is it running, and does it allow this site (OLLAMA_ORIGINS)?'); });
+        if (!r.ok) throw new Error('Your local model answered ' + r.status);
+        return (await r.json()).message.content.trim();
+      }
+      const r = await fetch(local.url.replace(/\/$/, '') + '/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: local.model, max_tokens: maxTokens || 1500, messages: [{ role: 'system', content: system }, ...messages] }) })
+        .catch(() => { throw new Error('Couldn’t reach your local model. Is the server running with CORS allowed?'); });
+      if (!r.ok) throw new Error('Your local model answered ' + r.status);
+      return ((await r.json()).choices[0].message.content || '').trim();
+    }
+    if (!engine) throw new Error('Connect your own AI first (Your AI ⚙), or choose Lyra’s AI.');
+    const r = await fetch('/api/labs/complete', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ engine, system, messages, max_tokens: maxTokens || 1500 }) });
+    const d = await r.json().catch(() => ({}));
+    if (r.status === 401) throw new Error('Sign in to use the server engines (or set up a model on this device).');
+    if (!r.ok) throw new Error(typeof d.detail === 'string' ? d.detail : (d.detail && d.detail.message) || 'The model couldn’t answer.');
+    return d.text;
+  }
+  // One question through the chosen mode. In 50/50 both answer, each reviews the other, the first merges.
+  async function think(stepTitle, system, prompt, maxTokens) {
+    const es = engines();
+    if (es.length === 1) {
+      const s = step(`${stepTitle} · <b>${esc(engineLabel(es[0]))}</b>`);
+      try { const t = await call(es[0], system, [{ role: 'user', content: prompt }], maxTokens); s.done(t); return t; }
+      catch (e) { s.fail(e.message); throw e; }
+    }
+    const [a, b] = es;
+    const sa = step(`${stepTitle} · <b>${esc(engineLabel(a))}</b>`), sb = step(`${stepTitle} · <b>${esc(engineLabel(b))}</b>`);
+    const [ra, rb] = await Promise.all([
+      call(a, system, [{ role: 'user', content: prompt }], maxTokens).then((t) => (sa.done(t), t), (e) => (sa.fail(e.message), null)),
+      call(b, system, [{ role: 'user', content: prompt }], maxTokens).then((t) => (sb.done(t), t), (e) => (sb.fail(e.message), null)),
+    ]);
+    if (!ra || !rb) { if (ra || rb) return ra || rb; throw new Error('Neither engine could answer.'); }
+    const sm = step(`${stepTitle} · <b>50/50 merge</b>`);
+    const merge = `Two assistants answered the same task.\n\nTASK:\n${prompt}\n\nANSWER A (${engineLabel(a)}):\n${ra}\n\nANSWER B (${engineLabel(b)}):\n${rb}\n\n` +
+      'Point out where they disagree or where either is wrong or unsupported, then write the single best combined answer. Keep any source numbers like [3]. Start the combined answer with a line "## Combined answer".';
+    try { const t = await call(a, system, [{ role: 'user', content: merge }], maxTokens); sm.done(t); return t.split('## Combined answer').pop().trim() || t; }
+    catch (e) { sm.fail(e.message); return ra; }
+  }
+
+  // ── Output steps ──
+  let sources = [];
+  function clearOut() { $('out').replaceChildren(); sources = []; }
+  function step(title) {
+    const el = document.createElement('div');
+    el.className = 'step busy';
+    el.innerHTML = `<div class="who">${title}</div><div class="md"></div>`;
+    $('out').appendChild(el);
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return {
+      el,
+      done(text) { el.classList.remove('busy'); el.querySelector('.md').innerHTML = md(text, sources); },
+      fail(msg) { el.classList.remove('busy'); el.classList.add('err'); el.querySelector('.md').textContent = msg; },
+      html(h) { el.classList.remove('busy'); el.querySelector('.md').innerHTML = h; },
+    };
+  }
+  async function grounding(q, opts) {
+    const p = new URLSearchParams({ q, limit: '10', ...(opts || {}) });
+    const d = await fetch('/api/labs/context?' + p).then((r) => r.json()).catch(() => ({ items: [] }));
+    return d.items || [];
+  }
+  function sourcesBlock(items) {
+    return items.map((s, i) => `[${i + 1}] ${s.title} (${s.source}, ${new Date(s.published * 1000).toISOString().slice(0, 10)}${s.kind === 'research' ? ', research' : ''})${s.summary ? ' — ' + s.summary : ''}`).join('\n');
+  }
+
+  // ── Apps ──
+  const APPS = {
+    ask: {
+      title: 'Ask with sources', blurb: 'Ask anything. Lyra pulls matching news and research from the newswire and the answer cites them.',
+      fields: [['q', 'Question', 'textarea', 'What is driving battery-chemical stocks this month?']],
+      async run(v) {
+        const s0 = step('Searching the newswire');
+        sources = await grounding(v.q);
+        s0.html(sources.length ? `Found ${sources.length} sources.` + sourceList(sources) : 'No matching sources; answering from general knowledge.');
+        await think('Answer', sources.length ? 'Answer the question. Use the numbered sources where they are relevant and cite them like [2]; fill gaps from your own knowledge and say which parts are not from the sources. Be concise and concrete.'
+          : 'Answer from your own knowledge, concisely and concretely. Start with one short line saying no fresh sources were found in the newswire, so recent events may be missing.',
+          `SOURCES:\n${sourcesBlock(sources) || '(none)'}\n\nQUESTION: ${v.q}`, 1500);
+      },
+    },
+    scientist: {
+      title: 'Co-Scientist', blurb: 'From a question to hypotheses, experiment designs and a critique, grounded in the newest papers. It plans; a qualified person runs and supervises any lab work.',
+      fields: [['q', 'Research question', 'textarea', 'Can a fluorinated additive reduce lithium dendrite growth in solid-state electrolytes?'],
+               ['domain', 'Field', 'select', ['chemicals', 'pharma', 'ai', 'energy']]],
+      async run(v) {
+        const s0 = step('Reading new research');
+        sources = await grounding(v.q, { kind: 'research', topics: v.domain });
+        if (sources.length < 3) sources = sources.concat(await grounding(v.q, { kind: 'research' })).slice(0, 10);
+        s0.html(`${sources.length} recent papers.` + sourceList(sources));
+        const sys = 'You are a careful research scientist. Ground claims in the numbered papers where possible and cite them like [3]. Separate what is known from what is speculation.';
+        const hyp = await think('Hypotheses', sys, `PAPERS:\n${sourcesBlock(sources)}\n\nQUESTION: ${v.q}\n\nPropose three distinct, testable hypotheses. For each: the mechanism, what result would support or refute it, and which papers it builds on.`, 1600);
+        const design = await think('Experiment designs', sys, `QUESTION: ${v.q}\n\nHYPOTHESES:\n${hyp}\n\nFor the most promising hypothesis, design an experiment at a conceptual level: variables, controls, measurements, sample size, expected results, and a hazard and control section. Do not give step-by-step synthesis procedures or quantities of hazardous materials.`, 1600);
+        await think('Critique and next steps', sys, `QUESTION: ${v.q}\n\nPLAN:\n${design}\n\nAct as a sceptical reviewer: list the weaknesses, confounders and likely failure modes, how to detect each early, and the order you would run things in. End with "What a lab would need" (equipment, expertise, approvals).`, 1400);
+      },
+    },
+    coop: {
+      title: 'Agent co-op', blurb: 'Give a goal; a planner splits it into tasks, research agents work them in parallel against the newswire, and a lead merges the findings. Read-only: agents never buy, book, sign or post anything.',
+      fields: [['q', 'Goal', 'textarea', 'Map the risks to European chemical producers from new US tariffs and energy prices.']],
+      async run(v) {
+        const plan = await think('Plan', 'You are a lead analyst. Reply with 3 to 5 short research tasks, one per line, each starting with "- ". No other text.', `GOAL: ${v.q}`, 400);
+        const tasks = plan.split('\n').map((l) => l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/, '').trim()).filter((l) => l.length > 6).slice(0, 5);
+        const findings = await Promise.all(tasks.map(async (t, i) => {
+          const items = await grounding(t);
+          const offset = sources.length; sources = sources.concat(items);
+          const block = items.map((s, j) => `[${offset + j + 1}] ${s.title} (${s.source})${s.summary ? ' — ' + s.summary : ''}`).join('\n');
+          try { return { t, text: await think(`Agent ${i + 1}: ${esc(t)}`, 'You are a research agent. Use the numbered sources and cite them like [4]. Report findings as bullets, then one line on what is still unknown.', `SOURCES:\n${block || '(none)'}\n\nTASK: ${t}`, 900) }; }
+          catch (e) { return { t, text: '(failed)' }; }
+        }));
+        await think('Lead: merged report', 'You are the lead analyst. Merge the agents’ findings into one clear report with sections, keeping their source numbers. Flag contradictions between agents.',
+          `GOAL: ${v.q}\n\n` + findings.map((f, i) => `AGENT ${i + 1} (${f.t}):\n${f.text}`).join('\n\n'), 1800);
+        const s = step('All sources'); s.html(sourceList(sources));
+      },
+    },
+    intent: {
+      title: 'Intent page', blurb: 'Describe what you want to see; Lyra builds a page for it from safe building blocks (news lists, company views, comparison tables, notes). No generated code ever runs.',
+      fields: [['q', 'What do you want?', 'textarea', 'Compare Nvidia, AMD and TSMC on this week’s news, and show me the latest AI chip research.']],
+      async run(v) {
+        const sys = 'You design a page as JSON only, no prose. Schema: {"title": string, "blocks": [ ... ]} where each block is one of: ' +
+          '{"type":"note","title":string,"text":string} | {"type":"news","title":string,"query":string,"kind":"news"|"research"|"","topic":string} | ' +
+          '{"type":"company","ticker":string} | {"type":"compare","title":string,"columns":[string],"rows":[[string]]}. At most 6 blocks. Topics: ai, semiconductors, chemicals, pharma, energy, politics, trade-policy, central-banks, markets, crypto, climate, defence, mergers.';
+        const raw = await think('Designing the page', sys, v.q, 900);
+        let spec;
+        try { spec = JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)); } catch (e) { step('Page').fail('The model didn’t return a valid page design. Try rephrasing, or another engine.'); return; }
+        const page = step('Your page'); page.html(`<div class="blocks" id="blocks"><h2 style="font-family:var(--serif);font-weight:400;font-size:2rem;margin:0">${esc(spec.title || 'Your page')}</h2></div>`);
+        const box = page.el.querySelector('#blocks');
+        for (const b of (Array.isArray(spec.blocks) ? spec.blocks : []).slice(0, 6)) {
+          const el = document.createElement('div'); el.className = 'block'; box.appendChild(el);
+          if (b.type === 'note') el.innerHTML = `<h3>${esc(b.title)}</h3><div class="md">${md(String(b.text || '').slice(0, 2000))}</div>`;
+          else if (b.type === 'news') {
+            el.innerHTML = `<h3>${esc(b.title || b.query)}</h3><p class="note">Loading…</p>`;
+            const p = new URLSearchParams({ q: String(b.query || '').slice(0, 120), limit: '6' });
+            if (['news', 'research'].includes(b.kind)) p.set('kind', b.kind);
+            if (b.topic) p.set('topics', String(b.topic).slice(0, 30));
+            const d = await fetch('/api/wire/search?' + p).then((r) => r.json()).catch(() => ({ results: [] }));
+            el.innerHTML = `<h3>${esc(b.title || b.query)}</h3>` + (d.results.map((r) => `<div class="newsrow"><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a><br><span>${esc(r.source)} · ${new Date(r.published * 1000).toLocaleDateString()}</span></div>`).join('') || '<p class="note">Nothing found.</p>');
+          } else if (b.type === 'company') {
+            const t = String(b.ticker || '').toUpperCase().replace(/[^A-Z.\-]/g, '').slice(0, 10);
+            const d = await fetch('/api/wire/ticker/' + encodeURIComponent(t)).then((r) => r.json()).catch(() => null);
+            el.innerHTML = `<h3>${esc(t)} <a href="/market?ticker=${encodeURIComponent(t)}" style="font-size:14px;font-family:Inter,sans-serif">Tremor reading →</a></h3>` +
+              (d ? `<p class="note">${d.news_total_30d.toLocaleString()} stories in 30 days${d.people_in_coverage.length ? ' · people: ' + d.people_in_coverage.slice(0, 5).map((x) => esc(x[0])).join(', ') : ''}</p>` +
+              d.news.slice(0, 4).map((r) => `<div class="newsrow"><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a><br><span>${esc(r.source)}</span></div>`).join('') : '<p class="note">No data.</p>');
+          } else if (b.type === 'compare' && Array.isArray(b.columns) && Array.isArray(b.rows)) {
+            const cols = b.columns.slice(0, 6), rows = b.rows.slice(0, 12);
+            el.innerHTML = `<h3>${esc(b.title || 'Comparison')}</h3><table><thead><tr>${cols.map((c) => `<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${cols.map((_, i) => `<td>${esc((r || [])[i] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table><p class="note">Written by the model; check figures before relying on them.</p>`;
+          } else el.remove();
+        }
+      },
+    },
+    translate: {
+      title: 'Cultural translator', blurb: 'Paste a rule, notice or page. Lyra translates it and re-explains it as the closest equivalent in your country’s terms. Not legal advice.',
+      fields: [['text', 'Text to explain', 'textarea', ''], ['from', 'It comes from', 'input', 'Germany'], ['to', 'Explain it for someone from', 'input', 'United Kingdom'], ['src', 'Source page (optional)', 'input', '']],
+      async run(v) {
+        if (!v.text.trim()) throw new Error('Paste some text first.');
+        await think('Translation and context', 'You are a careful translator and comparative-law explainer. Never present your output as legal advice.',
+          `Source country: ${v.from}\nReader's country: ${v.to}\n${v.src ? 'Source page: ' + v.src + '\n' : ''}\nTEXT:\n${v.text.slice(0, 12000)}\n\n` +
+          'Give: (1) a faithful plain-English translation; (2) "What this means for you": the closest equivalent concepts, bodies and rules in the reader’s country, and where there is no equivalent; (3) key differences and traps; (4) who to ask to be sure (the official body or a qualified professional). End with: "This is an explanation, not legal advice."', 2200);
+      },
+    },
+    story: {
+      title: 'Story engine', blurb: 'An interactive story that adapts to every choice you make and the mood you set.',
+      fields: [['q', 'Start', 'textarea', 'A noir mystery on a research ship in the Arctic; I play the station chemist.'], ['mood', 'Mood', 'select', ['tense', 'hopeful', 'eerie', 'funny', 'epic']]],
+      history: [],
+      async run(v, choice) {
+        const sys = `You are an interactive storyteller. Mood: ${v.mood}. Write 150-250 vivid words continuing the story in second person, then exactly three numbered options for what the player does next, each one line. No violence beyond what a 15-rated film would show.`;
+        if (!choice) this.history = [{ role: 'user', content: `Begin this story: ${v.q}` }];
+        else this.history.push({ role: 'user', content: `I choose: ${choice}` });
+        const e = engines()[0];
+        const s = step(`Chapter ${Math.ceil(this.history.length / 2)} · <b>${esc(engineLabel(e))}</b>`);
+        let text;
+        try { text = await call(e, sys, this.history.slice(-12), 900); } catch (err) { s.fail(err.message); return; }
+        this.history.push({ role: 'assistant', content: text });
+        const opts = text.split('\n').map((l) => l.match(/^\s*(\d)[.)]\s+(.*)/)).filter(Boolean).map((m) => m[2]).slice(0, 3);
+        const body = text.split('\n').filter((l) => !/^\s*\d[.)]\s+/.test(l)).join('\n');
+        s.html(md(body) + `<div class="choices">${opts.map((o) => `<button type="button">${esc(o)}</button>`).join('')}</div>`);
+        s.el.querySelectorAll('.choices button').forEach((b) => b.onclick = () => { s.el.querySelectorAll('.choices button').forEach((x) => x.disabled = true); this.run(v, b.textContent); });
+      },
+    },
+  };
+
+  // ── Forms ──
+  function renderForm() {
+    const panel = $('form-panel');
+    if (app === 'connect') return renderConnect();
+    const a = APPS[app];
+    panel.innerHTML = `<h2>${esc(a.title)}</h2><p>${esc(a.blurb)}</p><form id="appform"></form>`;
+    const f = panel.querySelector('#appform');
+    for (const [name, label, type, ph] of a.fields) {
+      const id = 'f-' + name;
+      let input;
+      if (type === 'textarea') input = `<textarea id="${id}" name="${name}" placeholder="${esc(ph)}"></textarea>`;
+      else if (type === 'select') input = `<select id="${id}" name="${name}">${ph.map((o) => `<option>${esc(o)}</option>`).join('')}</select>`;
+      else input = `<input id="${id}" name="${name}" value="${esc(ph)}" />`;
+      f.insertAdjacentHTML('beforeend', `<div class="field"><label for="${id}">${esc(label)}</label>${input}</div>`);
+    }
+    f.insertAdjacentHTML('beforeend', `<button class="run" type="submit">Run</button><p class="note">Engine: ${esc(engines().map(engineLabel).join(' + '))}</p>`);
+    f.onsubmit = async (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(f).entries());
+      for (const [name, , type, ph] of a.fields) if (type === 'textarea' && !v[name].trim() && ph) v[name] = ph;
+      const btn = f.querySelector('.run'); btn.disabled = true; btn.textContent = 'Running…';
+      clearOut();
+      try { await a.run(v); } catch (err) { if (!$('out').querySelector('.err')) step('Stopped').fail(err.message); }
+      btn.disabled = false; btn.textContent = 'Run';
+    };
+    return f;
+  }
+
+  function renderConnect() {
+    const panel = $('form-panel');
+    panel.innerHTML = `<h2>Your AI</h2><p>Keys are encrypted on Lyra's server and only used to answer your requests. Or keep everything on your computer with "On this device".</p>
+      <div class="flash" id="flash"></div>
+      <div id="conns"></div>
+      <h3 style="font-size:15px;margin:18px 0 8px">Connect a cloud AI</h3>
+      <form id="cform">
+        <div class="field"><label for="c-kind">Provider</label><select id="c-kind" name="kind"><option value="anthropic">Anthropic (Claude)</option><option value="openai">OpenAI or any OpenAI-compatible API</option></select></div>
+        <div class="field" id="c-base-row" hidden><label for="c-base">API base URL</label><input id="c-base" name="base_url" placeholder="https://api.openai.com/v1" /></div>
+        <div class="field"><label for="c-model">Model</label><input id="c-model" name="model" placeholder="${esc(STATUS.default_claude || 'claude-opus-5-5')}" /></div>
+        <div class="field"><label for="c-key">API key</label><input id="c-key" name="key" type="password" autocomplete="off" /></div>
+        <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" value="My AI" /></div>
+        <button class="run" type="submit">Connect</button>
+      </form>
+      <h3 style="font-size:15px;margin:22px 0 8px">On this device (runs locally, nothing leaves your computer)</h3>
+      <form id="lform">
+        <div class="field"><label for="l-kind">Local server</label><select id="l-kind" name="kind"><option value="ollama">Ollama</option><option value="openai">LM Studio / llama.cpp (OpenAI-compatible)</option></select></div>
+        <div class="field"><label for="l-url">Address</label><input id="l-url" name="url" value="${esc(local ? local.url : 'http://localhost:11434')}" /></div>
+        <div class="field"><label for="l-model">Model</label><input id="l-model" name="model" value="${esc(local ? local.model : 'qwen3:8b')}" /></div>
+        <button class="run" type="submit">Save device model</button>
+        <p class="note">For Ollama, start it with <code>OLLAMA_ORIGINS=https://lyraauth.com ollama serve</code> so this page may call it. Safari may block calls to your own computer; Chrome and Edge allow them.</p>
+      </form>`;
+    const flash = (msg, ok) => { const f = $('flash'); f.className = 'flash show ' + (ok ? 'ok' : 'err'); f.textContent = msg; };
+    $('c-kind').onchange = () => { $('c-base-row').hidden = $('c-kind').value !== 'openai'; $('c-model').placeholder = $('c-kind').value === 'openai' ? 'gpt-4o-mini' : (STATUS.default_claude || 'claude-opus-5-5'); };
+    const conns = () => { $('conns').innerHTML = CONNS.length ? CONNS.map((c) => `<div class="conn"><div><b>${esc(c.name)}</b><br><small>${esc(c.kind)} · ${esc(c.model || 'default model')} · key ${esc(c.key)}</small></div><button data-id="${c.id}">Remove</button></div>`).join('') : '<p class="note">No cloud AI connected yet.</p>';
+      $('conns').querySelectorAll('button').forEach((b) => b.onclick = async () => { await fetch('/api/labs/connections/' + b.dataset.id, { method: 'DELETE', credentials: 'same-origin' }); await loadConns(); conns(); }); };
+    conns();
+    $('cform').onsubmit = async (e) => {
+      e.preventDefault();
+      if (!STATUS.signed_in) return flash('Sign in first to connect a cloud AI. "On this device" works without an account.');
+      const body = Object.fromEntries(new FormData(e.target).entries());
+      const r = await fetch('/api/labs/connections', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) return flash(typeof d.detail === 'string' ? d.detail : 'Couldn’t connect that AI.');
+      e.target.reset(); await loadConns(); conns(); flash('Connected. Choose "My AI" or "50 / 50" above.', true);
+    };
+    $('lform').onsubmit = (e) => {
+      e.preventDefault();
+      const v = Object.fromEntries(new FormData(e.target).entries());
+      try { localStorage.setItem(LOCAL_KEY, JSON.stringify(v)); } catch (err) {}
+      Object.assign(window, {}); location.reload();
+    };
+  }
+
+  async function loadConns() {
+    CONNS = STATUS.signed_in ? await fetch('/api/labs/connections', { credentials: 'same-origin' }).then((r) => r.ok ? r.json() : []).catch(() => []) : [];
+    const sel = $('engine-mine');
+    sel.innerHTML = CONNS.map((c) => `<option value="${c.id}">${esc(c.name)} (${esc(c.kind)})</option>`).join('') + (local ? `<option value="local">On this device (${esc(local.model)})</option>` : '');
+    if (!sel.options.length) sel.innerHTML = '<option value="">None yet: connect one under Your AI ⚙</option>';
+  }
+  function note() {
+    const m = STATUS.lyra_model;
+    const lyra = m.on ? `Lyra's AI runs on Lyra's own servers${m.queue ? ` (${m.queue} waiting)` : ''}${STATUS.member ? '' : '. Members only: start the free trial to use it'}.` : 'Lyra’s own model is being set up; use your AI meanwhile.';
+    $('engine-note').innerHTML = mode === 'lyra' ? lyra : mode === 'mine' ? 'Your AI answers alone. Keys stay encrypted; device models never touch Lyra’s server.'
+      : '50 / 50: both answer, then your AI reviews both and writes the combined answer.';
+    $('mine-pick').hidden = mode === 'lyra';
+  }
+  $('modes').querySelectorAll('button').forEach((b) => b.onclick = () => {
+    mode = b.dataset.m; $('modes').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); note(); renderForm();
+  });
+  $('apps').querySelectorAll('button').forEach((b) => b.onclick = () => {
+    app = b.dataset.app; $('apps').querySelectorAll('button').forEach((x) => x.setAttribute('aria-selected', String(x === b))); renderForm();
+  });
+
+  // The browser extension (and links) can open an app pre-filled: /labs/#app=translate&text=...
+  function fromHash() {
+    const h = new URLSearchParams(location.hash.slice(1));
+    const want = h.get('app');
+    if (!want || !APPS[want]) return;
+    app = want;
+    $('apps').querySelectorAll('button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.app === app)));
+    const f = renderForm();
+    for (const [k, v] of h.entries()) { const el = f && f.querySelector(`[name="${k}"]`); if (el && k !== 'app') el.value = v.slice(0, 20000); }
+    history.replaceState(null, '', location.pathname);
+  }
+
+  fetch('/api/labs/status', { credentials: 'same-origin' }).then((r) => r.json()).then(async (s) => {
+    STATUS = s;
+    await loadConns();
+    if (!s.lyra_model.on || !s.member) { if (CONNS.length || local) { mode = 'mine'; $('modes').querySelectorAll('button').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.m === 'mine'))); } }
+    note(); renderForm(); fromHash();
+  }).catch(() => { note(); renderForm(); fromHash(); });
+})();
+</script>
+</body>
+</html>
