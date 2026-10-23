@@ -40,8 +40,8 @@ Later updates: `bash /opt/lyra/deploy/update.sh`.
 |---|---|
 | SSL/TLS → Overview | **Full** |
 | SSL/TLS → Edge Certificates | **Always Use HTTPS** on |
-| Security → Settings → Bot traffic | **Bot fight mode** on, **Block AI bots** on |
-| AI Crawl Control | **Block** all AI crawlers |
+| Security → Settings → Bot traffic | **Bot fight mode** off (it challenges customers' server-to-server calls to `/api/auth/siteverify`, and the Free plan can't exempt a path), **Block AI bots** on |
+| AI Crawl Control | **Block** AI training crawlers; leave AI search/assistant agents (OAI-SearchBot, ChatGPT-User, Claude-SearchBot, PerplexityBot, Perplexity-User) unblocked so `robots.txt` can limit them to `/watch/`. Claude-User stays blocked by the "Block AI bots" policy (Cloudflare files it as a crawler) |
 | Scrape Shield | **Email address obfuscation** and **Hotlink protection** on |
 | Security → WAF → Rate limiting rules | Add the rule below |
 | Caching → Cache Rules | Bypass cache when URI path starts with `/api/` or equals `/market` |
@@ -61,7 +61,7 @@ Rate limiting rule (Free plan allows one):
 | App | Login tokens are signed with a random secret generated on the server (the old code used a public default) |
 | Page | Text selection, right-click, copy, print and save shortcuts are blocked on data panels; every view is watermarked with the viewer's email and time, so leaked screenshots can be traced |
 | Responses | `no-store` and `noindex` headers: nothing is cached by Cloudflare or indexed by search engines |
-| Cloudflare | Bot Fight Mode, AI-crawler blocking, rate limiting, and no direct access to the server |
+| Cloudflare | AI-training-crawler blocking, rate limiting, and no direct access to the server |
 
 Honest limit: anything a signed-in person can see, they can screenshot or retype.
 These layers make bulk or automated copying impractical and make leaks traceable.

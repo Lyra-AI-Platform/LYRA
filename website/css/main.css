@@ -93,11 +93,11 @@ code {
   display: flex; align-items: center; justify-content: space-between;
   max-width: 1080px; margin: 0 auto; padding: 0 24px; height: 100%;
 }
-.nav-logo { font-size: 0.9375rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
-.nav-links { display: flex; gap: 0; list-style: none; }
-.nav-links a { padding: 6px 12px; color: var(--muted); font-size: 0.875rem; font-weight: 450; border-radius: 6px; }
+.nav-logo { font-size: 0.9375rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; white-space: nowrap; flex-shrink: 0; }
+.nav-links { display: flex; gap: 0; list-style: none; min-width: 0; }
+.nav-links a { display: block; white-space: nowrap; padding: 6px 12px; color: var(--muted); font-size: 0.875rem; font-weight: 450; border-radius: 6px; }
 .nav-links a:hover { color: var(--text); opacity: 1; background: var(--surface2); }
-.nav-cta { display: flex; align-items: center; gap: 8px; }
+.nav-cta { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
 /* Mobile nav */
 .nav-hamburger {
@@ -499,3 +499,12 @@ code {
 @media (max-width: 600px) { .wn-grid { grid-template-columns: 1fr; } .wn-in { padding: 0 16px; } .whatsnew { padding: 44px 0 28px; } }
 /* Provider icons stay icon-sized whatever else loads */
 .hp-btn svg, .provider svg { width: 18px !important; height: 18px !important; flex: none; }
+
+/* Homepage nav has ten links: give it more room, and switch to the menu button before it would crowd */
+.nav-wide .nav-inner { max-width: 1320px; }
+.nav-wide .nav-links a { padding: 6px 9px; }
+@media (max-width: 1280px) {
+  .nav-wide .nav-links, .nav-wide .nav-cta .btn-outline { display: none; }
+  .nav-wide .nav-hamburger { display: flex; }
+  .nav-wide .nav-cta { margin-left: auto; margin-right: 8px; }
+}
