@@ -1,0 +1,28 @@
+{
+  "id": "/",
+  "name": "Lyra",
+  "short_name": "Lyra",
+  "description": "Lyra: live global news and research, the Tremor market reader, Watch and Lyra Labs in one app.",
+  "start_url": "/?source=app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf9f7",
+  "theme_color": "#14120e",
+  "categories": ["news", "productivity", "finance"],
+  "icons": [
+    { "src": "/img/app/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/img/app/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/img/app/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Newswire", "url": "/news/", "icons": [{ "src": "/img/app/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Tremor Index", "url": "/tremor/", "icons": [{ "src": "/img/app/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Lyra Labs", "url": "/labs/", "icons": [{ "src": "/img/app/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Watch", "url": "/watch/", "icons": [{ "src": "/img/app/icon-192.png", "sizes": "192x192" }] }
+  ],
+  "share_target": {
+    "action": "/share/",
+    "method": "GET",
+    "params": { "title": "title", "text": "text", "url": "url" }
+  }
+}

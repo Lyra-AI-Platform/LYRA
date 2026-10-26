@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Share to Lyra</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#14120e" />
+  <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
+  <link rel="stylesheet" href="/css/main.css?v=20261023d" />
+  <script src="/js/session.js?v=20261023c"></script>
+  <style>
+    :root { --ink:#14120e; --paper:#faf9f7; --rose:#fb7185; --serif:'Instrument Serif',Georgia,serif; --mono:'JetBrains Mono',ui-monospace,monospace; }
+    body { margin: 0; min-height: 100vh; color: var(--paper);
+      background: radial-gradient(800px 420px at 110% -20%, rgba(225,29,72,.34), transparent 60%),
+                  radial-gradient(600px 460px at -20% 120%, rgba(180,83,9,.26), transparent 60%), var(--ink); }
+    main { max-width: 560px; margin: 0 auto; padding: 48px 20px 40px; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: rgba(250,249,247,.55); display: flex; align-items: center; gap: 10px; }
+    .kicker img { border-radius: 8px; }
+    h1 { font-family: var(--serif); font-weight: 400; font-size: clamp(2.2rem, 8vw, 3rem); line-height: 1; margin: 14px 0 18px; color: var(--paper); }
+    .shared { background: rgba(250,249,247,.07); border: 1px solid rgba(250,249,247,.15); border-radius: 14px; padding: 14px 16px; font-size: 15px; line-height: 1.5; word-break: break-word; max-height: 160px; overflow: auto; }
+    .shared b { display: block; margin-bottom: 4px; }
+    .shared a { color: var(--rose); }
+    .shared .empty { color: rgba(250,249,247,.6); }
+    .acts { display: grid; gap: 10px; margin-top: 22px; }
+    .act { display: grid; grid-template-columns: 44px 1fr; gap: 14px; align-items: center; padding: 16px; border-radius: 14px; background: var(--paper); color: var(--ink); text-decoration: none; transition: transform .15s; }
+    .act:hover, .act:focus-visible { transform: translateY(-2px); outline: none; box-shadow: 0 0 0 3px var(--rose); }
+    .act .ic { width: 44px; height: 44px; border-radius: 12px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-size: 20px; }
+    .act strong { display: block; font-size: 16.5px; }
+    .act span { color: #5f5a52; font-size: 14px; }
+    .hint { margin-top: 26px; font-size: 13px; color: rgba(250,249,247,.55); line-height: 1.55; }
+    .hint a { color: var(--paper); }
+  </style>
+</head>
+<body>
+<main>
+  <div class="kicker"><img src="/img/app/icon-192.png" width="28" height="28" alt="" />Shared to Lyra</div>
+  <h1>What should Lyra do with this?</h1>
+  <div class="shared" id="shared"><span class="empty">Nothing was shared. Share a link, article or text to Lyra from any app.</span></div>
+  <div class="acts" id="acts" hidden>
+    <a class="act" id="ask"><div class="ic">?</div><div><strong>Ask with sources</strong><span>What it says and what it means, checked against live news and research</span></div></a>
+    <a class="act" id="explain"><div class="ic">⇄</div><div><strong>Explain it for me</strong><span>The cultural translator: context and jargon explained for where you live</span></div></a>
+    <a class="act" id="news"><div class="ic">◎</div><div><strong>Find related news</strong><span>Coverage of the same story from around the world in Newswire</span></div></a>
+  </div>
+  <p class="hint">Tip: install Lyra as an app and it appears in your phone’s Share menu, so you can send anything here in two taps.</p>
+</main>
+<script>
+  (function () {
+    var q = new URLSearchParams(location.search);
+    var title = (q.get('title') || '').trim(), text = (q.get('text') || '').trim(), url = (q.get('url') || '').trim();
+    // Many apps put the link inside the text instead of the url field
+    if (!url) { var m = text.match(/https?:\/\/\S+/); if (m) { url = m[0]; text = text.replace(m[0], '').trim(); } }
+    if (!/^https?:\/\//i.test(url)) url = '';
+    if (!title && !text && !url) return;
+
+    var box = document.getElementById('shared');
+    box.textContent = '';
+    if (title) { var b = document.createElement('b'); b.textContent = title; box.appendChild(b); }
+    if (text) box.appendChild(document.createTextNode(text.slice(0, 600) + (text.length > 600 ? '…' : '')));
+    if (url) { var a = document.createElement('a'); a.href = url; a.rel = 'noopener noreferrer'; a.target = '_blank'; a.textContent = url; if (title || text) box.appendChild(document.createElement('br')); box.appendChild(a); }
+
+    var about = [title, text, url].filter(Boolean).join('\n');
+    var hash = function (o) { return '#' + new URLSearchParams(o).toString(); };
+    document.getElementById('ask').href = '/labs/' + hash({ app: 'ask', q: 'Explain this and what it means, with sources:\n' + about });
+    document.getElementById('explain').href = '/labs/' + hash({ app: 'translate', text: (title ? title + '\n' : '') + (text || url), src: url });
+    // Newswire search works best on a few key words: the title, else the start of the text
+    var words = (title || text || url.replace(/^https?:\/\/(www\.)?/, '').replace(/[\/\-_.?=&]+/g, ' ')).split(/\s+/).slice(0, 8).join(' ');
+    document.getElementById('news').href = '/news/?q=' + encodeURIComponent(words.slice(0, 120));
+    document.getElementById('acts').hidden = false;
+  })();
+</script>
+</body>
+</html>

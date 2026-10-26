@@ -103,3 +103,6 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', relabel);
   else relabel();
 })();
+
+// Installable app: the service worker only caches static files (see /sw.js)
+if ('serviceWorker' in navigator) window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
