@@ -84,3 +84,26 @@ def test_ticker_view_for_tremor(wire):
     d = TestClient(app).get("/api/wire/ticker/nvda").json()
     assert d["politics_and_policy"][0]["title"].startswith("Senator") and d["people_in_coverage"] == [["Jane Doe", 1]]
     assert d["news_total_30d"] == 2 and len(d["research"]) == 1
+
+
+def test_app_headlines_are_free_recent_and_paged(wire):
+    wire.add([_item(i, title=f"Headline {i}", topics=["politics"] if i % 2 else []) for i in range(50)])
+    wire.add([_item(99, title="Old news", published=time.time() - 10 * 86400),
+              _item(98, title="Headline 1", url="https://y.test/1", source="y.test")])   # syndicated copy
+    app, _ = make_app(wire_api.router)
+    c = TestClient(app)
+    first = c.get("/api/wire/headlines?limit=30").json()
+    assert len(first["results"]) == 30 and first["next"] == 30
+    rest = c.get("/api/wire/headlines?limit=30&offset=30").json()
+    titles = [r["title"] for r in first["results"] + rest["results"]]
+    assert "Old news" not in titles and rest["next"] is None
+    assert all("politics" in r["topics"] for r in c.get("/api/wire/headlines?topics=politics").json()["results"])
+
+
+def test_related_coverage_skips_the_story_itself(wire):
+    wire.add([_item(1, title="Strike shuts Rotterdam port terminals", source="a.test"),
+              _item(2, title="Rotterdam port strike enters second day", source="b.test", country="NL", language="nl"),
+              _item(3, title="Cake recipe of the week", source="c.test")])
+    app, _ = make_app(wire_api.router)
+    d = TestClient(app).get("/api/wire/related", params={"title": "Strike shuts Rotterdam port terminals", "source": "a.test"}).json()
+    assert [r["source"] for r in d["results"]] == ["b.test"]

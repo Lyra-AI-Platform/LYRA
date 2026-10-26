@@ -4,6 +4,9 @@
                          source, since, until (unix seconds), limit, offset
   GET /api/wire/facets   counts for the filter panel (same filters)
   GET /api/wire/stats    how much is stored and how every source is doing
+  GET /api/wire/headlines   the news app's feed: the last three days of stories for a topic,
+                         country or language, free with paging (searching the archive is the paid part)
+  GET /api/wire/related  the same story as other countries and outlets covered it
   GET /api/wire/ticker/{ticker}   for a Tremor reading: politicians and policy news, other
                          coverage and research about the company
 
@@ -70,6 +73,45 @@ def facets(response: Response, q: str = "", kind: str = "", topics: str = "", co
         _facet_cache[key] = (time.time(), data)
     response.headers["Cache-Control"] = "public, max-age=300"
     return data
+
+
+HEADLINES_DAYS = 3
+HEADLINES_PAGES = 400
+
+
+def _dedupe(rows):
+    out, seen = [], set()
+    for r in rows:
+        key = " ".join(r["title"].lower().split())[:120]
+        if key in seen:      # the same story syndicated under several URLs
+            continue
+        seen.add(key)
+        out.append(r)
+    return out
+
+
+@router.get("/headlines")
+def headlines(response: Response, topics: str = "", country: str = "", language: str = "", kind: str = "news",
+              limit: int = 30, offset: int = 0):
+    f = _filters("", kind, topics, country, language, "", "", "", time.time() - HEADLINES_DAYS * 86400, None)
+    limit = min(max(limit, 1), 40)
+    offset = max(0, min(offset, HEADLINES_PAGES))
+    out = get_wire().search(f, limit=limit, offset=offset)
+    response.headers["Cache-Control"] = "public, max-age=120"
+    return {"results": _dedupe(out["results"]), "total": out["total"],
+            "next": offset + limit if offset + limit < min(out["total"], HEADLINES_PAGES) else None}
+
+
+@router.get("/related")
+def related(response: Response, title: str, published: Optional[float] = None, source: str = ""):
+    """Coverage of one story elsewhere: matched on the headline's words within a few days of it."""
+    when = published or time.time()
+    f = {"since": when - 3 * 86400, "until": when + 3 * 86400}
+    rows = [r for r in get_wire().relevant(title[:300], f, limit=16) if r["source"] != source[:80]]
+    norm = " ".join(title.lower().split())[:120]
+    rows = [r for r in _dedupe(rows) if " ".join(r["title"].lower().split())[:120] != norm]
+    response.headers["Cache-Control"] = "public, max-age=600"
+    return {"results": rows[:10]}
 
 
 @router.get("/stats")
