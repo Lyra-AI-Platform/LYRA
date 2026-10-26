@@ -6,6 +6,9 @@
   var KEY = 'lyra-preview-closed-' + product;
   try { if (sessionStorage.getItem(KEY)) return; } catch (e) {}
   var signedIn = !!window.lyraSignedIn;
+  // Inside the iOS app (App Store rule 3.1.1): no prices or links to buy, only the free account
+  var inApp = /LyraiOS/.test(navigator.userAgent);
+  if (inApp && signedIn) return;
 
   var probe = product === 'tremor' ? '/api/market/public/track-record' : '/api/watch/feed?limit=11';
   fetch(probe, { credentials: 'same-origin' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
@@ -28,6 +31,7 @@
   }).catch(function () {});
 
   function show(name, text, cta, small) {
+    if (inApp) { small = ''; if (!/register/.test(cta[0])) return; }
     var css = document.createElement('style');
     css.textContent = '' +
       '.lp{position:fixed;left:16px;right:16px;bottom:16px;z-index:9000;max-width:980px;margin:0 auto;display:flex;gap:18px;align-items:center;' +
