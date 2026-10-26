@@ -41,7 +41,11 @@
       '.lp a:hover{background:#fff;opacity:1}' +
       '.lp button{flex:none;background:none;border:0;color:rgba(250,249,247,.55);font-size:20px;line-height:1;cursor:pointer;padding:4px 6px;border-radius:6px}' +
       '.lp button:hover{color:#faf9f7}.lp a:focus-visible,.lp button:focus-visible{outline:2px solid #fb7185;outline-offset:2px}' +
-      '@media (max-width:640px){.lp{flex-wrap:wrap;left:10px;right:10px;bottom:10px}.lp a{flex:1;text-align:center}}' +
+      '.lp-copy{flex:1;min-width:0}' +
+      // Phones: one short line and a full-width button, with the close button in the corner
+      '@media (max-width:640px){.lp{flex-wrap:wrap;gap:12px;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom));padding:14px 44px 14px 16px}' +
+      '.lp-copy{flex:1 1 100%}.lp b{font-size:19px}.lp p{display:none}.lp a{flex:1 1 100%;text-align:center;padding:12px}' +
+      '.lp button{position:absolute;top:8px;right:8px;font-size:22px}}' +
       '@media (prefers-reduced-motion:reduce){.lp{animation:none}}';
     document.head.appendChild(css);
     var bar = document.createElement('aside');
@@ -51,8 +55,8 @@
     var h = document.createElement('b'); h.textContent = 'This is a preview of ' + name + '.';
     var p = document.createElement('p'); p.textContent = text;
     var s = document.createElement('small'); s.textContent = small;
+    copy.className = 'lp-copy';
     copy.append(h, p, s);
-    copy.style.flex = '1';
     var a = document.createElement('a'); a.href = cta[0]; a.textContent = cta[1];
     var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Hide'); x.textContent = '×';
     x.onclick = function () { bar.remove(); try { sessionStorage.setItem(KEY, '1'); } catch (e) {} };

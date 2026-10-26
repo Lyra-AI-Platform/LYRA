@@ -469,7 +469,7 @@ code {
 .hero-card-foot a { color: var(--ed-ink); text-decoration: underline; text-underline-offset: 3px; }
 .hp-btn:focus-visible, .hp-main:focus-visible { outline: 2px solid var(--ed-rose); outline-offset: 2px; }
 @media (max-width: 900px) {
-  .hero-ed-in { grid-template-columns: 1fr; padding: 44px 16px 52px; gap: 32px; }
+  .hero-ed-in { grid-template-columns: 1fr; padding: 88px 16px 52px; gap: 32px; } /* clears the 57px fixed bar */
   .hero-ed-stats { grid-template-columns: repeat(2, auto); gap: 18px 32px; }
   .hero-card { padding: 22px 18px; }
 }
