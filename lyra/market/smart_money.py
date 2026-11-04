@@ -275,6 +275,31 @@ def parse_congress(rows: List[Dict], ticker: str, chamber: str) -> List[Dict]:
     return out
 
 
+def profiles_ready() -> bool:
+    from lyra.watch.config import PROFILES_DIR
+    return any(PROFILES_DIR.glob("*.json"))
+
+
+def watch_congress_trades(ticker: str) -> List[Dict]:
+    """House disclosures Lyra Watch has already read from the official PDFs for the people it
+    tracks. Used because the public House and Senate JSON feeds now refuse requests."""
+    from lyra.watch.config import PROFILES_DIR
+    out = []
+    for path in PROFILES_DIR.glob("*.json"):
+        try:
+            profile = json.loads(path.read_text())
+        except (OSError, ValueError):
+            continue
+        for t in profile.get("trades", []):
+            if (t.get("kind") != "congress" or (t.get("ticker") or "").upper() != ticker.upper()
+                    or t.get("side") not in ("buy", "sell") or _days_ago(t.get("date", "")) > LOOKBACK_DAYS_CONGRESS):
+                continue
+            out.append({"person": profile.get("name") or "Member of Congress", "role": "Politician (House)",
+                        "side": t["side"], "value": t.get("value", 0), "amount_range": t.get("amount_range", ""),
+                        "date": t.get("date", ""), "source": "House disclosure", "url": t.get("url", "")})
+    return out
+
+
 async def congress_trades(ticker: str) -> Tuple[List[Dict], Dict]:
     trades, chambers = [], {}
     for src in CONGRESS_SOURCES:
@@ -289,6 +314,11 @@ async def congress_trades(ticker: str) -> Tuple[List[Dict], Dict]:
     ok = sum(v == "ok" for v in chambers.values())
     status = {"status": "ok" if ok == len(chambers) else "failed" if ok == 0 else "partial",
               "provider": "House/Senate disclosure feeds", "chambers": chambers}
+    if ok < len(chambers):
+        trades += watch_congress_trades(ticker)
+        if profiles_ready():
+            status = {"status": "partial" if ok == 0 else status["status"], "provider": "US House filings via Lyra Watch",
+                      "chambers": chambers, "detail": "House members Lyra Watch tracks. Senate trades aren't covered yet."}
     return trades, status
 
 

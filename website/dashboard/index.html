@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dashboard — LyraAuth</title>
+  <title>LyraAuth sites — Lyra</title>
   <link rel="stylesheet" href="/css/main.css?v=20261026a" />
   <style>
     body { background:var(--bg); }
@@ -114,7 +114,7 @@
 <div class="dash-body">
   <div class="page-head">
     <div>
-      <h1>API Keys</h1>
+      <h1>LyraAuth sites</h1>
       <p style="margin:4px 0 0;font-size:.875rem;">Manage sites using LyraAuth verification.</p>
     </div>
     <button class="btn btn-primary" onclick="openAddModal()">+ Add site</button>
@@ -137,15 +137,15 @@
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;" id="training-stats">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Total Records</div>
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Active sites</div>
         <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-total">—</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Challenges Served</div>
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Verifications this month</div>
         <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-served">—</div>
       </div>
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;">
-        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Pass Rate</div>
+        <div style="font-size:.6875rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);margin-bottom:6px;">Domain lock</div>
         <div style="font-size:1.5rem;font-weight:700;letter-spacing:-.03em;" id="stat-rate">—</div>
       </div>
     </div>
@@ -366,17 +366,14 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
+  // Your own numbers. /api/auth/status counts every site on Lyra, so it isn't used here.
   async function loadTrainingStats() {
     try {
-      const res = await fetch('/api/auth/status');
-      if (!res.ok) return;
-      const d = await res.json();
-      document.getElementById('stat-total').textContent  = (d.training_records || 0).toLocaleString();
-      document.getElementById('stat-served').textContent = (d.challenges_served || 0).toLocaleString();
-      const rate = d.challenges_served > 0
-        ? Math.round((d.challenges_passed / d.challenges_served) * 100) + '%'
-        : '—';
-      document.getElementById('stat-rate').textContent = rate;
+      const sites = await (await fetch('/api/sites')).json();
+      const usage = await Promise.all(sites.map(x => fetch(`/api/sites/${x.id}/usage`).then(r => r.json())));
+      document.getElementById('stat-total').textContent = sites.filter(x => x.is_active).length.toLocaleString();
+      document.getElementById('stat-served').textContent = usage.reduce((n, u) => n + (u.month_total || 0), 0).toLocaleString();
+      document.getElementById('stat-rate').textContent = sites.some(x => x.is_active && !x.domain) ? 'Add a domain' : 'All set';
     } catch {}
   }
 

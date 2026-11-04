@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Reset password — Lyra</title>
+    <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#14120e" />
+  <meta name="apple-mobile-web-app-title" content="Lyra" />
+  <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/auth.css?v=20261023c" />
+  <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/auth.js?v=20261023c"></script>
+</head>
+<body>
+<div class="auth">
+  <main class="auth-main">
+    <div class="card">
+      <a href="/" class="mobile-brand" style="display:block"><img src="/img/logo-mark.svg" alt="Lyra" width="26" height="26" /></a>
+      <h1 class="rise d1">Reset your password</h1>
+      <p class="lede rise d2">Enter your email and we’ll send you a link to choose a new password.</p>
+      <div class="alert" id="alert" role="alert"></div>
+      <form id="f" class="rise d3" novalidate>
+        <div class="field"><label for="email">Email</label>
+          <input type="email" id="email" autocomplete="username" inputmode="email" placeholder="you@example.com" required autofocus /></div>
+        <button type="submit" class="btn-main" id="btn"><span class="spin" aria-hidden="true"></span><span class="label">Send reset link</span></button>
+      </form>
+      <p class="legal"><a href="login.html">Back to sign in</a></p>
+    </div>
+  </main>
+</div>
+<script>
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn'), email = document.getElementById('email');
+    lyraAuth.hide();
+    if (!email.value.trim()) { email.focus(); return lyraAuth.show('Enter your email address.'); }
+    lyraAuth.busy(btn, true, 'Sending…');
+    lyraAuth.post('/api/users/password/forgot', { email: email.value.trim() })
+      .then(function () {
+        document.getElementById('f').hidden = true;
+        lyraAuth.show('If that email has a Lyra account, a reset link is on its way. It expires in 60 minutes. Check your junk folder too.', 'ok');
+      })
+      .catch(function (ex) { lyraAuth.show(ex.message); })
+      .finally(function () { lyraAuth.busy(btn, false); });
+  });
+</script>
+</body>
+</html>

@@ -15,13 +15,9 @@ Bots are kept out by a hidden field, a minimum time on the page and per-address 
 """
 import logging
 import os
-import smtplib
-import ssl
 import time
-from email.message import EmailMessage
 from typing import Optional
 
-import httpx
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -30,6 +26,7 @@ from lyra.api import ratelimit, sessions
 from lyra.api.users_api import EMAIL_RE, _admin_emails, get_current_user
 from lyra.db.database import SessionLocal, get_db
 from lyra.db.models import Feedback, User
+from lyra.mail import send_email
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/feedback", tags=["feedback"])
@@ -49,38 +46,6 @@ class FeedbackIn(BaseModel):
 
 def recipient() -> str:
     return os.getenv("LYRA_FEEDBACK_TO") or next(iter(sorted(_admin_emails())), "") or "support@lyraauth.com"
-
-
-def _sender() -> str:
-    return os.getenv("LYRA_MAIL_FROM", "Lyra <support@lyraauth.com>")
-
-
-def send_email(to: str, subject: str, text: str, reply_to: str = "") -> bool:
-    """Send one plain-text email through Resend or SMTP. False when neither is set up or it fails."""
-    if not to:
-        return False
-    try:
-        if os.getenv("RESEND_API_KEY"):
-            r = httpx.post("https://api.resend.com/emails", timeout=10,
-                           headers={"Authorization": f"Bearer {os.environ['RESEND_API_KEY']}"},
-                           json={"from": _sender(), "to": [to], "subject": subject, "text": text,
-                                 **({"reply_to": reply_to} if reply_to else {})})
-            return r.status_code < 300
-        if os.getenv("SMTP_HOST"):
-            msg = EmailMessage()
-            msg["From"], msg["To"], msg["Subject"] = _sender(), to, subject
-            if reply_to:
-                msg["Reply-To"] = reply_to
-            msg.set_content(text)
-            with smtplib.SMTP(os.environ["SMTP_HOST"], int(os.getenv("SMTP_PORT", "587")), timeout=15) as smtp:
-                smtp.starttls(context=ssl.create_default_context())
-                if os.getenv("SMTP_USER"):
-                    smtp.login(os.environ["SMTP_USER"], os.getenv("SMTP_PASSWORD", ""))
-                smtp.send_message(msg)
-            return True
-    except Exception as e:  # noqa: BLE001 — the message is already stored; just log
-        logger.warning("Feedback email failed: %s", e)
-    return False
 
 
 def _deliver(feedback_id: int) -> None:

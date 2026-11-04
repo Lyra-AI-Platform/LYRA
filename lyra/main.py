@@ -41,6 +41,7 @@ from lyra.api.intelligence_api import router as intelligence_router
 from lyra.api.market_api import router as market_router
 from lyra.api.watch_api import router as watch_router
 from lyra.api.watch_access import router as watch_account_router
+from lyra.api.alerts_api import router as watch_alerts_router
 from lyra.api.ads_api import router as ads_router
 from lyra.api import page_access
 
@@ -173,6 +174,7 @@ app.include_router(intelligence_router)
 app.include_router(market_router)
 app.include_router(watch_router)
 app.include_router(watch_account_router)
+app.include_router(watch_alerts_router)
 app.include_router(ads_router)
 
 
@@ -329,6 +331,8 @@ async def on_startup():
     learning_loop.start()
     from lyra.watch.service import refresh_loop
     refresh_loop.start()
+    from lyra.watch.alerts import alert_loop
+    alert_loop.start()
     from lyra.watch.live import loop as live_loop, signals_loop
     live_loop.start()
     signals_loop.start()
@@ -359,6 +363,8 @@ async def on_shutdown():
     learning_loop.stop()
     from lyra.watch.service import refresh_loop
     refresh_loop.stop()
+    from lyra.watch.alerts import alert_loop
+    alert_loop.stop()
     from lyra.newswire.collector import collector as newswire
     newswire.stop()
     from lyra.watch.live import loop as live_loop, signals_loop

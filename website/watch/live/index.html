@@ -231,11 +231,14 @@
     : filter === "interview" || filter === "discussion" ? e.kind === filter
     : filter === "signals" ? ["wiki", "attention", "official", "court"].includes(e.kind) : e.tone === filter);
 
+  const TRUST = { confirmed: "Confirmed by 3+ outlets", official: "From the original source", reported: "Reported, not yet confirmed",
+                  rumour: "Rumour", "old news": "Old story" };
   function row(e, fresh) {
     const li = el("li", { class: `tone-${e.tone}${fresh ? " fresh" : ""}` },
       el("span", { class: "t", text: kindLabel(e) + when(e) }), " ",
       el("span", { class: "p", text: e.people.map((p) => p.name).slice(0, 2).join(", ") || e.feed }), el("br"),
-      el("span", { text: e.title }));
+      el("span", { text: e.title }),
+      e.trust ? el("span", { class: "t", style: "display:block;margin-top:3px", text: TRUST[e.trust.label] || "" }) : null);
     li.onclick = () => stage(e);
     return li;
   }
@@ -328,8 +331,13 @@
     } catch { return null; }
   }
 
+  async function refreshStatus() {
+    try { setStatus(await fetch("/api/watch/live/status").then((r) => r.json())); } catch {}
+  }
+
   async function connect() {
     $("conn").textContent = "Connecting…";
+    refreshStatus();      // don't wait for the stream, which a proxy can hold back
     let resp;
     try {
       resp = await fetch("/api/watch/live/stream", { headers: { Accept: "text/event-stream" } });

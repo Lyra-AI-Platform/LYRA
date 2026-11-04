@@ -13,7 +13,7 @@ import time
 from collections import deque
 from typing import Deque, Dict, List, Optional, Set
 
-from lyra.watch import analysis, chatter, people, service, signals, sources, xapi
+from lyra.watch import analysis, chatter, people, service, signals, sources, trust, xapi
 from lyra.watch.config import WATCH_DIR, load_roster
 
 logger = logging.getLogger(__name__)
@@ -60,6 +60,7 @@ class Hub:
 
     def publish(self, event: Dict):
         self.history.append(event)
+        viewer_event = {**event, "trust": trust.assess(event, list(self.history))}
         self.arrivals.append(event["ts"])
         try:
             with EVENTS_FILE.open("a") as f:
@@ -72,7 +73,7 @@ class Hub:
             logger.warning(f"Live event not saved: {e}")
         for q in list(self.viewers):
             try:
-                q.put_nowait(event)
+                q.put_nowait(viewer_event)
             except asyncio.QueueFull:
                 pass  # a viewer that stopped reading misses events rather than stalling everyone
 
@@ -87,7 +88,8 @@ class Hub:
     def recent(self, limit: int = 50, delay: float = 0, include_x: bool = True) -> List[Dict]:
         cutoff = time.time() - delay
         rows = [e for e in self.history if e["ts"] <= cutoff and not xapi.expired(e) and (include_x or not e.get("x"))]
-        return rows[-limit:][::-1]
+        around = list(self.history)
+        return [{**e, "trust": trust.assess(e, around)} for e in rows[-limit:][::-1]]
 
     def purge_expired(self):
         """Remove X content past its retention from memory and from the saved history."""

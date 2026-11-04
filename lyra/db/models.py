@@ -5,7 +5,7 @@ import secrets
 from datetime import datetime, timezone
 
 from sqlalchemy import (
-    Boolean, Column, DateTime, ForeignKey,
+    Boolean, Column, DateTime, Float, ForeignKey,
     Integer, String, Text, UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
@@ -39,6 +39,18 @@ class User(Base):
     created_at           = Column(DateTime(timezone=True), default=_now)
 
     sites = relationship("Site", back_populates="owner", cascade="all, delete-orphan")
+
+
+class PasswordReset(Base):
+    """One emailed reset link. Only a hash of the token is stored; each works once."""
+    __tablename__ = "password_resets"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    token_hash = Column(String, unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used       = Column(Boolean, default=False)
+    created_at = Column(DateTime(timezone=True), default=_now)
 
 
 class TrialUsage(Base):
@@ -112,6 +124,28 @@ class WatchSubscription(Base):
     stripe_subscription_id = Column(String, nullable=True, index=True)
     status                 = Column(String, default="inactive")   # active | trialing | past_due | canceled ...
     updated_at             = Column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+
+def _unsub_token():
+    return secrets.token_urlsafe(32)
+
+
+class WatchAlert(Base):
+    """A reader's email alert choices. Off until they switch it on."""
+    __tablename__ = "watch_alerts"
+
+    id           = Column(Integer, primary_key=True)
+    user_id      = Column(Integer, ForeignKey("users.id"), nullable=False, unique=True, index=True)
+    enabled      = Column(Boolean, default=False)
+    big_news     = Column(Boolean, default=True)
+    topics       = Column(String, default="[]")        # JSON list
+    frequency    = Column(String, default="instant")   # instant | daily
+    unsub_token  = Column(String, unique=True, nullable=False, default=_unsub_token, index=True)
+    consented_at = Column(Float, nullable=True)
+    cursor       = Column(Float, default=0.0)          # newest event already considered
+    last_sent    = Column(Float, default=0.0)
+    sent_day     = Column(String, default="")
+    sent_count   = Column(Integer, default=0)
 
 
 def _api_key():

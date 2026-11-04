@@ -103,6 +103,21 @@
     </div>
   </div>
 
+  <h2 id="alerts">Email alerts</h2>
+  <div class="panel" id="alertsPanel">
+    <p class="muted">Get an email when big news breaks or a topic you care about comes up. Sign in to set this up.</p>
+    <form id="alertsForm" hidden>
+      <p><label><input type="checkbox" id="alertOn" /> Email me Lyra Watch alerts</label></p>
+      <p><label><input type="checkbox" id="alertBig" /> Big news</label></p>
+      <p><label for="alertTopics">What you follow (companies, tickers, people or topics), separated by commas</label><br />
+        <input id="alertTopics" style="width:100%" placeholder="Nvidia, Tesla, interest rates" /></p>
+      <p class="muted" id="alertLimit"></p>
+      <p><label for="alertFreq">How often</label>
+        <select id="alertFreq"><option value="instant">As it happens (up to 6 a day)</option><option value="daily">Daily summary</option></select></p>
+      <button type="submit">Save alerts</button> <span class="muted" id="alertSaved" role="status"></span>
+    </form>
+  </div>
+
   <h2>Your account</h2>
   <div class="panel" id="account"><p class="muted">Loading…</p></div>
 
@@ -207,6 +222,25 @@ curl -H "X-Lyra-Key: lw_your_key" https://lyraauth.com/api/watch/live/recent    
       load();
     } catch (e) { if (e.message !== "sign in") note(e.message, true); }
   };
+  async function loadAlerts() {
+    if (!signedIn) return;
+    const a = await api("/api/watch/alerts");
+    $("alertsPanel").querySelector("p.muted").textContent = "Add the companies, people and topics you follow. We email you when something matches, and say how well sourced it is. Turn it off at any time.";
+    $("alertOn").checked = a.enabled; $("alertBig").checked = a.big_news;
+    $("alertTopics").value = a.topics.join(", "); $("alertFreq").value = a.frequency;
+    $("alertLimit").textContent = `Up to ${a.topic_limit} topics. Watch Pro gets stories as they break and more topics; other accounts get them an hour later.`;
+    $("alertsForm").hidden = false;
+  }
+  $("alertsForm").onsubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const a = await api("/api/watch/alerts", { method: "PUT", body: JSON.stringify({ enabled: $("alertOn").checked,
+        big_news: $("alertBig").checked, frequency: $("alertFreq").value, topics: $("alertTopics").value.split(",") }) });
+      $("alertTopics").value = a.topics.join(", ");
+      $("alertSaved").textContent = "Saved.";
+    } catch (ex) { if (ex.message !== "sign in") $("alertSaved").textContent = ex.message; }
+  };
+  loadAlerts().catch(() => {});
   prices().catch(() => {});
   load().catch((e) => { if (e.message !== "sign in") $("account").replaceChildren(el("p", { class: "muted", text: "Couldn't load your account." })); });
 })();

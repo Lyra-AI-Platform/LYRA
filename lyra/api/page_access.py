@@ -37,6 +37,8 @@ SIGNUP = "/dashboard/register.html"
 RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/dashboard/login.html", "guest", ""),
     ("/dashboard/register.html", "guest", ""),
+    ("/dashboard/forgot.html", "public", ""),
+    ("/dashboard/reset.html", "public", ""),
     ("/home/", "account", ""),
     ("/account/", "account", ""),
     ("/account", "account", ""),

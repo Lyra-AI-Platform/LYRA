@@ -393,14 +393,20 @@ fetch('/api/users/me')
 function signOut() { window.lyraSignOut('/dashboard/login.html'); }
 
 /* ════ WebSocket ════ */
+let wsRetries = 0;
 function connectWS(convId) {
   if (ws) { try { ws.close(); } catch {} }
   const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${proto}//${location.host}/api/chat/ws/${convId}`);
 
   ws.addEventListener('message', e => handleWSMsg(JSON.parse(e.data)));
-  ws.addEventListener('close',   () => { if (isStreaming) finishStream(); });
-  ws.addEventListener('error',   () => { appendError('Connection error. Please refresh.'); });
+  ws.addEventListener('open',    () => { wsRetries = 0; });
+  ws.addEventListener('close',   e => {
+    if (isStreaming) finishStream();
+    if (e.target !== ws) return;                     // replaced by a newer connection
+    if (wsRetries < 3) { wsRetries++; setTimeout(() => connectWS(convId), 1000 * wsRetries); }
+    else appendError(`Lyra chat can't connect right now (code ${e.code}). Please try again shortly.`);
+  });
 }
 
 function handleWSMsg(msg) {
@@ -527,7 +533,18 @@ async function sendMessage(text) {
 
   if (!ws || ws.readyState !== WebSocket.OPEN) {
     connectWS(currentConvId);
-    await new Promise(res => ws.addEventListener('open', res, { once: true }));
+    const socket = ws;
+    const opened = await new Promise(res => {
+      socket.addEventListener('open', () => res(true), { once: true });
+      socket.addEventListener('close', () => res(false), { once: true });
+    });
+    if (!opened) {
+      clearStatus();
+      appendError("Couldn't reach Lyra chat. Your message wasn't sent. Please try again.");
+      isStreaming = false;
+      sendBtn.disabled = false;
+      return;
+    }
   }
 
   showStatus('Thinking...');

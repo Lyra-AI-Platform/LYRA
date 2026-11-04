@@ -126,7 +126,7 @@
     <tr><td>Prices, VIX</td><td>Yahoo Finance daily closes</td><td>Previous close; not a live quote</td></tr>
     <tr><td>Insider trades</td><td>SEC EDGAR Form 4 (each row links to its filing)</td><td>Filed within 2 business days</td></tr>
     <tr><td>Fund holdings</td><td>SEC EDGAR 13F (each row links to its filing)</td><td>Up to 45 days after quarter end</td></tr>
-    <tr><td>Politician trades</td><td>House and Senate disclosure feeds; currently unavailable</td><td>Up to 45 days after the trade</td></tr>
+    <tr><td>Politician trades</td><td>US House filings read by Lyra Watch for the people it tracks; Senate trades aren’t covered yet</td><td>Up to 45 days after the trade</td></tr>
     <tr><td>News</td><td>Yahoo Finance and Google News RSS headlines (headline, summary and link only)</td><td>Minutes to hours</td></tr>
   </table></div>
   <p class="muted">Every reading shows each source's status. If price, news or insider data fails, the reading is
@@ -148,7 +148,7 @@
     <tr><th>Fixed</th><th>Problem</th><th>Fix</th></tr>
     <tr><td>18 Oct 2026</td><td style="white-space:normal">Both politician-trade feeds returned HTTP 403, and the page
       still said "None in the last 90 days".</td><td style="white-space:normal">Failed sources are now shown as
-      "Source unavailable" and listed on every reading. A live replacement source is being chosen.</td></tr>
+      "Source unavailable" and listed on every reading. House trades now come from the official filings Lyra Watch reads.</td></tr>
     <tr><td>18 Oct 2026</td><td style="white-space:normal">Articles that never mentioned the stock (for example, general
       investing articles) moved its news score.</td><td style="white-space:normal">Only articles whose headline or
       summary names the ticker or company are counted.</td></tr>
