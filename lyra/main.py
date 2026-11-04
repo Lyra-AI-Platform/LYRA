@@ -78,6 +78,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# The exceptions: siteverify is called from a customer's server with the secret key, and the
+# training routes are for the owner. Neither has any reason to answer another site's page.
+PRIVATE_AUTH_ROUTES = ("/api/auth/siteverify", "/api/auth/training")
+
+
+@app.middleware("http")
+async def no_cors_on_private_auth(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith(PRIVATE_AUTH_ROUTES):
+        for name in [h for h in response.headers if h.lower().startswith("access-control-")]:
+            del response.headers[name]
+    return response
+
 # The engine's control APIs (load and delete models, wipe memory, crawl any URL, set tokens,
 # claim ownership) are for the machine Lyra runs on. Requests from anywhere else, including
 # everything arriving through the Cloudflare tunnel, get a 404.
@@ -356,13 +369,14 @@ async def on_shutdown():
 
 # Pages use inline scripts, so 'unsafe-inline' stays; everything else is locked to this site
 # (plus Google Fonts, Stripe Checkout and the Google / Apple / GitHub sign-in pages, which
-# Apple reaches with a form post back to us). Pages may also call a model on the visitor's own
-# computer (Lyra Labs "On this device"), so localhost is allowed for fetch only.
-def csp() -> str:
+# Apple reaches with a form post back to us). Lyra Labs may also call a model on the visitor's
+# own computer ("On this device"), so its pages alone may fetch from localhost.
+def csp(path: str = "") -> str:
     from lyra.api import adsense
     ads = adsense.csp_extra()   # Google's ad servers, only while AdSense is switched on
+    local = "http://localhost:* http://127.0.0.1:* " if path.startswith("/labs") else ""
     return (f"default-src 'self'; script-src 'self' 'unsafe-inline' {ads}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            f"font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' http://localhost:* http://127.0.0.1:* {ads}; "
+            f"font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' {local}{ads}; "
             f"frame-src 'self' {ads}; "
             "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com https://accounts.google.com https://appleid.apple.com https://github.com; object-src 'none'; "
             "upgrade-insecure-requests")
@@ -383,10 +397,20 @@ if SERVE_WEBSITE:
         response.headers.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=()")
         response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
         if response.headers.get("content-type", "").startswith("text/html"):
-            response.headers.setdefault("Content-Security-Policy", csp())
+            response.headers.setdefault("Content-Security-Policy", csp(request.url.path))
         if request.method in ("GET", "HEAD") and response.status_code == 200:
             response.headers.setdefault("Cache-Control", cache_policy(request.url.path))
         return response
+
+    @app.middleware("http")
+    async def canonical_host(request, call_next):
+        # One address for search engines. Only page loads move: a redirected POST loses its body.
+        host = request.headers.get("host", "").lower()
+        if host.startswith("www.") and request.method in ("GET", "HEAD"):
+            query = f"?{request.url.query}" if request.url.query else ""
+            from starlette.responses import RedirectResponse
+            return RedirectResponse(f"https://{host[4:]}{request.url.path}{query}", status_code=301)
+        return await call_next(request)
 
     STATIC_EXT = (".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".svg", ".ico", ".woff2", ".txt", ".xml")
 

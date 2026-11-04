@@ -73,6 +73,7 @@ class Challenge:
     created_at: float = field(default_factory=time.time)
     expires_at: float = 0.0
     training_value: float = 1.0  # how valuable this is as training data (0-2)
+    site_key: str = ""           # the site it was issued to
 
 
 @dataclass
@@ -562,8 +563,12 @@ class ChallengeEngine:
         Verify a challenge response.
         Returns: (is_human, confidence, token)
         """
-        challenge = self._active.get(resp.challenge_id)
+        # One attempt per challenge: a solved challenge must not mint a second token.
+        challenge = self._active.pop(resp.challenge_id, None)
         if not challenge:
+            return False, 0.0, ""
+
+        if challenge.site_key and challenge.site_key != resp.site_key:
             return False, 0.0, ""
 
         if time.time() > challenge.expires_at:
@@ -693,7 +698,6 @@ class ChallengeEngine:
             "training_records_today": self.training_records,
             "training_records_total": total_records,
             "training_files": len(files),
-            "training_dir": str(TRAINING_DIR),
         }
 
     def export_training_data(self, date_str: Optional[str] = None) -> List[Dict]:

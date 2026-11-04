@@ -106,7 +106,7 @@
       }<br /><br />
       <div class="comment">Response:</div><br />
       {<br />
-      &nbsp;&nbsp;<span class="attr">"site_key"</span>: <span class="string">"lyra_sk_abc123..."</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"site_key"</span>: <span class="string">"lyra_site_abc123..."</span>,<br />
       &nbsp;&nbsp;<span class="attr">"secret_key"</span>: <span class="string">"lyra_secret_xyz..."</span><br />
       }
     </div>
@@ -134,8 +134,8 @@
       <span style="color:#81d4fa;">def</span> verify_human(token: str) -&gt; bool:<br />
       &nbsp;&nbsp;resp = requests.post(<br />
       &nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"https://lyraauth.com/api/auth/siteverify"</span>,<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;data={<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"secret"</span>: <span class="string">"YOUR_SECRET_KEY"</span>,<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;json={<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"secret_key"</span>: <span class="string">"YOUR_SECRET_KEY"</span>,<br />
       &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"token"</span>: token<br />
       &nbsp;&nbsp;&nbsp;&nbsp;}<br />
       &nbsp;&nbsp;)<br />
@@ -147,7 +147,8 @@
       <span style="color:#81d4fa;">async function</span> verifyHuman(token) {<br />
       &nbsp;&nbsp;const res = <span style="color:#81d4fa;">await</span> fetch(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, {<br />
       &nbsp;&nbsp;&nbsp;&nbsp;method: <span class="string">'POST'</span>,<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;body: new URLSearchParams({ secret: <span class="string">'YOUR_SECRET_KEY'</span>, token })<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;headers: { 'Content-Type': 'application/json' },<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;body: JSON.stringify({ secret_key: <span class="string">'YOUR_SECRET_KEY'</span>, token })<br />
       &nbsp;&nbsp;});<br />
       &nbsp;&nbsp;const data = <span style="color:#81d4fa;">await</span> res.json();<br />
       &nbsp;&nbsp;<span style="color:#81d4fa;">return</span> data.success;<br />
@@ -160,13 +161,23 @@
       <span style="color:#81d4fa;">export function</span> LyraAuthWidget({ siteKey, onVerified }) {<br />
       &nbsp;&nbsp;const ref = useRef();<br />
       &nbsp;&nbsp;useEffect(() =&gt; {<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;if (window.LyraAuth) {<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window.LyraAuth.render(ref.current, { siteKey, onSuccess: onVerified });<br />
-      &nbsp;&nbsp;&nbsp;&nbsp;}<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;const script = document.createElement(<span class="string">'script'</span>);<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;script.src = <span class="string">'https://lyraauth.com/widget.js'</span>;<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;script.onload = () =&gt; window.LyraAuth.render(ref.current, { siteKey, onSuccess: onVerified });<br />
+      &nbsp;&nbsp;&nbsp;&nbsp;document.body.appendChild(script);<br />
       &nbsp;&nbsp;}, []);<br />
       &nbsp;&nbsp;<span style="color:#81d4fa;">return</span> &lt;div ref={ref} /&gt;;<br />
       }
     </div>
+
+    <h3 id="migrate">Moving from reCAPTCHA or hCaptcha</h3>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+      <tr><th style="text-align:left;">What</th><th style="text-align:left;">reCAPTCHA / hCaptcha</th><th style="text-align:left;">LyraAuth</th></tr>
+      <tr><td>Widget</td><td><code>class="g-recaptcha"</code> / <code>class="h-captcha"</code></td><td><code>class="lyraauth"</code></td></tr>
+      <tr><td>Form field</td><td><code>g-recaptcha-response</code> / <code>h-captcha-response</code></td><td><code>lyraauth_token</code></td></tr>
+      <tr><td>Verify URL</td><td>Their <code>siteverify</code> URL</td><td><code>https://lyraauth.com/api/auth/siteverify</code></td></tr>
+      <tr><td>Verify fields</td><td><code>secret</code>, <code>response</code></td><td><code>secret_key</code>, <code>token</code> (the old names also work)</td></tr>
+    </table>
 
     <h2 id="api">API Reference</h2>
 
@@ -174,31 +185,33 @@
     <p>Returns a new challenge for a site key.</p>
     <div class="code-block">
       <div class="comment">Request</div><br />
-      GET /api/auth/challenge?site_key=lyra_sk_abc123<br /><br />
+      GET /api/auth/challenge?site_key=lyra_site_abc123<br /><br />
       <div class="comment">Response</div><br />
       {<br />
-      &nbsp;&nbsp;<span class="attr">"challenge_id"</span>: <span class="string">"ch_xyz..."</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"id"</span>: <span class="string">"ch_xyz..."</span>,<br />
       &nbsp;&nbsp;<span class="attr">"type"</span>: <span class="string">"sequence"</span>,<br />
-      &nbsp;&nbsp;<span class="attr">"question"</span>: <span class="string">"What comes next: 2, 4, 8, ?"</span>,<br />
+      &nbsp;&nbsp;<span class="attr">"prompt"</span>: <span class="string">"What comes next: 2, 4, 8, ?"</span>,<br />
       &nbsp;&nbsp;<span class="attr">"options"</span>: [<span class="string">"12"</span>, <span class="string">"14"</span>, <span class="string">"16"</span>, <span class="string">"18"</span>],<br />
-      &nbsp;&nbsp;<span class="attr">"expires_at"</span>: <span class="string">"2026-03-28T12:05:00Z"</span><br />
+      &nbsp;&nbsp;<span class="attr">"expires_in"</span>: 300<br />
       }
     </div>
+
+    <p>The site key must belong to a registered site. If your site has a domain on file, requests must come from that domain or one of its subdomains. <code>localhost</code> also works for testing.</p>
 
     <h3>POST /api/auth/verify</h3>
     <p>Submit a challenge response and get a verification token.</p>
 
     <h3>POST /api/auth/siteverify</h3>
-    <p>Server-to-server verification. Use your secret key to validate a token.</p>
+    <p>Server-to-server verification. POST JSON with <code>secret_key</code> and <code>token</code> from your backend, never from a browser. Each token works once and expires after 5 minutes.</p>
 
     <h3 id="training">GET /api/auth/training/stats</h3>
-    <p>View training data statistics for your site key.</p>
+    <p>Training data statistics. Lyra Labs staff only.</p>
 
     <h3>GET /api/auth/training/export</h3>
     <p>Export training data as JSONL (instruction / completion / preference format). Export for customer accounts is coming soon.</p>
 
     <div class="note">
-      <strong>Note:</strong> Training data export requires a Pro or Enterprise account. Each record is quality-filtered: response time 500ms–60s, confidence ≥ 0.7.
+      <strong>Note:</strong> Training data export is not yet available for customer accounts. Each record is quality-filtered: response time 500ms–60s, confidence ≥ 0.7.
     </div>
 
     <h2 id="deploy">VPS Deploy Guide</h2>

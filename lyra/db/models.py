@@ -18,7 +18,7 @@ def _now():
 
 
 def _site_key():
-    return "lyra_sk_" + secrets.token_urlsafe(24)
+    return "lyra_site_" + secrets.token_urlsafe(24)
 
 
 def _secret_key():

@@ -1,16 +1,20 @@
 /**
  * LyraAuth — Human Intelligence Authenticator
- * Version 1.0.0
+ * Version 1.1.0
  * Copyright (C) 2026 Lyra Contributors
  *
  * Drop-in replacement for reCAPTCHA. Add to any website with one line:
  *   <script src="https://lyraauth.com/widget.js"></script>
- *   <div class="lyraauth" data-sitekey="lyra_YOUR_KEY"></div>
+ *   <div class="lyraauth" data-sitekey="YOUR_SITE_KEY"></div>
  *
  * What it does:
  *   1. Shows a fun, modern challenge (not "click traffic lights")
  *   2. Proves the user is human to your backend
  *   3. Contributes one labeled training example to Lyra's AI training
+ *
+ * Changes in 1.1.0: challenge text is never read as HTML; keyboard and screen-reader support;
+ * buttons no longer submit the surrounding form; onSuccess works as an alias for callback;
+ * the token is also posted as lyraauth-token for integrations built from the old docs.
  *
  * Privacy: Users are clearly told their answer trains an AI.
  * See our Privacy Policy and Terms at https://lyraauth.com/pages/privacy.html and https://lyraauth.com/pages/terms.html
@@ -19,7 +23,7 @@
 (function (window) {
   'use strict';
 
-  const LYRAAUTH_VERSION = '1.0.0';
+  const LYRAAUTH_VERSION = '1.1.0';
   // Auto-detect: use same origin in production, allow override via global var
   const API_BASE = window.LYRAAUTH_API ||
     (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
@@ -208,6 +212,11 @@
     margin-top: 10px;
     display: none;
   }
+  .lyraauth-option:focus-visible, .lyraauth-submit:focus-visible,
+  .lyraauth-text-input:focus-visible, .lyraauth-widget a:focus-visible {
+    outline: 3px solid #4338ca;
+    outline-offset: 2px;
+  }
   .lyraauth-training-note {
     font-size: 10px;
     color: #a0aec0;
@@ -224,7 +233,7 @@
       this.container = container;
       this.siteKey = options.siteKey || container.getAttribute('data-sitekey') || '';
       this.theme = options.theme || container.getAttribute('data-theme') || 'light';
-      this.callback = options.callback || null;
+      this.callback = options.callback || options.onSuccess || null;
       this.errorCallback = options.errorCallback || null;
 
       this.challenge = null;
@@ -253,9 +262,10 @@
 
     async _fetchChallenge() {
       try {
-        const res = await fetch(`${API_BASE}/challenge?site_key=${this.siteKey}`);
+        const res = await fetch(`${API_BASE}/challenge?site_key=${encodeURIComponent(this.siteKey)}`);
         if (!res.ok) throw new Error('Failed to load challenge');
         this.challenge = await res.json();
+        this.selectedAnswer = null;
         this.startTime = Date.now();
         this._render('challenge');
       } catch (e) {
@@ -332,23 +342,41 @@
       // Prompt
       const prompt = document.createElement('div');
       prompt.className = 'lyraauth-prompt';
-      prompt.innerHTML = c.prompt.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      prompt.id = 'lyraauth-prompt-' + this.sessionId;
+      // **bold** is the only markup. Everything else stays plain text, whatever a prompt contains.
+      c.prompt.split(/\*\*(.*?)\*\*/g).forEach((part, i) => {
+        if (i % 2) {
+          const strong = document.createElement('strong');
+          strong.textContent = part;
+          prompt.appendChild(strong);
+        } else {
+          prompt.appendChild(document.createTextNode(part));
+        }
+      });
       body.appendChild(prompt);
 
       // Answer input
       const answersDiv = document.createElement('div');
       answersDiv.className = 'lyraauth-options';
+      answersDiv.setAttribute('role', 'group');
+      answersDiv.setAttribute('aria-labelledby', prompt.id);
 
       if (c.options && c.options.length > 0) {
         // Multiple choice
         c.options.forEach(opt => {
           const btn = document.createElement('button');
+          btn.type = 'button';
           btn.className = 'lyraauth-option';
           btn.textContent = opt;
+          btn.setAttribute('aria-pressed', 'false');
           btn.addEventListener('click', () => {
             this.selectedAnswer = opt;
-            body.querySelectorAll('.lyraauth-option').forEach(b => b.classList.remove('selected'));
+            body.querySelectorAll('.lyraauth-option').forEach(b => {
+              b.classList.remove('selected');
+              b.setAttribute('aria-pressed', 'false');
+            });
             btn.classList.add('selected');
+            btn.setAttribute('aria-pressed', 'true');
           });
           answersDiv.appendChild(btn);
         });
@@ -359,11 +387,15 @@
         input.className = 'lyraauth-text-input';
         input.placeholder = 'Type your answer here...';
         input.maxLength = 100;
+        input.setAttribute('aria-labelledby', prompt.id);
         input.addEventListener('input', () => {
           this.selectedAnswer = input.value;
         });
         input.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') submitBtn.click();
+          if (e.key === 'Enter') {
+            e.preventDefault();   // Enter answers the challenge; it must not submit the form
+            submitBtn.click();
+          }
         });
         answersDiv.appendChild(input);
       }
@@ -373,11 +405,13 @@
       // Error box
       const errorDiv = document.createElement('div');
       errorDiv.className = 'lyraauth-error';
+      errorDiv.setAttribute('role', 'alert');
       errorDiv.id = 'lyraauth-error-' + this.sessionId;
       body.appendChild(errorDiv);
 
       // Submit
       const submitBtn = document.createElement('button');
+      submitBtn.type = 'button';
       submitBtn.className = 'lyraauth-submit';
       submitBtn.textContent = 'Verify →';
       submitBtn.addEventListener('click', () => this._submit(submitBtn, errorDiv));
@@ -453,14 +487,18 @@
     }
 
     _injectHiddenToken(token) {
-      const existing = document.getElementById('lyraauth-token-' + this.sessionId);
-      if (existing) existing.remove();
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.id = 'lyraauth-token-' + this.sessionId;
-      input.name = 'lyraauth_token';
-      input.value = token;
-      this.container.parentNode.insertBefore(input, this.container.nextSibling);
+      // lyraauth_token is the real field name. lyraauth-token is what the docs used to say.
+      ['lyraauth_token', 'lyraauth-token'].forEach(name => {
+        const id = name + '-' + this.sessionId;
+        const existing = document.getElementById(id);
+        if (existing) existing.remove();
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.id = id;
+        input.name = name;
+        input.value = token;
+        this.container.parentNode.insertBefore(input, this.container.nextSibling);
+      });
     }
 
     getToken() { return this.token; }

@@ -12,7 +12,9 @@ from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from lyra.api import ratelimit
 from lyra.authenticator.engine import challenge_engine, ChallengeResponse
+from lyra.authenticator.guard import origin_allowed, parse_siteverify
 from lyra.db.database import get_db
 from lyra.api.users_api import _admin_emails, get_current_user
 from lyra.db.models import Site, UsageRecord, User, VerifiedToken
@@ -21,7 +23,10 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/auth", tags=["lyraauth"])
 
 TOKEN_TTL_MINUTES = 5
-FREE_MONTHLY_LIMIT = 10_000
+PER_IP_PER_MINUTE = 30
+# The widget on /api/auth/demo. It works only on lyraauth.com and has no site behind it.
+DEMO_SITE_KEY = "lyra_site_demo0000000000000000000000000000"
+DEMO_DOMAIN = "lyraauth.com"
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -33,11 +38,6 @@ class VerifyRequest(BaseModel):
     answer_time_ms: int
     site_key: str
     user_agent: str = ""
-
-class ServerVerifyRequest(BaseModel):
-    """Website backend POSTs this to confirm a widget token is genuine."""
-    secret_key: str
-    token: str
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -59,12 +59,31 @@ def _bump_usage(site_id: int, db: Session):
     db.commit()
 
 
+def _require_site(site_key: str, request: Request, db: Session) -> Optional[Site]:
+    """The active site for this key, called from that site's own pages. None means the demo."""
+    site = None
+    domain = DEMO_DOMAIN
+    if site_key != DEMO_SITE_KEY:
+        site = db.query(Site).filter(Site.site_key == site_key, Site.is_active == True).first()  # noqa: E712
+        if not site:
+            raise HTTPException(403, {"error": "invalid-site-key", "message": "Unknown site key."})
+        domain = site.domain
+    if not origin_allowed(domain, request.headers.get("origin"), request.headers.get("referer")):
+        raise HTTPException(403, {"error": "origin-not-allowed",
+                                  "message": "This site key isn't registered for this website."})
+    return site
+
+
 # ── Challenge endpoints ───────────────────────────────────────────────────────
 
 @router.get("/challenge")
-async def get_challenge(site_key: str = "", difficulty: str = "normal"):
-    """Serve a fresh challenge to the widget."""
+async def get_challenge(request: Request, site_key: str = "", difficulty: str = "normal",
+                        db: Session = Depends(get_db)):
+    """Serve a fresh challenge to the widget of a registered site."""
+    ratelimit.check(f"lyraauth-challenge:{ratelimit.client_ip(request)}", PER_IP_PER_MINUTE, 60)
+    _require_site(site_key, request, db)
     c = challenge_engine.generate_challenge(difficulty)
+    c.site_key = site_key
     return {
         "id": c.id,
         "type": c.type,
@@ -75,11 +94,15 @@ async def get_challenge(site_key: str = "", difficulty: str = "normal"):
 
 
 @router.post("/verify")
-async def verify_challenge(req: VerifyRequest, db: Session = Depends(get_db)):
+async def verify_challenge(req: VerifyRequest, request: Request, db: Session = Depends(get_db)):
     """
     Verify a challenge response from the widget.
     If human, issue a short-lived one-use token and store it in the DB.
     """
+    ratelimit.check(f"lyraauth-verify:{ratelimit.client_ip(request)}", PER_IP_PER_MINUTE, 60)
+    # Before the answer is scored, so an unregistered caller adds nothing to the training data.
+    site = _require_site(req.site_key, request, db)
+
     resp = ChallengeResponse(
         challenge_id=req.challenge_id,
         session_id=req.session_id,
@@ -93,16 +116,11 @@ async def verify_challenge(req: VerifyRequest, db: Session = Depends(get_db)):
     if not is_human:
         return {"success": False, "message": "Verification failed. Please try again."}
 
-    # Look up the site by site_key
-    site = db.query(Site).filter(
-        Site.site_key == req.site_key,
-        Site.is_active == True,
-    ).first()
-
     site_id = site.id if site else None
 
     # Check free-tier limit
     if site and site.owner.tier == "free":
+        from lyra.api.sites_api import FREE_TIER_MONTHLY_LIMIT
         now = datetime.now(timezone.utc)
         prefix = now.strftime("%Y-%m")
         records = db.query(UsageRecord).filter(
@@ -110,7 +128,7 @@ async def verify_challenge(req: VerifyRequest, db: Session = Depends(get_db)):
             UsageRecord.date.like(f"{prefix}%"),
         ).all()
         month_total = sum(r.count for r in records)
-        if month_total >= FREE_MONTHLY_LIMIT:
+        if month_total >= FREE_TIER_MONTHLY_LIMIT:
             return {
                 "success": False,
                 "message": "Monthly verification limit reached. Upgrade to Pro.",
@@ -129,19 +147,24 @@ async def verify_challenge(req: VerifyRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/siteverify")
-async def server_verify(req: ServerVerifyRequest, db: Session = Depends(get_db)):
+async def server_verify(request: Request, db: Session = Depends(get_db)):
     """
     Server-to-server verification (matches Google's reCAPTCHA siteverify API).
-    Your backend POSTs the secret_key + token to confirm the user passed the widget.
+    Your backend POSTs the secret_key + token as JSON to confirm the user passed the widget.
+    Form-encoded bodies and reCAPTCHA's field names (secret, response) work too.
 
     Validates:
     1. secret_key exists and belongs to an active site
     2. Token exists in DB and hasn't been used
     3. Token hasn't expired (5-minute TTL)
     """
+    secret_key, token = parse_siteverify(await request.body(), request.headers.get("content-type", ""))
+    if not secret_key or not token:
+        return {"success": False, "error-codes": ["missing-input"]}
+
     # Validate secret key
     site = db.query(Site).filter(
-        Site.secret_key == req.secret_key,
+        Site.secret_key == secret_key,
         Site.is_active == True,
     ).first()
     if not site:
@@ -150,7 +173,7 @@ async def server_verify(req: ServerVerifyRequest, db: Session = Depends(get_db))
     # Validate token
     now = datetime.now(timezone.utc)
     vt = db.query(VerifiedToken).filter(
-        VerifiedToken.token == req.token,
+        VerifiedToken.token == token,
         VerifiedToken.site_id == site.id,
     ).first()
 
@@ -195,16 +218,17 @@ async def register_site_legacy():
 
 # ── Training data endpoints ───────────────────────────────────────────────────
 
-@router.get("/training/stats")
-async def training_stats():
-    return challenge_engine.get_training_stats()
-
 def _owner(user: User = Depends(get_current_user)) -> User:
     # Records aren't tagged with the site they came from yet, so an export is everyone's data:
     # only the site owner may take it.
     if user.email.lower() not in _admin_emails():
         raise HTTPException(403, "Training data export for customer accounts is coming soon.")
     return user
+
+
+@router.get("/training/stats")
+async def training_stats(_: User = Depends(_owner)):
+    return challenge_engine.get_training_stats()
 
 
 @router.get("/training/export")
@@ -281,7 +305,7 @@ _DEMO_HTML = """<!DOCTYPE html>
         <label>Email</label>
         <input type="email" placeholder="you@example.com" required />
       </div>
-      <div class="lyraauth" data-sitekey="lyra_sk_demo0000000000000000000000000000"></div>
+      <div class="lyraauth" data-sitekey="lyra_site_demo0000000000000000000000000000"></div>
       <button type="submit">Continue</button>
       <div class="result" id="r"></div>
     </form>
