@@ -17,6 +17,10 @@ services:
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
       STRIPE_STARTER_PRICE_ID: ${STRIPE_STARTER_PRICE_ID:-}
       STRIPE_PRO_PRICE_ID: ${STRIPE_PRO_PRICE_ID:-}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      LYRA_MAIL_FROM: ${LYRA_MAIL_FROM:-Lyra <support@lyraauth.com>}
+      LYRA_ALERTS_FROM: ${LYRA_ALERTS_FROM:-}
+      LYRA_MAIL_ADDRESS: ${LYRA_MAIL_ADDRESS:-}
     volumes:
       - lyra-data:/app/data       # accounts, login secret, market history
     # No ports published: only the tunnel can reach the site.
