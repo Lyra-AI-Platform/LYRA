@@ -5,6 +5,7 @@ POST /api/users/login     — email+password, returns JWT
 GET  /api/users/me        — current user profile (requires auth)
 PUT  /api/users/me        — update name
 """
+import hashlib
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
@@ -13,7 +14,7 @@ from typing import Optional
 
 import re
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, Response, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 try:  # PyJWT; python-jose (unmaintained, pulls in a vulnerable ecdsa) only where PyJWT isn't installed yet
     import jwt
@@ -24,9 +25,10 @@ from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 from sqlalchemy.orm import Session
 
+from lyra import mail
 from lyra.api import ratelimit, sessions
 from lyra.db.database import get_db
-from lyra.db.models import LoginSession, User
+from lyra.db.models import LoginSession, PasswordReset, User
 
 router = APIRouter(prefix="/api/users", tags=["users"])
 
@@ -284,6 +286,88 @@ def change_password(req: PasswordChange, request: Request, user: User = Depends(
     db.commit()
     here, _ = sessions.current(request, db)
     return {"ok": True, "signed_out_elsewhere": sessions.end_all(db, user.id, keep=here.id)}
+
+
+# ── Forgotten passwords ───────────────────────────────────────────────────────
+
+RESET_MINUTES = 60
+
+
+class ForgotRequest(BaseModel):
+    email: str
+
+
+class ResetRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+def _reset_hash(token: str) -> str:
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _send_reset(email: str, token: str) -> None:
+    # After the # so the token never reaches a server log or a Referer header.
+    url = f"{mail.APP_URL}/dashboard/reset.html#token={token}"
+    body = (f'<p style="margin:0 0 18px;">We got a request to reset your Lyra password. This link works once and '
+            f'expires in {RESET_MINUTES} minutes.</p><p style="margin:0 0 18px;">{mail.button(url, "Reset password")}</p>'
+            '<p style="margin:0;color:#6e6b67;">If this wasn\'t you, ignore this email. Your password won\'t change.</p>')
+    text = (f"We got a request to reset your Lyra password.\n\nReset it here: {url}\n\nThis link works once and "
+            f"expires in {RESET_MINUTES} minutes. If this wasn't you, ignore this email.\n")
+    mail.send_email(email, "Reset your Lyra password", text, body_html=mail.page("Reset your password", body))
+
+
+def _send_changed(email: str) -> None:
+    body = ('<p style="margin:0 0 14px;">Your Lyra password was just changed, and every device was signed out.</p>'
+            '<p style="margin:0;">If this wasn\'t you, contact <a href="mailto:support@lyraauth.com">support@lyraauth.com</a> straight away.</p>')
+    mail.send_email(email, "Your Lyra password was changed",
+                    "Your Lyra password was just changed, and every device was signed out.\n\n"
+                    "If this wasn't you, contact support@lyraauth.com straight away.\n",
+                    body_html=mail.page("Password changed", body))
+
+
+@router.post("/password/forgot")
+def forgot_password(req: ForgotRequest, request: Request, background: BackgroundTasks, db: Session = Depends(get_db)):
+    """Answers the same whether or not the email has an account, so it can't be used to test addresses."""
+    email = req.email.lower().strip()[:254]
+    ratelimit.check(f"forgot-ip:{ratelimit.client_ip(request)}", limit=10, window=3600)
+    user = db.query(User).filter(User.email == email).first()
+    if user and user.is_active:
+        try:
+            ratelimit.check(f"forgot-email:{email}", limit=3, window=3600)
+        except HTTPException:
+            user = None
+    if user and user.is_active:
+        token = secrets.token_urlsafe(32)
+        db.query(PasswordReset).filter(PasswordReset.user_id == user.id, PasswordReset.used == False).update(  # noqa: E712
+            {"used": True})        # only the newest link works
+        db.add(PasswordReset(user_id=user.id, token_hash=_reset_hash(token),
+                             expires_at=datetime.now(timezone.utc) + timedelta(minutes=RESET_MINUTES)))
+        db.commit()
+        background.add_task(_send_reset, user.email, token)
+    return {"ok": True}
+
+
+@router.post("/password/reset")
+def reset_password(req: ResetRequest, request: Request, background: BackgroundTasks, db: Session = Depends(get_db)):
+    """Sets a new password from an emailed link and signs out every device."""
+    ratelimit.check(f"reset-ip:{ratelimit.client_ip(request)}", limit=20, window=900)
+    row = db.query(PasswordReset).filter(PasswordReset.token_hash == _reset_hash(req.token)).first()
+    expires = row.expires_at.replace(tzinfo=timezone.utc) if row else None
+    if not row or row.used or expires < datetime.now(timezone.utc):
+        raise HTTPException(400, "That reset link has expired or was already used. Request a new one.")
+    user = db.get(User, row.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(400, "That reset link has expired or was already used. Request a new one.")
+    problem = password_problem(req.new_password, user.email)
+    if problem:
+        raise HTTPException(400, problem)
+    user.password_hash = _hash_password(req.new_password)
+    row.used = True
+    db.commit()
+    sessions.end_all(db, user.id)
+    background.add_task(_send_changed, user.email)
+    return {"ok": True}
 
 
 @router.get("/me")

@@ -13,25 +13,30 @@
     ['', [
       { href: '/', ico: 'home', name: 'Overview', match: /^\/(home\/?)?$/ },
     ]],
-    ['Products', [
+    ['Markets & news', [
       { href: '/market', ico: 'chart', name: 'Tremor Index', need: 'member', match: /^\/market/ },
-      { href: '/dashboard/chat.html', ico: 'chat', name: 'Lyra chat', need: 'member', match: /chat\.html$/ },
       { href: '/watch/live/', ico: 'live', name: 'Watch Live', need: 'watch', match: /^\/watch\/live/ },
-      { href: '/watch/', ico: 'people', name: 'Watch directory', match: /^\/watch\/?$/ },
+      { href: '/watch/', ico: 'people', name: 'People directory', match: /^\/watch\/?$/ },
       { href: '/news/', ico: 'book', name: 'Newswire', match: /^\/news/ },
+    ]],
+    ['AI & tools', [
+      { href: '/dashboard/chat.html', ico: 'chat', name: 'Lyra chat', need: 'member', match: /chat\.html$/ },
+      { href: '/labs/', ico: 'flask', name: 'Lyra Labs', match: /^\/labs/ },
       { href: '/dashboard/', ico: 'shield', name: 'LyraAuth sites', match: /^\/dashboard\/(index\.html)?$/ },
+    ]],
+    ['Your account', [
+      { href: '/account/', ico: 'lock', name: 'Account & security', match: /^\/account/ },
+      { href: '/dashboard/billing.html', ico: 'card', name: 'Billing & plan', match: /billing\.html$/ },
+      { href: '/watch/account/#alerts', ico: 'megaphone', name: 'Email alerts' },
     ]],
     ['Developers', [
       { href: '/watch/account/', ico: 'key', name: 'API keys & credits', match: /^\/watch\/account/ },
       { href: '/pages/docs.html', ico: 'book', name: 'Documentation', match: /docs\.html$/ },
       { href: '/tremor/', ico: 'pulse', name: 'Tremor methodology', match: /^\/tremor/ },
     ]],
-    ['Account', [
-      { href: '/account/', ico: 'lock', name: 'Account & security', match: /^\/account/ },
-      { href: '/dashboard/billing.html', ico: 'card', name: 'Billing & plan', match: /billing\.html$/ },
+    ['Help', [
+      { href: '/feedback/', ico: 'chat', name: 'Feedback & support', match: /^\/feedback/ },
       { href: '/advertise/', ico: 'megaphone', name: 'Advertise', match: /^\/advertise/ },
-      { href: '/feedback/', ico: 'chat', name: 'Send feedback', match: /^\/feedback/ },
-      { href: 'mailto:support@lyraauth.com', ico: 'help', name: 'Help & support' },
     ]],
   ];
 
@@ -195,7 +200,7 @@
     input.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowDown') { sel = Math.min(sel + 1, shown.length - 1); render(); e.preventDefault(); }
       else if (e.key === 'ArrowUp') { sel = Math.max(sel - 1, 0); render(); e.preventDefault(); }
-      else if (e.key === 'Enter' && shown[sel]) { location.href = shown[sel].href; }
+      else if (e.key === 'Enter' && shown[sel]) { e.preventDefault(); palette(false); location.href = shown[sel].href; }
     });
     pal.addEventListener('click', function (e) { if (e.target === pal) palette(false); });
   }

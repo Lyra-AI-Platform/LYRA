@@ -22,7 +22,7 @@
     ['/index.html#how-it-works', 'How it works', null],
     ['/index.html#integrate', 'Integrate', null],
     ['/news/', 'News', /^\/news/],
-    ['/dashboard/billing.html', 'Pricing', /billing\.html$/],
+    ['/#pricing', 'Pricing', /^$/],
     ['/tremor/', 'Tremor Index', /^\/(tremor|market)/],
     ['/watch/', 'Watch', /^\/watch\/?$/],
     ['/watch/live/', 'Live', /^\/watch\/live/],

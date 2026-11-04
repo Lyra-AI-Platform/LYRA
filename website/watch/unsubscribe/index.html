@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Unsubscribe — Lyra Watch</title>
+<link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="/css/main.css" />
+</head>
+<body>
+<main style="max-width:520px;margin:0 auto;padding:120px 16px;">
+  <h1 style="font-size:1.6rem;">Stop Lyra Watch alerts?</h1>
+  <p id="msg" role="status">You'll stop getting alert emails. Account emails such as password resets still arrive.</p>
+  <p><button id="go" class="btn btn-primary" type="button">Unsubscribe</button></p>
+  <p><a href="/watch/account/#alerts">Change my alerts instead</a></p>
+</main>
+<script>
+  // A button, because email scanners open links and would otherwise unsubscribe people.
+  var token = new URLSearchParams(location.search).get('token') || '';
+  document.getElementById('go').onclick = function () {
+    fetch('/api/watch/alerts/unsubscribe?token=' + encodeURIComponent(token), { method: 'POST' }).then(function (r) {
+      document.getElementById('msg').textContent = r.ok ? "You're unsubscribed." : "That link isn't valid. Turn alerts off in your account instead.";
+      if (r.ok) document.getElementById('go').hidden = true;
+    }).catch(function () { document.getElementById('msg').textContent = "Couldn't reach Lyra. Please try again."; });
+  };
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Choose a new password — Lyra</title>
+    <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#14120e" />
+  <meta name="apple-mobile-web-app-title" content="Lyra" />
+  <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="/css/auth.css?v=20261023c" />
+  <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/auth.js?v=20261023c"></script>
+</head>
+<body>
+<div class="auth">
+  <main class="auth-main">
+    <div class="card">
+      <a href="/" class="mobile-brand" style="display:block"><img src="/img/logo-mark.svg" alt="Lyra" width="26" height="26" /></a>
+      <h1 class="rise d1">Choose a new password</h1>
+      <p class="lede rise d2">Use at least 10 characters. You’ll be signed out everywhere and can then sign in with it.</p>
+      <div class="alert" id="alert" role="alert"></div>
+      <form id="f" class="rise d3" novalidate>
+        <div class="field"><label for="password">New password</label>
+          <input type="password" id="password" autocomplete="new-password" required autofocus /></div>
+        <button type="submit" class="btn-main" id="btn"><span class="spin" aria-hidden="true"></span><span class="label">Save new password</span></button>
+      </form>
+      <p class="legal" id="done" hidden><a href="login.html">Sign in</a></p>
+      <p class="legal"><a href="forgot.html">Need a new link?</a></p>
+    </div>
+  </main>
+</div>
+<script>
+  var token = new URLSearchParams(location.hash.slice(1)).get('token');
+  history.replaceState(null, '', location.pathname);   // keep the token out of history
+  if (!token) { document.getElementById('f').hidden = true; lyraAuth.show('This link isn’t complete. Request a new one below.'); }
+  document.getElementById('f').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('btn'), pw = document.getElementById('password');
+    lyraAuth.hide();
+    lyraAuth.busy(btn, true, 'Saving…');
+    lyraAuth.post('/api/users/password/reset', { token: token, new_password: pw.value })
+      .then(function () {
+        document.getElementById('f').hidden = true;
+        document.getElementById('done').hidden = false;
+        lyraAuth.show('Your password has been changed.', 'ok');
+      })
+      .catch(function (ex) { lyraAuth.show(ex.message); })
+      .finally(function () { lyraAuth.busy(btn, false); });
+  });
+</script>
+</body>
+</html>
