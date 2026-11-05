@@ -39,6 +39,7 @@ from lyra.api.sites_api import router as sites_router
 from lyra.api.billing_api import router as billing_router
 from lyra.api.intelligence_api import router as intelligence_router
 from lyra.api.market_api import router as market_router
+from lyra.api.live_api import router as live_router
 from lyra.api.pulse_api import router as pulse_router
 from lyra.api.watch_api import router as watch_router
 from lyra.api.watch_access import router as watch_account_router
@@ -184,6 +185,7 @@ app.include_router(billing_router)
 app.include_router(intelligence_router)
 app.include_router(market_router)
 app.include_router(pulse_router)
+app.include_router(live_router)
 app.include_router(watch_router)
 app.include_router(watch_account_router)
 app.include_router(watch_alerts_router)
@@ -362,6 +364,8 @@ async def on_startup():
     # Global newswire: news in every language and new research, collected for as long as Lyra runs
     from lyra.newswire.collector import collector as newswire
     newswire.start()
+    from lyra.market.pulse_loop import pulse_loop
+    pulse_loop.start()
 
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
@@ -390,6 +394,8 @@ async def on_shutdown():
     alert_loop.stop()
     from lyra.newswire.collector import collector as newswire
     newswire.stop()
+    from lyra.market.pulse_loop import pulse_loop
+    pulse_loop.stop()
     from lyra.watch.live import loop as live_loop, signals_loop
     live_loop.stop()
     signals_loop.stop()

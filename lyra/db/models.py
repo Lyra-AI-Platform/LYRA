@@ -159,6 +159,20 @@ def _api_key():
     return "lw_" + secrets.token_urlsafe(32)
 
 
+class LiveFollow(Base):
+    """My Live: a person, company, topic or saved search someone follows, with optional alerts."""
+    __tablename__ = "live_follows"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    kind       = Column(String, nullable=False)     # person | company | topic | search
+    value      = Column(String, nullable=False)
+    label      = Column(String, default="")
+    alerts     = Column(Boolean, default=False)
+    last_alert = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), default=_now)
+
+
 class CreditWallet(Base):
     """Prepaid credits that API keys spend (AI agents pay per request)."""
     __tablename__ = "credit_wallets"

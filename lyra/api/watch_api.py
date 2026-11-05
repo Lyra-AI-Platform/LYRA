@@ -219,7 +219,10 @@ async def live_status(response: Response, request: Request):
     """Public: whether the feed is live, how many are watching, events in the last 24 hours."""
     _public(response, request)
     response.headers["Cache-Control"] = "no-store"
-    return live.hub.status()
+    from lyra.api.live_api import watching
+    from lyra.newswire.store import get_wire
+    status = live.hub.status()
+    return {**status, "watching": status["viewers"] + watching(), "stories_24h": get_wire().count_since(time.time() - 86400)}
 
 
 @router.get("/live/preview")

@@ -354,6 +354,9 @@ class WireStore:
             if val:
                 sql.append(f"{col} LIKE ?")
                 params.append(f"%,{val},%")
+        if f.get("q"):
+            sql.append("title LIKE ?")
+            params.append(f"%{f['q']}%")
         if channel == "people":
             sql.append("people != ','")
         elif channel == "markets":
@@ -379,6 +382,10 @@ class WireStore:
         d.update(breaking=breaking, channels=CL.channels_for(d["topics"], d["people"], d["tickers"]),
                  importance=CL.importance(d["outlets"], d["stories"] / hours, len(d["people"]), len(d["tickers"]), breaking))
         return d
+
+    def count_since(self, since: float) -> int:
+        with self._lock:
+            return self._conn.execute("SELECT COUNT(*) FROM wire WHERE published >= ?", (since,)).fetchone()[0]
 
     def stories_since(self, ticker: str, since: float) -> int:
         with self._lock:
