@@ -66,5 +66,5 @@ def test_pricing_means_the_pricing_page():
 def test_the_plans_on_the_pricing_and_billing_pages():
     for name in ("pricing/index.html", "dashboard/billing.html"):
         text = (WEBSITE / name).read_text()
-        for needed in ("£12", "£18", "Markets Pro", "Watch Pro", "1 Tremor reading a day"):
+        for needed in ("$12", "$18", "Markets Pro", "Watch Pro", "1 Tremor reading a day"):
             assert needed in text, (name, needed)
