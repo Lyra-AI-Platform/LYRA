@@ -382,7 +382,7 @@ $("closereader").onclick = () => { $("readerbox").hidden = true; };
 
 loadVix();
 loadLearning();
-// /market?t=NVDA opens straight onto a reading (links from Lyra Watch use this).
+// /tremor/reading?ticker=NVDA opens straight onto a reading. ?t= is the older spelling.
 (function deepLink() {
   const t = (new URLSearchParams(location.search).get("t") || new URLSearchParams(location.search).get("ticker") || "").trim().toUpperCase();
   if (/^[A-Z0-9.\-]{1,10}$/.test(t)) { $("ticker").value = t; $("lookup").requestSubmit(); }

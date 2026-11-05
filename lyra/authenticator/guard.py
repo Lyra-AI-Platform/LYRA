@@ -2,6 +2,8 @@
 LyraAuth request checks that need no database: which site a browser request came from, and
 reading a siteverify body. Kept apart from the routes so they can be tested on their own.
 """
+import hashlib
+import hmac
 import json
 from typing import Optional, Tuple
 from urllib.parse import parse_qs, urlsplit
@@ -31,6 +33,28 @@ def origin_allowed(domain: str, origin: Optional[str], referer: Optional[str]) -
         return True
     host = host_of(origin or "") or host_of(referer or "")
     return host in DEV_HOSTS or host == domain or host.endswith("." + domain)
+
+
+def solved_on(origin: Optional[str], referer: Optional[str]) -> str:
+    """The hostname the widget was running on, for siteverify's "hostname" field."""
+    return host_of(origin or "") or host_of(referer or "")
+
+
+HASH_PREFIX = "sha256:"
+
+
+def is_hashed(stored: str) -> bool:
+    return (stored or "").startswith(HASH_PREFIX)
+
+
+def hash_secret(secret: str) -> str:
+    """Secret keys are long and random, so one round of SHA-256 is enough at rest. It also gives
+    a stable value to look a site up by, which a salted password hash wouldn't."""
+    return HASH_PREFIX + hashlib.sha256(secret.encode()).hexdigest()
+
+
+def secret_matches(stored: str, given: str) -> bool:
+    return hmac.compare_digest(stored or "", hash_secret(given))
 
 
 def parse_siteverify(body: bytes, content_type: str) -> Tuple[str, str]:

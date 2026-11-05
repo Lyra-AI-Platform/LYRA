@@ -55,8 +55,10 @@ def _client(app, Session=None, tier="free", days_old=0, email=None):
     return c
 
 
-PUBLIC = ["/pages/privacy.html", "/pages/docs.html", "/watch/", "/tremor/", "/company/", "/dashboard/login.html"]
+PUBLIC = ["/pages/privacy.html", "/pages/docs.html", "/watch/", "/tremor/", "/company/", "/dashboard/login.html",
+          "/dashboard/forgot.html", "/dashboard/reset.html", "/watch/live/"]
 MEMBERS = ["/dashboard/chat.html", "/market"]
+ACCOUNT = ["/dashboard/", "/dashboard/billing.html", "/home/", "/account/"]
 
 
 @pytest.mark.parametrize("path", PUBLIC)
@@ -65,7 +67,7 @@ def test_public_pages_stay_open(site, path):
     assert _client(app).get(path).status_code == 200
 
 
-@pytest.mark.parametrize("path", MEMBERS + ["/dashboard/", "/dashboard/billing.html", "/home/", "/account/", "/watch/live/"])
+@pytest.mark.parametrize("path", ACCOUNT)
 def test_signed_out_visitors_are_sent_to_sign_in(site, path):
     app, _ = site
     r = _client(app).get(path)
@@ -74,8 +76,16 @@ def test_signed_out_visitors_are_sent_to_sign_in(site, path):
     assert r.headers["cache-control"] == "no-store"
 
 
+@pytest.mark.parametrize("path", MEMBERS)
+def test_signed_out_visitors_to_a_product_are_offered_sign_up(site, path):
+    app, _ = site
+    r = _client(app).get(path)
+    assert r.status_code == 303
+    assert r.headers["location"].startswith("/dashboard/register.html?next=")
+
+
 @pytest.mark.parametrize("path", ["//coshh/", "/coshh/index.html", "/x/../coshh/", "/COSHH/", "/coshh//index.html",
-                                  "/dashboard//chat.html", "/watch//live/", "/%63oshh/"])
+                                  "/dashboard//chat.html", "/%63oshh/"])
 def test_other_spellings_of_a_locked_path_are_locked_too(site, path):
     app, _ = site
     assert _client(app).get("http://testserver" + path).status_code in (303, 404)

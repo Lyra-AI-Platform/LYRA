@@ -29,10 +29,17 @@ from lyra.core.quantum_sim import quantum_sim
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
-# In-memory conversation store (persists during session), one dict per user so
-# nobody can list or read another account's chats.
-conversations: Dict[str, List[Dict]] = {}
-_owner_of: Dict[str, int] = {}
+# Conversations and who owns them, kept in memory and saved to disk as they change, so a
+# restart loses nothing and nobody can list or read another account's chats.
+from lyra.api.chat_history import ChatDB, Conversations, Owners  # noqa: E402
+from lyra.market.config import DATA_DIR  # noqa: E402
+
+_chat_db = ChatDB(DATA_DIR / "chat_history.db")
+conversations: Dict[str, List[Dict]] = Conversations(_chat_db)
+_owner_of: Dict[str, int] = Owners(_chat_db)
+
+# Why a chat socket closed. The page turns these into a message and doesn't retry them.
+WS_NOT_SIGNED_IN, WS_PLAN_REQUIRED, WS_FORBIDDEN = 4401, 4402, 4403
 
 
 def _mine(user_id: int, conv_id: str) -> bool:
@@ -66,15 +73,24 @@ async def chat_websocket(websocket: WebSocket, conversation_id: str):
     db = SessionLocal()
     try:
         from lyra.api import sessions
-        user = entitlements.user_from_conn(websocket, db) if sessions.same_origin(websocket, strict=True) else None
+        # Accept first: a browser can only read the close code of a socket that was accepted.
+        await websocket.accept()
+        if not sessions.same_origin(websocket, strict=True):
+            await websocket.close(code=WS_FORBIDDEN)
+            return
+        user = entitlements.user_from_conn(websocket, db)
         if not user:
-            await websocket.close(code=4401)
+            await websocket.close(code=WS_NOT_SIGNED_IN)
             return
         if conversation_id in _owner_of and not _mine(user.id, conversation_id):
-            await websocket.close(code=4403)
+            await websocket.close(code=WS_FORBIDDEN)
+            return
+        try:
+            entitlements.check(user, "chat", db)
+        except HTTPException:
+            await websocket.close(code=WS_PLAN_REQUIRED)
             return
         _owner_of.setdefault(conversation_id, user.id)
-        await websocket.accept()
         logger.info(f"WebSocket connected: {conversation_id} (user {user.id})")
 
         while True:

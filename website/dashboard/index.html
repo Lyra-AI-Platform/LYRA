@@ -104,7 +104,7 @@
   <div class="dash-nav-right">
     <span class="user-pill" id="user-email"></span>
     <a href="chat.html" class="btn btn-primary" style="padding:6px 14px;font-size:.8125rem;">✦ Chat with Lyra</a>
-    <a href="/market" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Tremor Index</a>
+    <a href="/tremor/" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Tremor Index</a>
     <a href="../pages/docs.html" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Docs</a>
     <a href="../index.html" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">← Site</a>
     <button onclick="signOut()" class="btn btn-outline" style="padding:6px 14px;font-size:.8125rem;">Sign out</button>
@@ -155,8 +155,8 @@
   <!-- Billing link -->
   <div style="margin-top:36px;padding-top:24px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
     <div>
-      <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Trial</div>
-      <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">Trial: 14 days, 1 site, 1,000 verifications. Then choose a plan.</div>
+      <div style="font-size:.9375rem;font-weight:600;" id="tier-label">Free plan</div>
+      <div style="font-size:.8125rem;color:var(--muted);margin-top:2px;">Free plan: 1 site and 1,000 verifications a month, with a 14-day trial of the paid products.</div>
     </div>
     <a href="billing.html" class="btn btn-primary">Upgrade plan</a>
   </div>
@@ -224,8 +224,8 @@
       const user = await res.json();
       document.getElementById('user-email').textContent = user.email;
       const tierLabel = document.getElementById('tier-label');
-      const names = { starter: 'Starter plan', pro: 'Pro plan', business: 'Business plan', enterprise: 'Enterprise plan' };
-      tierLabel.textContent = names[user.tier] || 'Trial — 14 days, then choose a plan';
+      const names = { free: 'Free plan', markets: 'Markets Pro plan', bundle: 'Markets Pro + Watch Pro', starter: 'Starter plan', pro: 'Pro plan', business: 'Business plan', enterprise: 'Enterprise plan' };
+      tierLabel.textContent = names[user.tier] || 'Free plan';
     } catch {}
   }
 
@@ -275,8 +275,7 @@
           </div>
           <div class="key-row">
             <span class="key-label">Secret key</span>
-            <span class="key-value" title="${escHtml(site.secret_key)}">${escHtml(site.secret_key)}</span>
-            <button class="copy-key" onclick="copyText('${escHtml(site.secret_key)}',this)">Copy</button>
+            <span class="key-value" title="Stored hashed. Rotate it if you've lost it.">••••••••${escHtml(site.secret_hint || '')}</span>
           </div>
 
           <div class="usage-bar-wrap" id="usage-${site.id}">
@@ -327,6 +326,7 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to create site');
       closeAddModal();
+      showSecretOnce(data.secret_key);
       toast('Site created!');
       await loadSites();
     } catch (ex) {
@@ -337,12 +337,18 @@
     }
   }
 
+  // Only a hash is kept on the server, so this is the one time the key can be read.
+  function showSecretOnce(secret) {
+    window.prompt("Copy your secret key now. It won't be shown again:", secret);
+  }
+
   async function rotateSite(siteId) {
     if (!confirm('This will immediately invalidate the current secret key. All existing server-side integrations must be updated. Continue?')) return;
     try {
       const res = await fetch(`${API}/sites/${siteId}/rotate`, { method:'POST', headers:authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail);
+      showSecretOnce(data.secret_key);
       toast('Secret key rotated. Update your server code!');
       await loadSites();
     } catch (ex) {

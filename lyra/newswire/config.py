@@ -114,6 +114,11 @@ TOPIC_WORDS = {
     "mergers": ["merger", "acquisition", "takeover", "buyout", "ipo"],
 }
 
+# Never tag these as tickers. Private companies have no ticker to give, and these letter runs
+# appear after "$" or "NYSE:" for other reasons: SPCX is a SPAC fund, not SpaceX.
+BLOCKED_TICKERS = {"SPCX", "USD", "GBP", "EUR", "CEO", "CFO", "USA", "GDP", "IPO", "ETF", "SEC", "FED", "ECB", "EU", "UK",
+                   "AI", "IT", "PM", "US", "UN", "CPI", "NATO", "OPEC"}
+
 # Companies named in headlines, for linking articles to Tremor tickers. Chemical, AI, chip,
 # pharma and energy names lead, since research and policy news moves them first.
 COMPANIES = {

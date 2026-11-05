@@ -404,6 +404,10 @@ function connectWS(convId) {
   ws.addEventListener('close',   e => {
     if (isStreaming) finishStream();
     if (e.target !== ws) return;                     // replaced by a newer connection
+    const closed = { 4401: 'Your session has ended. <a href="/dashboard/login.html?next=/dashboard/chat.html">Sign in again</a> to keep chatting.',
+                     4402: 'Lyra chat needs a plan. <a href="/dashboard/billing.html?need=chat">See plans</a> to keep chatting.',
+                     4403: "You don't have access to this conversation. Start a new chat to carry on." };
+    if (closed[e.code]) { appendNotice(closed[e.code]); return; }
     if (wsRetries < 3) { wsRetries++; setTimeout(() => connectWS(convId), 1000 * wsRetries); }
     else appendError(`Lyra chat can't connect right now (code ${e.code}). Please try again shortly.`);
   });
@@ -498,6 +502,17 @@ function finishStream() {
   sendBtn.disabled = false;
   inputEl.focus();
   loadConversations();
+}
+
+// A message of our own, with links. Only ever given the fixed strings in connectWS.
+function appendNotice(html) {
+  clearStatus();
+  const el = document.createElement('div');
+  el.className = 'msg-error';
+  el.innerHTML = html;
+  msgWrap.appendChild(el);
+  scrollBottom();
+  isStreaming = false;
 }
 
 function appendError(text) {

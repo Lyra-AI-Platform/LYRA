@@ -14,7 +14,7 @@
       { href: '/', ico: 'home', name: 'Overview', match: /^\/(home\/?)?$/ },
     ]],
     ['Markets & news', [
-      { href: '/market', ico: 'chart', name: 'Tremor Index', need: 'member', match: /^\/market/ },
+      { href: '/tremor/reading', ico: 'chart', name: 'Tremor Index', need: 'member', match: /^\/tremor\/reading/ },
       { href: '/watch/live/', ico: 'live', name: 'Watch Live', need: 'watch', match: /^\/watch\/live/ },
       { href: '/watch/', ico: 'people', name: 'People directory', match: /^\/watch\/?$/ },
       { href: '/news/', ico: 'book', name: 'Newswire', match: /^\/news/ },

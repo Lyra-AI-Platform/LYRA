@@ -18,6 +18,7 @@ from typing import Dict, Optional
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from lyra.api import plans
 from lyra.db.database import get_db
 from lyra.db.models import TrialUsage, User
 from lyra.api.users_api import get_current_user
@@ -69,6 +70,7 @@ def status(user: User, db: Session) -> Dict:
     days = trial_days_left(user)
     return {
         "tier": user.tier or "free",
+        "plan_name": plans.plan_name(user.tier),
         "paid": is_paid(user),
         "admin": is_admin(user),
         "trial": None if is_paid(user) else {

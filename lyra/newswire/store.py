@@ -35,6 +35,13 @@ CREATE TRIGGER IF NOT EXISTS wire_ad AFTER DELETE ON wire BEGIN
 CREATE TABLE IF NOT EXISTS wire_runs (source TEXT PRIMARY KEY, last_ok REAL, last_error TEXT, added INTEGER DEFAULT 0);
 """
 
+def safe_url(url: str) -> str:
+    """Only http(s) links reach a page. A javascript: or data: link in a feed could run in a
+    reader's session; anything but a plain web address comes back as ""."""
+    url = (url or "").strip()
+    return url if url.lower().startswith(("http://", "https://")) else ""
+
+
 COLUMNS = ("id", "url", "title", "summary", "source", "country", "language", "kind", "topics", "tickers",
            "people", "via", "published", "fetched")
 PUBLIC = ("id", "url", "title", "summary", "source", "country", "language", "kind", "topics", "tickers", "people",
@@ -76,6 +83,18 @@ class WireStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.executescript(SCHEMA)
+        self._upgrade()
+
+    def _upgrade(self):
+        """One-off data fixes, each run once (PRAGMA user_version counts them)."""
+        version = self._conn.execute("PRAGMA user_version").fetchone()[0]
+        if version < 1:
+            # GDELT languages used to fall back to the name's first two letters. Where that
+            # could only be one language it's corrected; otherwise it's cleared, not guessed.
+            for wrong, right in (("cr", "hr"), ("se", "sr"), ("bo", "bs"), ("ma", ""), ("an", "")):
+                self._conn.execute("UPDATE wire SET language=? WHERE language=? AND via='GDELT'", (right, wrong))
+            self._conn.execute("PRAGMA user_version=1")
+            self._conn.commit()
 
     def add(self, items: List[Dict]) -> int:
         """Insert new items; ones already stored (same URL) are skipped. Returns how many were new."""
@@ -83,7 +102,9 @@ class WireStore:
         rows = []
         # Journals often date papers ahead of release; nothing is stored as newer than now.
         for it in items:
-            rows.append((it["id"], it["url"], it["title"][:400], (it.get("summary") or "")[:600], it.get("source", "")[:120],
+            if not safe_url(it.get("url", "")):
+                continue
+            rows.append((it["id"], it["url"].strip(), it["title"][:400], (it.get("summary") or "")[:600], it.get("source", "")[:120],
                          (it.get("country") or "")[:2].upper(), (it.get("language") or "")[:12].lower(), it.get("kind", "news"),
                          _tags(it.get("topics", [])), _tags(it.get("tickers", [])), _tags(it.get("people", [])),
                          it.get("via", "")[:40], min(float(it.get("published") or now), now), now))
@@ -141,6 +162,8 @@ class WireStore:
         out = []
         for r in rows:
             d = dict(r)
+            if not safe_url(d["url"]):   # stored before links were checked
+                continue
             for k in ("topics", "tickers", "people"):
                 d[k] = _untag(d[k])
             out.append(d)
@@ -164,7 +187,7 @@ class WireStore:
         for r in rows:
             d = dict(r)
             key = " ".join(d["title"].lower().split())[:120]
-            if key in seen:      # the same story syndicated under several URLs
+            if key in seen or not safe_url(d["url"]):      # syndicated under several URLs, or an unsafe link
                 continue
             seen.add(key)
             for k in ("topics", "tickers", "people"):

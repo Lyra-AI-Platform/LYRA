@@ -112,7 +112,7 @@
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
-    <div class="nav-cta"><a href="/market" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Markets</a>
+    <div class="nav-cta"><a href="/tremor/" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Tremor Index</a>
       <a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
   </div>
 </nav>
@@ -214,7 +214,7 @@
     $("sTags").replaceChildren(
       ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
       ...e.companies.map((c) => c.ticker
-        ? el("a", { class: "tag co", href: `/market?t=${encodeURIComponent(c.ticker)}`, title: "Tremor reading", text: `${c.name} · ${c.ticker} ↗` })
+        ? el("a", { class: "tag co", href: `/tremor/reading?ticker=${encodeURIComponent(c.ticker)}`, title: "Tremor reading", text: `${c.name} · ${c.ticker} ↗` })
         : el("span", { class: "tag co", text: c.name })),
       ...e.topics.slice(0, 3).map((t) => el("span", { class: "tag", text: t })));
   }

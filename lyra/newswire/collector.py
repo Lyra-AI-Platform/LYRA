@@ -20,6 +20,8 @@ import httpx
 
 from lyra.newswire import config as C
 from lyra.newswire.store import get_wire
+from lyra.newswire.tagging import (AMBIGUOUS, LANG_CODES, Tagger, item_id, language_code, matchable,  # noqa: F401
+                                   tagger, tidy_title)
 
 logger = logging.getLogger(__name__)
 UA = "LyraNewswire/1.0 (+https://lyraauth.com; support@lyraauth.com)"
@@ -39,66 +41,6 @@ GDELT_COUNTRY_NAMES = {
     "Chile": "CL", "Colombia": "CO", "Peru": "PE", "Kenya": "KE", "Qatar": "QA", "Hong Kong": "HK", "Bangladesh": "BD",
     "Iran": "IR", "Iraq": "IQ", "Morocco": "MA", "Ghana": "GH", "Ethiopia": "ET",
 }
-LANG_CODES = {"English": "en", "German": "de", "French": "fr", "Spanish": "es", "Italian": "it", "Portuguese": "pt",
-              "Japanese": "ja", "Chinese": "zh", "Korean": "ko", "Russian": "ru", "Arabic": "ar", "Turkish": "tr",
-              "Dutch": "nl", "Polish": "pl", "Swedish": "sv", "Hindi": "hi", "Indonesian": "id", "Vietnamese": "vi",
-              "Thai": "th", "Ukrainian": "uk", "Hebrew": "he", "Persian": "fa", "Greek": "el", "Czech": "cs",
-              "Romanian": "ro", "Hungarian": "hu", "Malay": "ms", "Bengali": "bn", "Urdu": "ur", "Tamil": "ta"}
-
-_COMPANY_RE = re.compile(r"(?<![A-Za-z])(" + "|".join(sorted((re.escape(k) for k in C.COMPANIES), key=len, reverse=True)) + r")(?![A-Za-z])")
-AMBIGUOUS = {"Meta", "Shell", "Apple", "Olin", "Amazon", "Arm Holdings", "Sika", "Bayer", "Linde", "Total"}
-_CASHTAG_RE = re.compile(r"(?:\$|\b(?:NYSE|NASDAQ|Nasdaq|LSE|TSX|ASX)\s*:\s*)([A-Z]{1,5}(?:[.-][A-Z])?)\b")
-
-
-def item_id(url: str) -> str:
-    return hashlib.sha1(url.split("#")[0].encode()).hexdigest()[:20]
-
-
-class Tagger:
-    """Topics, companies (tickers) and named people for one item."""
-
-    def __init__(self):
-        self.people: Dict[str, str] = {}
-        self.loaded = 0.0
-
-    def refresh_people(self):
-        """Public figures known to Lyra Watch, matched by full name (two words or more)."""
-        if time.time() - self.loaded < 3600:
-            return
-        try:
-            from lyra.watch.service import is_public_figure, load_people
-            from lyra.watch.config import load_roster
-            names = {p["name"]: p.get("slug") or p["name"] for p in load_roster()}
-            for r in load_people().get("people", []):
-                if is_public_figure(r) and len(r.get("name", "").split()) >= 2:
-                    names.setdefault(r["name"], r.get("id") or r["name"])
-            self.people = names
-            self._people_re = re.compile(r"(?<![A-Za-z])(" + "|".join(sorted((re.escape(n) for n in names), key=len, reverse=True)) + r")(?![A-Za-z])") if names else None
-        except Exception as e:  # noqa: BLE001
-            logger.debug(f"Newswire: people list unavailable: {e}")
-            self._people_re = None
-        self.loaded = time.time()
-
-    def tag(self, it: Dict) -> Dict:
-        text = f"{it.get('title', '')} {it.get('summary', '')}"
-        low = f" {text.lower()} "
-        topics = set(it.get("topics", []))
-        for topic, words in C.TOPIC_WORDS.items():
-            if any(w in low for w in words):
-                topics.add(topic)
-        english = (it.get("language") or "en").startswith("en")
-        # Names that are ordinary words elsewhere ("meta" is "goal" in Spanish and Italian).
-        tickers = {C.COMPANIES[m] for m in _COMPANY_RE.findall(text) if english or m not in AMBIGUOUS}
-        tickers |= {t for t in _CASHTAG_RE.findall(text) if len(t) > 1}
-        people = set()
-        if getattr(self, "_people_re", None):
-            people = set(self._people_re.findall(text))
-        return {**it, "topics": sorted(topics), "tickers": sorted(tickers), "people": sorted(people)}
-
-
-tagger = Tagger()
-
-
 class Collector:
     def __init__(self):
         self._task: Optional[asyncio.Task] = None
@@ -143,9 +85,9 @@ class Collector:
             except ValueError:
                 when = time.time()
             items.append(tagger.tag({
-                "id": item_id(a["url"]), "url": a["url"], "title": a["title"].strip(), "source": a.get("domain", ""),
+                "id": item_id(a["url"]), "url": a["url"], "title": tidy_title(a["title"]), "source": a.get("domain", ""),
                 "country": country or GDELT_COUNTRY_NAMES.get(a.get("sourcecountry", ""), ""),
-                "language": LANG_CODES.get(a.get("language", ""), (a.get("language") or "")[:2].lower()),
+                "language": language_code(a.get("language", "")),
                 "kind": "news", "topics": [topic] if topic else [], "published": when, "via": "GDELT"}))
         added = get_wire().add(items)
         get_wire().run(f"gdelt:{key}", added)

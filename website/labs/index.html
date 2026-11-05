@@ -338,7 +338,7 @@
           } else if (b.type === 'company') {
             const t = String(b.ticker || '').toUpperCase().replace(/[^A-Z.\-]/g, '').slice(0, 10);
             const d = await fetch('/api/wire/ticker/' + encodeURIComponent(t)).then((r) => r.json()).catch(() => null);
-            el.innerHTML = `<h3>${esc(t)} <a href="/market?ticker=${encodeURIComponent(t)}" style="font-size:14px;font-family:Inter,sans-serif">Tremor reading →</a></h3>` +
+            el.innerHTML = `<h3>${esc(t)} <a href="/tremor/reading?ticker=${encodeURIComponent(t)}" style="font-size:14px;font-family:Inter,sans-serif">Tremor reading →</a></h3>` +
               (d ? `<p class="note">${d.news_total_30d.toLocaleString()} stories in 30 days${d.people_in_coverage.length ? ' · people: ' + d.people_in_coverage.slice(0, 5).map((x) => esc(x[0])).join(', ') : ''}</p>` +
               d.news.slice(0, 4).map((r) => `<div class="newsrow"><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a><br><span>${esc(r.source)}</span></div>`).join('') : '<p class="note">No data.</p>');
           } else if (b.type === 'compare' && Array.isArray(b.columns) && Array.isArray(b.rows)) {

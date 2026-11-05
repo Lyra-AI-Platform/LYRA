@@ -82,14 +82,24 @@ app.add_middleware(
 # The exceptions: siteverify is called from a customer's server with the secret key, and the
 # training routes are for the owner. Neither has any reason to answer another site's page.
 PRIVATE_AUTH_ROUTES = ("/api/auth/siteverify", "/api/auth/training")
+# Account and admin APIs answer lyraauth.com's own pages and no other site's.
+FIRST_PARTY_ROUTES = ("/api/users", "/api/oauth", "/api/sites", "/api/billing", "/api/admin", "/api/labs",
+                      "/api/alerts", "/api/watch/account", "/api/feedback/admin")
+FIRST_PARTY_ORIGINS = ("https://lyraauth.com",)
 
 
 @app.middleware("http")
-async def no_cors_on_private_auth(request, call_next):
+async def narrow_cors(request, call_next):
     response = await call_next(request)
-    if request.url.path.startswith(PRIVATE_AUTH_ROUTES):
+    path = request.url.path
+    private = path.startswith(PRIVATE_AUTH_ROUTES)
+    if private or path.startswith(FIRST_PARTY_ROUTES):
         for name in [h for h in response.headers if h.lower().startswith("access-control-")]:
-            del response.headers[name]
+            if private or request.headers.get("origin") not in FIRST_PARTY_ORIGINS:
+                del response.headers[name]
+            elif name.lower() == "access-control-allow-origin":
+                response.headers[name] = request.headers["origin"]
+                response.headers["Vary"] = "Origin"
     return response
 
 # The engine's control APIs (load and delete models, wipe memory, crawl any URL, set tokens,
@@ -201,7 +211,15 @@ async def serve_ui(request: Request):
     return HTMLResponse("<h1>Lyra starting up...</h1>")
 
 
-@app.get("/market", response_class=HTMLResponse)
+@app.get("/market", include_in_schema=False)
+async def old_market_address(request: Request):
+    """The Tremor Index lives under /tremor/. Old links keep working."""
+    from starlette.responses import RedirectResponse
+    query = f"?{request.url.query}" if request.url.query else ""
+    return RedirectResponse(f"/tremor/reading{query}", status_code=301)
+
+
+@app.get("/tremor/reading", response_class=HTMLResponse)
 async def serve_market():
     market_path = FRONTEND_DIR / "templates" / "market.html"
     if market_path.exists():
@@ -214,12 +232,14 @@ def _ollama_model() -> str:
     return f"ollama:{ollama_backend.model()}" if ollama_backend.enabled() else ""
 
 
+@app.get("/health")
 @app.get("/api/health")
 async def health(request: Request):
     # The internals (which model, memory, learning loops) are for the machine itself; the
-    # public only learns that the site is up.
+    # public only learns that the site is up and which commit is running.
+    from lyra.api.version import commit
     if not is_local_request(request):
-        return {"status": "running", "platform": "Lyra AI"}
+        return {"status": "running", "platform": "Lyra AI", "commit": commit()}
     from lyra.core.engine import engine
     from lyra.memory.vector_memory import memory
     from lyra.core.auto_learner import auto_learner
@@ -234,6 +254,7 @@ async def health(request: Request):
     return {
         "status": "running",
         "platform": "Lyra AI",
+        "commit": commit(),
         "version": "3.0.0",
         "chat_model": engine.loaded_model_name or _ollama_model() or ("claude" if os.getenv("ANTHROPIC_API_KEY") else "language-backbone"),
         "model_loaded": engine.loaded_model_name is not None,
@@ -377,12 +398,16 @@ async def on_shutdown():
 # (plus Google Fonts, Stripe Checkout and the Google / Apple / GitHub sign-in pages, which
 # Apple reaches with a form post back to us). Lyra Labs may also call a model on the visitor's
 # own computer ("On this device"), so its pages alone may fetch from localhost.
+CLOUDFLARE_ANALYTICS_SCRIPT = "https://static.cloudflareinsights.com"
+CLOUDFLARE_ANALYTICS_BEACON = "https://cloudflareinsights.com"
+
+
 def csp(path: str = "") -> str:
     from lyra.api import adsense
     ads = adsense.csp_extra()   # Google's ad servers, only while AdSense is switched on
     local = "http://localhost:* http://127.0.0.1:* " if path.startswith("/labs") else ""
-    return (f"default-src 'self'; script-src 'self' 'unsafe-inline' {ads}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            f"font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' {local}{ads}; "
+    return (f"default-src 'self'; script-src 'self' 'unsafe-inline' {CLOUDFLARE_ANALYTICS_SCRIPT} {ads}; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            f"font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' {CLOUDFLARE_ANALYTICS_BEACON} {local}{ads}; "
             f"frame-src 'self' {ads}; "
             "frame-ancestors 'self'; base-uri 'self'; form-action 'self' https://checkout.stripe.com https://accounts.google.com https://appleid.apple.com https://github.com; object-src 'none'; "
             "upgrade-insecure-requests")

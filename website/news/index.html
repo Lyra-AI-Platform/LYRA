@@ -168,6 +168,8 @@
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
+  // Feeds aren't trusted: only a plain web address becomes a link.
+  const webUrl = (u) => /^https?:\/\//i.test(String(u || '').trim()) ? u : '';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TOPICS = { ai: 'AI', semiconductors: 'Semiconductors', chemicals: 'Chemicals', pharma: 'Pharma', energy: 'Energy', politics: 'Politics',
     'trade-policy': 'Tariffs & sanctions', 'central-banks': 'Central banks', markets: 'Markets', crypto: 'Crypto', climate: 'Climate',
@@ -212,12 +214,12 @@
       a.className = 'r';
       const tags = [
         ...r.topics.map((t) => `<button class="tag" data-f="topics" data-v="${esc(t)}">${esc(TOPICS[t] || t)}</button>`),
-        ...r.tickers.map((t) => `<a class="tag tk" href="/market?ticker=${encodeURIComponent(t)}" title="Tremor reading for ${esc(t)}">${esc(t)}</a>`),
+        ...r.tickers.map((t) => `<a class="tag tk" href="/tremor/reading?ticker=${encodeURIComponent(t)}" title="Tremor reading for ${esc(t)}">${esc(t)}</a>`),
         ...r.people.map((p) => `<button class="tag pp" data-f="people" data-v="${esc(p)}">${esc(p)}</button>`),
       ].join('');
       a.innerHTML = `<div class="meta"><span class="kind ${r.kind}">${r.kind === 'research' ? 'Research' : 'News'}</span>` +
         `<span>${flag(r.country)} ${esc(r.source)}</span>${r.language && r.language !== 'en' ? `<span>${esc(lang(r.language))}</span>` : ''}<span>${ago(r.published)}</span></div>` +
-        `<h3><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a></h3>` +
+        (webUrl(r.url) ? `<h3><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a></h3>` : `<h3>${esc(r.title)}</h3>`) +
         (r.summary ? `<p>${esc(r.summary.length > 240 ? r.summary.slice(0, 237) + '…' : r.summary)}</p>` : '') +
         (tags ? `<div class="tags">${tags}</div>` : '');
       box.appendChild(a);

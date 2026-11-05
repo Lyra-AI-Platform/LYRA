@@ -45,6 +45,7 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/dashboard/chat.html", "member", "chat"),
     ("/dashboard/", "account", ""),
     ("/dashboard", "account", ""),
+    ("/tremor/reading", "member", "market"),
     ("/market", "member", "market"),
     ("/coshh/", "member", "coshh"),
     ("/coshh", "member", "coshh"),
@@ -124,7 +125,7 @@ def check(request: Request):
     if not found:
         return None
     rule, feature = found
-    if rule == "unlisted":
+    if rule in ("unlisted", "public"):
         return None
     api = path.startswith("/api/")
     db = session_factory()
@@ -144,7 +145,10 @@ def check(request: Request):
                 return None
             return JSONResponse({"detail": "Not Found"}, status_code=404)
         if not user:
-            return _deny(request, f"{LOGIN}?next={quote(_target(request), safe='/')}", api, 401, "sign_in_required")
+            # A product page is someone's first visit far more often than a return, so it
+            # offers sign-up; the account pages offer sign-in.
+            door = SIGNUP if rule == "member" and not api else LOGIN
+            return _deny(request, f"{door}?next={quote(_target(request), safe='/')}", api, 401, "sign_in_required")
         if rule == "account":
             return None
         if rule == "member" and not is_member(user):
