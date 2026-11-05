@@ -104,6 +104,35 @@
   .gate .go { display: inline-block; margin-top: 16px; background: var(--s-accent); color: #fff; font-weight: 600; border: 0;
     border-radius: 6px; padding: 10px 18px; font: inherit; cursor: pointer; text-decoration: none; }
   .gate .alt { display: block; margin-top: 10px; font-size: 13px; color: var(--s-muted); }
+  .board { padding: 14px 16px; margin-top: 14px; }
+  .board-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .board-head h2 { margin: 0; font-size: 1rem; color: var(--s-text); text-transform: none; letter-spacing: 0; }
+  .board-head span { font-size: 12px; color: var(--s-muted); }
+  .board ol { list-style: none; margin: 10px 0 0; padding: 0; }
+  .board li { display: grid; grid-template-columns: 22px 16px minmax(0, 1fr) 120px 28px auto; gap: 8px; align-items: center; padding: 8px 6px;
+    border-top: 1px solid var(--s-line); cursor: pointer; border-radius: 6px; transition: background .3s; }
+  .board li:hover, .board li:focus-visible { background: var(--s-panel2); }
+  .board .rk { font-variant-numeric: tabular-nums; color: var(--s-muted); font-size: 13px; }
+  .board .arrow { font-size: 12px; } .board .arrow.up { color: var(--s-pos); } .board .arrow.down { color: var(--s-neg); }
+  .board .co b { font-size: 14px; } .board .co span { color: var(--s-muted); font-size: 13px; }
+  .board .why { display: block; font-size: 12px; color: var(--s-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .board .bar-track { display: block; height: 6px; border-radius: 3px; background: var(--s-panel2); overflow: hidden; }
+  .board .bar-fill { display: block; height: 100%; background: var(--s-accent); transition: width .6s; }
+  .board .sc { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; font-size: 13px; }
+  .board .sdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #71717a; vertical-align: 1px; }
+  .board .sdot.calm { background: var(--s-pos); } .board .sdot.rising { background: #fbbf24; } .board .sdot.high { background: var(--s-live); }
+  .board .new { margin-left: 6px; padding: 0 5px; border-radius: 3px; background: var(--s-accent); color: #fff; font-size: 10px; font-weight: 700; }
+  .board li.jumped { background: rgba(169,112,255,.2); }
+  .board .news { font-size: 12px; color: var(--s-muted); }
+  .board .more { display: none; margin-top: 8px; width: 100%; padding: 8px; background: var(--s-panel2); color: var(--s-text); border: 1px solid var(--s-line); border-radius: 6px; font: inherit; cursor: pointer; }
+  .board .note { margin: 8px 0 0; font-size: 12px; color: var(--s-muted); }
+  @media (max-width: 640px) {
+    .board li { grid-template-columns: 22px 16px minmax(0, 1fr) 28px auto; }
+    .board .bar-track { display: none; }
+    .board ol:not(.all) li:nth-child(n+6) { display: none; }
+    .board .more { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) { .board li, .board .bar-fill { transition: none; } .story-row.spike { animation: none; } }
   .gate .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--s-muted); font-size: 20px; cursor: pointer; }
   .channels { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; }
   .channels button { flex: none; background: var(--s-panel2); color: var(--s-muted); border: 1px solid var(--s-line); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
@@ -154,6 +183,12 @@
         <div class="headline" id="sHeadline"></div>
         <div class="cast" id="sCast"></div>
         <div class="tags" id="sTags"></div>
+      </div>
+      <div class="panel board" aria-labelledby="boardTitle">
+        <div class="board-head"><h2 id="boardTitle">Companies with unusual activity</h2><span id="boardAge"></span></div>
+        <ol id="board"></ol>
+        <button class="more" id="boardMore" type="button">Show all 10</button>
+        <p class="note">General information, not financial advice. The score measures unusual activity, not where a price will go.</p>
       </div>
       <div class="below">
         <div class="panel"><h2>Talked about now · 24 h</h2><ol class="rank buzz" id="buzz"></ol>
@@ -344,6 +379,52 @@
     }
   }
 
+  // ── Companies with unusual activity ─────────────────────────────────────
+  let boardAt = 0;
+  const stressLevel = (s) => s == null ? "" : s < 55 ? "calm" : s < 70 ? "rising" : "high";
+
+  function boardRow(r) {
+    const reading = `/tremor/reading?ticker=${encodeURIComponent(r.ticker)}`;
+    const li = el("li", { "data-ticker": r.ticker, tabindex: "0", role: "link", "aria-label": `${r.rank}. ${r.name}, score ${r.score}. Open Tremor reading` },
+      el("span", { class: "rk", text: String(r.rank) }),
+      el("span", { class: `arrow ${r.change > 0 ? "up" : r.change < 0 ? "down" : ""}`, title: r.change ? `${Math.abs(r.change)} place${Math.abs(r.change) === 1 ? "" : "s"} ${r.change > 0 ? "up" : "down"}` : "", text: r.change > 0 ? "▲" : r.change < 0 ? "▼" : "" }),
+      el("span", { class: "co" }, el("span", { class: `sdot ${stressLevel(r.stress)}`, title: r.stress == null ? "No Tremor reading yet" : `Tremor stress ${stressLevel(r.stress)}` }),
+        el("b", { text: r.ticker }), el("span", { text: ` ${r.name === r.ticker ? "" : r.name}` }), r.new ? el("span", { class: "new", text: "NEW" }) : null,
+        el("span", { class: "why", text: r.reason })),
+      el("span", { class: "bar-track" }, el("span", { class: "bar-fill", style: `width:${r.score}%` })),
+      el("span", { class: "sc", text: String(r.score) }),
+      el("a", { class: "news", href: `/news/?tickers=${encodeURIComponent(r.ticker)}`, text: "News" }));
+    li.onclick = (e) => { if (!e.target.closest("a")) location.href = reading; };
+    li.onkeydown = (e) => { if (e.key === "Enter" && e.target === li) location.href = reading; };
+    if (r.jump) li.classList.add("jumped");
+    return li;
+  }
+
+  // Rows slide from where they were to where they are now. Reduced motion skips the slide.
+  function renderBoard(rows) {
+    const list = $("board"), before = new Map([...list.children].map((li) => [li.dataset.ticker, li.getBoundingClientRect().top]));
+    list.replaceChildren(...(rows.length ? rows.map(boardRow) : [el("li", { class: "empty", style: "display:block", text: "Measuring. Companies appear once they have 3 stories in 24 hours." })]));
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    for (const li of list.children) {
+      const was = before.get(li.dataset.ticker);
+      if (was === undefined) continue;
+      const shift = was - li.getBoundingClientRect().top;
+      if (shift) li.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: 500, easing: "ease-out" });
+    }
+  }
+
+  async function loadBoard() {
+    const d = await fetch("/api/pulse/leaderboard").then((r) => r.json()).catch(() => null);
+    if (!d) return;
+    boardAt = d.updated;
+    renderBoard(d.rows);
+    boardAge();
+  }
+
+  function boardAge() {
+    if (boardAt) $("boardAge").textContent = `Updated ${Math.max(0, Math.round(Date.now() / 1000 - boardAt))}s ago`;
+  }
+
   // ── Channels: the Newswire pipeline, grouped and ranked ──────────────────
   const CHANNELS = [["", "Everything"], ["people", "People"], ["markets", "Markets"], ["politics", "Politics"], ["central-banks", "Central banks"],
     ["energy", "Energy"], ["pharma", "Pharma"], ["trade-policy", "Tariffs & sanctions"], ["ai", "AI"], ["chemicals", "Chemistry"],
@@ -504,6 +585,10 @@
     renderFeed();
   });
   $("gClose").onclick = () => { $("gate").hidden = true; try { sessionStorage.setItem("lyra_gate_closed", "1"); } catch {} };
+  $("boardMore").onclick = () => { $("board").classList.add("all"); $("boardMore").hidden = true; };
+  loadBoard();
+  setInterval(loadBoard, 60000);
+  setInterval(boardAge, 1000);
   renderChannels(); showChannel();
   setInterval(loadStories, 30000);
   setInterval(refreshStatus, 30000);
