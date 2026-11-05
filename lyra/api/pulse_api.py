@@ -88,7 +88,7 @@ def _flow(reading: Optional[Dict], key: str) -> str:
 def _sector_text(sector: Dict, vix: Optional[Dict]) -> str:
     if sector["stress"] is None:
         return f"{sector['name']} has no recent Tremor readings yet."
-    text = f"{sector['name']} stress is {sector['level']} at {sector['stress']}, across {sector['companies_read']} companies."
+    text = f"{sector['name']} stress is {sector['level']} at {sector['stress']}, across {sector['companies_read']} compan{'y' if sector['companies_read'] == 1 else 'ies'}."
     return text + (f" The VIX is {vix['level']:.1f}." if vix and vix.get("available") else "")
 
 

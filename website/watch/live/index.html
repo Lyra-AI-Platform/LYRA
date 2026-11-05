@@ -29,9 +29,10 @@
 <link rel="stylesheet" href="/css/main.css" />
 <style>
   /* A dark "studio" look in both colour schemes: the live room is meant to feel like a broadcast. */
-  .studio { --s-bg: #0e0e10; --s-panel: #18181b; --s-panel2: #1f1f23; --s-line: rgba(255,255,255,.08);
+  .studio, .gate { --s-bg: #0e0e10; --s-panel: #18181b; --s-panel2: #1f1f23; --s-line: rgba(255,255,255,.08);
     --s-text: #efeff1; --s-muted: #adadb8; --s-live: #eb0400; --s-accent: #a970ff; --s-pos: #34d399; --s-neg: #f87171;
-    background: var(--s-bg); color: var(--s-text); min-height: 100vh; padding: 76px 16px 48px; }
+  }
+  .studio { background: var(--s-bg); color: var(--s-text); min-height: 100vh; padding: 76px 16px 48px; }
   .studio a { color: inherit; }
   .bar { max-width: 1280px; margin: 0 auto 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .bar h1 { font-size: 1.35rem; margin: 0; color: var(--s-text); letter-spacing: -.02em; }
@@ -45,7 +46,7 @@
   .stat b { color: var(--s-text); }
   .spacer { flex: 1; }
   .studio-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; }
-  @media (max-width: 900px) { .studio-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .studio-grid { grid-template-columns: minmax(0, 1fr); } }
   .panel { background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 10px; }
   .stage { padding: 22px; position: relative; overflow: hidden; min-height: 320px; }
   .stage .kicker { font-size: 12px; color: var(--s-muted); text-transform: uppercase; letter-spacing: .06em; }
@@ -133,6 +134,12 @@
     .board .more { display: block; }
   }
   @media (prefers-reduced-motion: reduce) { .board li, .board .bar-fill { transition: none; } .story-row.spike { animation: none; } }
+  .gate { background: none !important; backdrop-filter: none !important; }
+  .gate .card { max-width: 560px; padding: 14px 40px 14px 18px; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+  .gate h2 { font-size: 1.05rem; margin: 6px 0 4px; }
+  .gate #gText, .gate #gNumbers, .gate #gAd, .gate .card > .pill, .gate .card > p.stat { display: none; }
+  .gate .go { margin-top: 8px; padding: 8px 14px; }
+  .gate .alt { display: inline-block; margin: 0 0 0 12px; }
   .gate .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--s-muted); font-size: 20px; cursor: pointer; }
   .channels { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; }
   .channels button { flex: none; background: var(--s-panel2); color: var(--s-muted); border: 1px solid var(--s-line); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
@@ -433,7 +440,7 @@
     ["energy", "Energy"], ["pharma", "Pharma"], ["trade-policy", "Tariffs & sanctions"], ["ai", "AI"], ["chemicals", "Chemistry"],
     ["mine", "My Live"], ["watch", "Watch stream"]];
   const params = new URLSearchParams(location.search);
-  let channel = params.get("channel") || "", search = params.get("q") || "", delayed = false;
+  let channel = params.get("channel") || "", search = params.get("q") || "", delayed = false, stageFilled = false;
 
   const personId = (n) => n.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
@@ -467,6 +474,13 @@
     if (!r.ok) return;
     const d = await r.json();
     delayed = !d.full;
+    // Until the stream delivers something, the headline card shows the top story.
+    if (!events.length && d.stories[0] && !stageFilled) {
+      const top = d.stories[0];
+      stageFilled = true;
+      $("sKicker").textContent = `${top.breaking ? "Breaking · " : ""}${top.outlets} outlet${top.outlets === 1 ? "" : "s"} reporting · ${ago(top.last_seen)}`;
+      $("sHeadline").replaceChildren(link(top.url, top.title));
+    }
     const stories = d.stories.map(storyRow), rows = [...d.spikes.map(spikeRow), ...stories];
     $("stories").replaceChildren(...(rows.length ? rows : [el("li", { class: "empty", text: "No stories here in the last 24 hours." })]));
     const names = [...new Set(d.stories.flatMap((c) => c.people.slice(0, 1)))];

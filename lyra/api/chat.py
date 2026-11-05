@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from lyra.api.users_api import get_current_user
 from lyra.db.models import User
+from lyra.core import chat_speed
 from lyra.core.engine import engine
 from lyra.core.file_processor import file_processor
 from lyra.memory.vector_memory import memory
@@ -115,6 +116,50 @@ async def chat_websocket(websocket: WebSocket, conversation_id: str):
         db.close()
 
 
+def _lookups(message: str, use_memory: bool, reasoning) -> str:
+    """Everything chat adds from memory. Blocking, so it runs in a worker thread."""
+    extra = ""
+    if use_memory:
+        context = memory.get_context_for_prompt(message)
+        if context:
+            extra += f"\n\n{context}"
+        if reasoning.enhanced_context:
+            extra += f"\n\n{reasoning.enhanced_context}"
+        if reasoning.complexity == "simple":
+            wisdom = memory.retrieve(message, n_results=2, memory_type="synthesized_wisdom")
+            if wisdom:
+                extra += "\n" + "\n".join(["\n[SYNTHESIZED KNOWLEDGE:]", *(f"★ {w['content'][:350]}" for w in wisdom[:2])])
+        learned = memory.retrieve(message, n_results=3, memory_type="learned_knowledge")
+        if learned:
+            extra += "\n" + "\n".join(["\n[Lyra LEARNED KNOWLEDGE — from autonomous web research:]",
+                                        *(f"• {i['content'][:400]}" for i in learned)])
+        news = memory.retrieve(message, n_results=2, memory_type="learned_news")
+        if news:
+            extra += "\n" + "\n".join(["\n[Lyra RECENT NEWS — from RSS feeds:]", *(f"• {i['content'][:300]}" for i in news)])
+    try:
+        from lyra.memory.graph_memory import graph_memory
+        graph = graph_memory.get_context_for_prompt(message)
+        if graph:
+            extra += "\n\n" + graph
+    except Exception:
+        pass
+    try:
+        description = self_awareness.get_self_description()
+        if description:
+            extra += f"\n\n{description}"
+    except Exception:
+        pass
+    return extra
+
+
+async def _gather_context(message: str, use_memory: bool) -> str:
+    reasoning = await reasoning_engine.build_enhanced_context(message)
+    extra = await asyncio.to_thread(_lookups, message, use_memory, reasoning)
+    if use_memory:
+        extra += await reflector.get_template_context(message) or ""
+    return extra
+
+
 async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     """Handle a single chat message over WebSocket."""
     user_message = request.get("message", "")
@@ -134,88 +179,28 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     # ── Signal user priority — background cognition immediately yields ──
     engine.set_user_active()
 
+    # Tell the page straight away, before any looking up.
+    await websocket.send_json({"type": "status", "content": "Thinking…"})
+
     # Feed message to auto-learner (fast regex scoring, LLM extraction queued async)
     auto_learner.observe_message("user", user_message)
-
-    # Also inject self-conversation insights relevant to this topic into memory context
-    try:
-        self_convos = memory.retrieve(user_message, n_results=2, memory_type="self_conversation")
-        # Will be included naturally via memory.get_context_for_prompt below
-    except Exception:
-        pass
 
     # Add user message
     conversations[conv_id].append({"role": "user", "content": user_message})
 
     # Build system prompt
     lyra_model = get_model(model_id)
-    system_prompt = lyra_model["system_prompt"]
+    base_prompt = lyra_model["system_prompt"]
+    system_prompt = base_prompt
 
-    # ── Reasoning Engine: classify complexity and build enhanced context ──
-    reasoning_result = await reasoning_engine.build_enhanced_context(user_message)
-    complexity = reasoning_result.complexity
-
-    # complexity used internally to enrich context; not surfaced to users
-
-    # ── Memory context injection ──
-    if use_memory:
-        # Core memory context (importance-ranked: wisdom > templates > user facts > knowledge)
-        memory_context = memory.get_context_for_prompt(user_message)
-        if memory_context:
-            system_prompt += f"\n\n{memory_context}"
-
-        # Reasoning engine's enhanced context (sub-question research + synthesized wisdom)
-        if reasoning_result.enhanced_context:
-            system_prompt += f"\n\n{reasoning_result.enhanced_context}"
-
-        # Synthesized wisdom (direct fetch if not already in reasoning context)
-        if complexity == "simple":
-            wisdom = memory.retrieve(user_message, n_results=2, memory_type="synthesized_wisdom")
-            if wisdom:
-                lines = ["\n[SYNTHESIZED KNOWLEDGE:]"]
-                for item in wisdom[:2]:
-                    lines.append(f"★ {item['content'][:350]}")
-                system_prompt += "\n" + "\n".join(lines)
-
-        # Reasoning templates: proven high-quality reasoning patterns
-        template_ctx = await reflector.get_template_context(user_message)
-        if template_ctx:
-            system_prompt += template_ctx
-
-        # Learned knowledge from web crawls
-        learned = memory.retrieve(user_message, n_results=3, memory_type="learned_knowledge")
-        if learned:
-            lines = ["\n[Lyra LEARNED KNOWLEDGE — from autonomous web research:]"]
-            for item in learned:
-                snippet = item["content"][:400]
-                lines.append(f"• {snippet}")
-            system_prompt += "\n" + "\n".join(lines)
-
-        # Recent news
-        news = memory.retrieve(user_message, n_results=2, memory_type="learned_news")
-        if news:
-            lines = ["\n[Lyra RECENT NEWS — from RSS feeds:]"]
-            for item in news:
-                snippet = item["content"][:300]
-                lines.append(f"• {snippet}")
-            system_prompt += "\n" + "\n".join(lines)
-
-    # Graph knowledge: entity connections and related concepts
-    try:
-        from lyra.memory.graph_memory import graph_memory
-        graph_ctx = graph_memory.get_context_for_prompt(user_message)
-        if graph_ctx:
-            system_prompt += "\n\n" + graph_ctx
-    except Exception:
-        pass
-
-    # Self-awareness: inject Lyra's current self-model into context
-    try:
-        self_desc = self_awareness.get_self_description()
-        if self_desc:
-            system_prompt += f"\n\n{self_desc}"
-    except Exception:
-        pass
+    # Looking things up is ordinary blocking work, so it runs off the event loop (the rest of the
+    # site stays responsive) and has a time limit (a slow lookup never holds up the reply).
+    if not chat_speed.is_quick(user_message):
+        try:
+            system_prompt += await asyncio.wait_for(
+                _gather_context(user_message, use_memory), timeout=chat_speed.LOOKUP_SECONDS)
+        except asyncio.TimeoutError:
+            logger.info("Chat lookups took too long; answering without them")
 
     # Quantum context: if question involves quantum topics, note simulation availability
     _quantum_keywords = [
@@ -233,7 +218,10 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     search_context = ""
     if use_web_search or _needs_search(user_message):
         await websocket.send_json({"type": "status", "content": "🔍 Searching the web..."})
-        results = await search.search(user_message, max_results=4)
+        try:
+            results = await asyncio.wait_for(search.search(user_message, max_results=4), timeout=chat_speed.SEARCH_SECONDS)
+        except asyncio.TimeoutError:
+            results = []
         if results:
             search_context = search.format_for_prompt(results)
             system_prompt += f"\n\n{search_context}"
@@ -250,7 +238,8 @@ async def handle_chat_ws(websocket: WebSocket, conv_id: str, request: dict):
     answered = False
     if not engine.loaded_model_name and ollama_backend.enabled():
         try:
-            async for piece in ollama_backend.stream(conversations[conv_id], system_prompt, max_tokens, temperature):
+            async for piece in ollama_backend.stream(conversations[conv_id], base_prompt, max_tokens, temperature,
+                                                     chat_speed.looked_up(system_prompt, base_prompt)):
                 full_response += piece
                 await websocket.send_json({"type": "token", "content": piece})
             answered = True

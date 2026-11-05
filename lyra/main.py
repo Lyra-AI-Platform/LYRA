@@ -366,6 +366,9 @@ async def on_startup():
     newswire.start()
     from lyra.market.pulse_loop import pulse_loop
     pulse_loop.start()
+    import asyncio
+    from lyra.core import ollama_backend
+    asyncio.get_event_loop().create_task(ollama_backend.warm())
 
     logger.info("Intelligence systems: Reasoning Engine + Self-Reflection active")
 
