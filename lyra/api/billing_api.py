@@ -28,7 +28,7 @@ MANAGED_PAYMENTS      = os.getenv("STRIPE_MANAGED_PAYMENTS", "1") != "0"
 # One Stripe Price per plan. STRIPE_<PLAN>_PRICE_ID wins when set; otherwise the price is found
 # in Stripe by its lookup key (lyra_<plan>_monthly, already on the live Lyra prices), so the
 # plans work as soon as STRIPE_SECRET_KEY is set and a price can be swapped in Stripe alone.
-PLANS = ("starter", "pro", "business", "enterprise")
+PLANS = ("starter", "pro", "business", "enterprise", "markets", "bundle")
 PRICE_IDS = {plan: os.getenv(f"STRIPE_{plan.upper()}_PRICE_ID", "") for plan in PLANS}
 LOOKUP_KEYS = {plan: f"lyra_{plan}_monthly" for plan in PLANS}
 
@@ -71,7 +71,7 @@ def billing_status(user: User = Depends(get_current_user), db: Session = Depends
 
 
 class CheckoutRequest(BaseModel):
-    plan: str = "pro"   # starter | pro | business | enterprise
+    plan: str = "pro"   # starter | pro | business | enterprise | markets | bundle
 
 @router.post("/checkout")
 def create_checkout(
@@ -91,7 +91,7 @@ def create_checkout(
     if not price_id:
         raise HTTPException(503, f"No active Stripe price for the {plan} plan (lookup key {LOOKUP_KEYS[plan]}).")
 
-    if user.stripe_subscription_id and entitlements.is_paid(user):
+    if user.stripe_subscription_id and entitlements.has_markets(user):
         # A second checkout would start a second subscription; plan changes go through the portal.
         raise HTTPException(409, "You already have a plan. Use Manage billing to switch plans.")
 
@@ -133,7 +133,7 @@ def create_portal(
     if not STRIPE_SECRET_KEY:
         raise HTTPException(503, "Stripe not configured.")
     if not user.stripe_customer_id:
-        raise HTTPException(400, "No billing account yet. Upgrade to Pro first.")
+        raise HTTPException(400, "No billing account yet. Choose a plan first.")
 
     stripe = _stripe()
     session = stripe.billing_portal.Session.create(

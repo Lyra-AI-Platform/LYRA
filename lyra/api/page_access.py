@@ -5,6 +5,7 @@ can be skipped (view-source, curl, scripts off). Here the page itself is withhel
 
   public    marketing, docs, legal, pricing: anyone
   account   signed in (dashboard, billing)
+  free      signed in on any plan: the product's own limits apply (Tremor's reading a day)
   member    signed in with a paid plan or a trial that hasn't run out (the products)
   owner     the site owner only (LYRA_ADMIN_EMAILS); everyone else gets a plain 404
   unlisted  anyone holding the link, but never linked from the site or listed by search engines
@@ -45,7 +46,8 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/dashboard/chat.html", "member", "chat"),
     ("/dashboard/", "account", ""),
     ("/dashboard", "account", ""),
-    ("/market", "member", "market"),
+    ("/tremor/reading", "free", "market"),
+    ("/market", "free", "market"),
     ("/coshh/", "member", "coshh"),
     ("/coshh", "member", "coshh"),
     ("/api/coshh/", "member", "coshh"),
@@ -124,7 +126,7 @@ def check(request: Request):
     if not found:
         return None
     rule, feature = found
-    if rule == "unlisted":
+    if rule in ("unlisted", "public"):
         return None
     api = path.startswith("/api/")
     db = session_factory()
@@ -144,8 +146,11 @@ def check(request: Request):
                 return None
             return JSONResponse({"detail": "Not Found"}, status_code=404)
         if not user:
-            return _deny(request, f"{LOGIN}?next={quote(_target(request), safe='/')}", api, 401, "sign_in_required")
-        if rule == "account":
+            # A product page is someone's first visit far more often than a return, so it
+            # offers sign-up; the account pages offer sign-in.
+            door = SIGNUP if rule in ("member", "free") and not api else LOGIN
+            return _deny(request, f"{door}?next={quote(_target(request), safe='/')}", api, 401, "sign_in_required")
+        if rule in ("account", "free"):
             return None
         if rule == "member" and not is_member(user):
             return _deny(request, f"/dashboard/billing.html?need={feature}", api, 402, "payment_required")

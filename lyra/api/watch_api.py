@@ -155,8 +155,8 @@ async def person(pid: str, response: Response, request: Request, viewer: Viewer 
 def _links(rec):
     base = "https://lyraauth.com"
     return {"self": f"{base}/api/watch/people/{rec['id']}",
-            "page": f"{base}/watch/#person/{rec['id']}",
-            "profile": f"{base}/watch/#{rec['slug']}" if rec.get("slug") else None,
+            "page": f"{base}/watch/{rec['id']}",
+            "profile": f"{base}/watch/{rec['slug']}" if rec.get("slug") else None,
             "wikipedia": (rec.get("wiki") or {}).get("url") or None}
 
 
@@ -219,7 +219,10 @@ async def live_status(response: Response, request: Request):
     """Public: whether the feed is live, how many are watching, events in the last 24 hours."""
     _public(response, request)
     response.headers["Cache-Control"] = "no-store"
-    return live.hub.status()
+    from lyra.api.live_api import watching
+    from lyra.newswire.store import get_wire
+    status = live.hub.status()
+    return {**status, "watching": status["viewers"] + watching(), "stories_24h": get_wire().count_since(time.time() - 86400)}
 
 
 @router.get("/live/preview")

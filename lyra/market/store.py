@@ -24,6 +24,10 @@ CREATE TABLE IF NOT EXISTS predictions (
     evaluated INTEGER DEFAULT 0, outcome_return REAL, outcome TEXT, evaluated_at REAL
 );
 CREATE INDEX IF NOT EXISTS idx_predictions_open ON predictions(evaluated, created_at);
+CREATE TABLE IF NOT EXISTS stress_log (
+    ticker TEXT NOT NULL, ts REAL NOT NULL, stress INTEGER NOT NULL, score REAL, features TEXT DEFAULT '{}',
+    PRIMARY KEY (ticker, ts)
+) WITHOUT ROWID;
 CREATE TABLE IF NOT EXISTS weights (
     model TEXT PRIMARY KEY, data TEXT, updated_at REAL
 );
@@ -150,6 +154,33 @@ class MarketStore:
                             FROM predictions WHERE ticker=? ORDER BY created_at DESC LIMIT ?""", (ticker.upper(), limit))
 
     # Weights
+    def log_stress(self, ticker: str, stress: int, score: float, features: Dict, ts: Optional[float] = None):
+        """One point on a company's stress line. Unlike predictions, this keeps every reading."""
+        self._exec("INSERT OR REPLACE INTO stress_log(ticker,ts,stress,score,features) VALUES(?,?,?,?,?)",
+                   (ticker.upper(), ts or time.time(), stress, score, json.dumps(features)))
+
+    def stress_rows(self, ticker: str, since: float) -> List[Dict]:
+        return self._all("SELECT ts,stress,score FROM stress_log WHERE ticker=? AND ts>=? ORDER BY ts", (ticker.upper(), since))
+
+    def stress_latest(self, max_age: float = 3 * 86400) -> Dict[str, Dict]:
+        """{ticker: latest stress, its 24 h change and signals}, for companies read recently."""
+        now = time.time()
+        out: Dict[str, Dict] = {}
+        for r in self._all("SELECT ticker,ts,stress,score,features FROM stress_log WHERE ts>=? ORDER BY ts", (now - max_age - 86400,)):
+            hist = out.get(r["ticker"], {}).get("_hist", [])
+            hist.append((r["ts"], r["stress"]))
+            out[r["ticker"]] = {"ticker": r["ticker"], "ts": r["ts"], "stress": r["stress"], "score": r["score"],
+                                "features": json.loads(r["features"] or "{}"), "_hist": hist}
+        result = {}
+        for t, r in out.items():
+            hist = r.pop("_hist")
+            if now - r["ts"] > max_age:
+                continue
+            older = [s for ts, s in hist if ts <= r["ts"] - 18 * 3600]
+            r["change_24h"] = r["stress"] - older[-1] if older else None
+            result[t] = r
+        return result
+
     def load_weights(self, model: str) -> Optional[Dict]:
         rows = self._all("SELECT data FROM weights WHERE model=?", (model,))
         return json.loads(rows[0]["data"]) if rows else None

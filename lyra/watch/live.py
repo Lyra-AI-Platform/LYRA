@@ -132,7 +132,7 @@ def _cast(names: List[str], lookup: Dict[str, Dict]) -> List[Dict]:
         if not rec and n not in watched:
             continue
         cast.append({"name": n, "slug": rec.get("slug") or watched.get(n, {}).get("slug", ""),
-                     "id": rec.get("id") or watched.get(n, {}).get("slug", ""),
+                     "id": rec.get("id") or watched.get(n, {}).get("slug", "") or people.person_id(n),
                      "job": rec.get("job") or watched.get(n, {}).get("role", ""),
                      "popularity": rec.get("popularity")})
     return cast

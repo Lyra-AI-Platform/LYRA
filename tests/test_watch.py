@@ -76,7 +76,8 @@ def test_annotate_finds_companies_moves_and_topics():
             "summary": "The acquisition is subject to tariffs review."}
     a = analysis.annotate(item, {"TSLA"})
     tickers = {c["ticker"] for c in a["companies"]}
-    assert {"SPCX", "NVDA", "TSLA"} <= tickers
+    assert {"NVDA", "TSLA"} <= tickers
+    assert "SPCX" not in tickers
     kinds = {m["kind"] for m in a["moves"]}
     assert {"deal", "policy"} <= kinds
     assert "Trade & tariffs" in a["topics"]

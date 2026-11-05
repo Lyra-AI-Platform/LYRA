@@ -33,12 +33,13 @@ def _user(db, tier="free", days_old=0):
 
 def test_trial_allowance_then_402(db):
     u = _user(db)
-    for _ in range(ent.TRIAL_LIMITS["market"]):
+    # The trial's readings, then the Free plan's one a day.
+    for _ in range(ent.TRIAL_LIMITS["market"] + ent.FREE_READINGS_PER_DAY):
         ent.check(u, "market", db, consume=1)
     with pytest.raises(HTTPException) as e:
         ent.check(u, "market", db, consume=1)
     assert e.value.status_code == 402
-    assert e.value.detail["upgrade_url"] == ent.UPGRADE_URL
+    assert e.value.detail["upgrade_url"] == "/pricing/"
     # reading (no consume) is still allowed while the trial window is open
     ent.check(u, "market", db)
     # a different feature has its own allowance

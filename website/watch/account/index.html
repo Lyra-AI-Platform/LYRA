@@ -49,8 +49,10 @@
   .table-wrap { overflow-x: auto; }
 </style>
   <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
@@ -59,7 +61,7 @@
   </div>
 </nav>
 
-<main class="wrap">
+<main id="main" class="wrap">
   <h1>Lyra Watch Pro</h1>
   <p class="lede">The free directory shows you what's there. Pro shows it as it happens: the live stream in real time, the full
     record of who moves markets, and every disclosed trade next to what was being said. AI agents pay per request instead.</p>
@@ -68,7 +70,7 @@
   <div class="tiers">
     <div class="tier">
       <div class="name">Free</div>
-      <div class="price">$0</div>
+      <div class="price">£0</div>
       <ul>
         <li>Live feed preview, an hour behind</li>
         <li>Top 5 of Who moves markets</li>
@@ -80,7 +82,7 @@
     </div>
     <div class="tier hot">
       <div class="name">Watch Pro</div>
-      <div class="price" id="proPrice">$7<span>/month</span></div>
+      <div class="price" id="proPrice">£7<span>/month</span></div>
       <ul>
         <li>Real-time live stream: news, posts, filings, court cases</li>
         <li>Full Who moves markets record, day by day</li>

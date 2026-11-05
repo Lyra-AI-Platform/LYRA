@@ -36,3 +36,26 @@ def init_db():
     """Create all tables. Called once on startup."""
     from lyra.db import models  # noqa: F401 — registers all models
     Base.metadata.create_all(bind=engine)
+    upgrade(engine)
+
+
+# Columns added after a table first shipped: create_all never alters an existing table.
+NEW_COLUMNS = (("sites", "secret_hint", "VARCHAR DEFAULT ''"),
+               ("verified_tokens", "hostname", "VARCHAR DEFAULT ''"),
+               ("verified_tokens", "score", "FLOAT DEFAULT 0"))
+
+
+def upgrade(bind) -> None:
+    """Bring an existing database up to date. Safe to run on every start."""
+    from sqlalchemy import inspect, text
+    from lyra.authenticator.guard import hash_secret, is_hashed
+    inspector = inspect(bind)
+    with bind.begin() as conn:
+        for table, column, kind in NEW_COLUMNS:
+            if inspector.has_table(table) and column not in {c["name"] for c in inspector.get_columns(table)}:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column} {kind}"))
+        # Keys stored before hashing: customers keep using the same key, only the copy here changes.
+        for row in conn.execute(text("SELECT id, secret_key FROM sites")).fetchall():
+            if not is_hashed(row[1]):
+                conn.execute(text("UPDATE sites SET secret_key=:h, secret_hint=:t WHERE id=:i"),
+                             {"h": hash_secret(row[1]), "t": row[1][-4:], "i": row[0]})

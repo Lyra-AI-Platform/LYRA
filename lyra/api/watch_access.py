@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/watch/account", tags=["watch-account"])
 
 APP_URL = os.getenv("APP_URL", "https://lyraauth.com")
-CURRENCY = os.getenv("LYRA_WATCH_CURRENCY", "usd")
+CURRENCY = os.getenv("LYRA_WATCH_CURRENCY", "gbp")
 PRO_CENTS = int(os.getenv("LYRA_WATCH_PRO_CENTS", 700))              # Lyra Watch Pro, per month
 # pack -> (price in cents, credits)
 CREDIT_PACKS: Dict[str, tuple] = {"starter": (500, 1_000), "builder": (2_000, 5_000), "scale": (8_000, 25_000)}
@@ -67,7 +67,7 @@ def _hash(key: str) -> str:
 def has_watch(user: Optional[User], db: Session) -> bool:
     if not user:
         return False
-    if entitlements.is_paid(user):
+    if entitlements.is_paid(user) or user.tier == "bundle":
         return True
     sub = db.query(WatchSubscription).filter(WatchSubscription.user_id == user.id).first()
     return bool(sub and sub.status in ("active", "trialing"))

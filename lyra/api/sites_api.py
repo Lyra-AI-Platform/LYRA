@@ -8,7 +8,7 @@ DELETE /api/sites/{id}         — deactivate a site
 POST   /api/sites/{id}/rotate  — regenerate secret_key
 GET    /api/sites/{id}/usage   — last 30 days usage
 """
-import secrets
+import secrets as _secrets
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
@@ -16,14 +16,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
+from lyra.api import plans
+from lyra.api.users_api import get_current_user
+from lyra.authenticator.guard import hash_secret
 from lyra.db.database import get_db
 from lyra.db.models import Site, UsageRecord, User
-from lyra.api.users_api import get_current_user
 
 router = APIRouter(prefix="/api/sites", tags=["sites"])
-
-FREE_TIER_MONTHLY_LIMIT = 1_000   # trial accounts; paid plans have no limit here
-FREE_TIER_MAX_SITES = 1
 
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
@@ -37,7 +36,8 @@ class SiteOut(BaseModel):
     name: str
     domain: str
     site_key: str
-    secret_key: str
+    secret_key: Optional[str] = None   # only in the response that created it
+    secret_hint: str = ""
     is_active: bool
     created_at: datetime
 
@@ -67,11 +67,41 @@ def _monthly_usage(site_id: int, db: Session) -> int:
     return sum(r.count for r in records)
 
 
+def _account_usage(user_id: int, db: Session) -> int:
+    """Verifications this calendar month across all the account's sites."""
+    prefix = datetime.now(timezone.utc).strftime("%Y-%m")
+    records = db.query(UsageRecord).join(Site, UsageRecord.site_id == Site.id).filter(
+        Site.user_id == user_id, UsageRecord.date.like(f"{prefix}%")).all()
+    return sum(r.count for r in records)
+
+
+def _effective_tier(user: User) -> str:
+    from lyra.api.entitlements import is_admin
+    return "enterprise" if is_admin(user) else (user.tier or "free")
+
+
+def month_limit_reached(user: User, db: Session) -> bool:
+    return plans.over_monthly_limit(_effective_tier(user), _account_usage(user.id, db))
+
+
+def _new_secret(site: Site) -> str:
+    """Store a fresh secret's hash on the site and return the secret, for showing once."""
+    secret = "lyra_secret_" + _secrets.token_urlsafe(32)
+    site.secret_key = hash_secret(secret)
+    site.secret_hint = secret[-4:]
+    return secret
+
+
+def _out(site: Site, secret: Optional[str] = None) -> SiteOut:
+    return SiteOut(id=site.id, name=site.name, domain=site.domain, site_key=site.site_key, secret_key=secret,
+                   secret_hint=site.secret_hint or "", is_active=site.is_active, created_at=site.created_at)
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=List[SiteOut])
 def list_sites(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
-    return db.query(Site).filter(Site.user_id == user.id).all()
+    return [_out(s) for s in db.query(Site).filter(Site.user_id == user.id).all()]
 
 
 @router.post("", response_model=SiteOut, status_code=201)
@@ -80,23 +110,25 @@ def create_site(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Trial accounts: one site
-    if user.tier == "free":
-        count = db.query(Site).filter(Site.user_id == user.id, Site.is_active == True).count()  # noqa: E712
-        if count >= FREE_TIER_MAX_SITES:
-            raise HTTPException(402, {"error": "payment_required", "feature": "sites",
-                                      "message": "The trial includes one site. Choose a plan to add more.",
-                                      "upgrade_url": "/dashboard/billing.html"})
+    count = db.query(Site).filter(Site.user_id == user.id, Site.is_active == True).count()  # noqa: E712
+    tier = _effective_tier(user)
+    if not plans.can_add_site(tier, count):
+        allowed = plans.site_limits(tier)[1]
+        raise HTTPException(402, {"error": "payment_required", "feature": "sites",
+                                  "message": f"Your {plans.plan_name(tier)} plan includes {allowed} "
+                                             f"site{'' if allowed == 1 else 's'}. Choose a bigger plan to add more.",
+                                  "upgrade_url": "/dashboard/billing.html"})
 
     site = Site(
         user_id=user.id,
         name=req.name.strip() or "My Site",
         domain=req.domain.strip().lower().replace("https://", "").replace("http://", "").split("/")[0],
     )
+    secret = _new_secret(site)
     db.add(site)
     db.commit()
     db.refresh(site)
-    return site
+    return _out(site, secret)
 
 
 @router.get("/{site_id}", response_model=SiteOut)
@@ -105,7 +137,7 @@ def get_site(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    return _get_site_or_404(site_id, user, db)
+    return _out(_get_site_or_404(site_id, user, db))
 
 
 @router.delete("/{site_id}")
@@ -128,10 +160,9 @@ def rotate_secret(
 ):
     """Regenerate the secret key (invalidates old one immediately)."""
     site = _get_site_or_404(site_id, user, db)
-    site.secret_key = "lyra_secret_" + secrets.token_urlsafe(32)
+    secret = _new_secret(site)
     db.commit()
-    db.refresh(site)
-    return {"success": True, "secret_key": site.secret_key}
+    return {"success": True, "secret_key": secret, "secret_hint": site.secret_hint}
 
 
 @router.get("/{site_id}/usage")
@@ -159,12 +190,14 @@ def get_usage(
 
     daily = [{"date": d, "count": records.get(d, 0)} for d in reversed(days)]
     month_total = _monthly_usage(site_id, db)
-    limit = FREE_TIER_MONTHLY_LIMIT if user.tier == "free" else None
+    limit = plans.site_limits(_effective_tier(user))[0]
+    account_total = _account_usage(user.id, db)
 
     return {
         "site_id": site_id,
         "month_total": month_total,
+        "account_total": account_total,
         "monthly_limit": limit,
-        "remaining": max(0, limit - month_total) if limit else None,
+        "remaining": max(0, limit - account_total) if limit else None,
         "daily": daily,
     }

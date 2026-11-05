@@ -316,7 +316,7 @@ def test_person_json_and_ai_feed(monkeypatch):
     r = c.get("/api/watch/people/andy-burnham").json()
     assert r["politics"]["parties"] == ["Labour Party"]
     assert r["links"]["self"] == "https://lyraauth.com/api/watch/people/andy-burnham"
-    assert r["links"]["page"] == "https://lyraauth.com/watch/#person/andy-burnham"
+    assert r["links"]["page"] == "https://lyraauth.com/watch/andy-burnham"
     assert c.get("/api/watch/people/private-person").status_code == 404  # private individuals aren't published
     feed = c.get("/api/watch/feed.json")
     assert feed.headers["content-type"].startswith("application/feed+json")

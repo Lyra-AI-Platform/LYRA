@@ -11,6 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 
 from lyra.db.database import Base
+from lyra.authenticator.guard import hash_secret
 
 
 def _now():
@@ -22,7 +23,8 @@ def _site_key():
 
 
 def _secret_key():
-    return "lyra_secret_" + secrets.token_urlsafe(32)
+    # Only for rows made without going through /api/sites, which shows its key once.
+    return hash_secret("lyra_secret_" + secrets.token_urlsafe(32))
 
 
 class User(Base):
@@ -73,7 +75,10 @@ class Site(Base):
     name       = Column(String, default="My Site")
     domain     = Column(String, default="")
     site_key   = Column(String, unique=True, nullable=False, default=_site_key, index=True)
+    # SHA-256 of the key, never the key itself (lyra/authenticator/guard.py). The key is shown
+    # once, when it's made; secret_hint is its last four characters, to tell keys apart.
     secret_key = Column(String, unique=True, nullable=False, default=_secret_key, index=True)
+    secret_hint = Column(String, default="")
     is_active  = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=_now)
 
@@ -94,6 +99,8 @@ class VerifiedToken(Base):
     token      = Column(String, unique=True, nullable=False, index=True)
     site_id    = Column(Integer, ForeignKey("sites.id"), nullable=False)
     used       = Column(Boolean, default=False)
+    hostname   = Column(String, default="")      # the site the challenge was solved on
+    score      = Column(Float, default=0.0)      # the challenge engine's confidence, 0 to 1
     created_at = Column(DateTime(timezone=True), default=_now)
     expires_at = Column(DateTime(timezone=True), nullable=False)  # 5-min TTL
 
@@ -150,6 +157,20 @@ class WatchAlert(Base):
 
 def _api_key():
     return "lw_" + secrets.token_urlsafe(32)
+
+
+class LiveFollow(Base):
+    """My Live: a person, company, topic or saved search someone follows, with optional alerts."""
+    __tablename__ = "live_follows"
+
+    id         = Column(Integer, primary_key=True)
+    user_id    = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    kind       = Column(String, nullable=False)     # person | company | topic | search
+    value      = Column(String, nullable=False)
+    label      = Column(String, default="")
+    alerts     = Column(Boolean, default=False)
+    last_alert = Column(Float, default=0.0)
+    created_at = Column(DateTime(timezone=True), default=_now)
 
 
 class CreditWallet(Base):

@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from lyra.api import ratelimit
 from lyra.authenticator.engine import challenge_engine, ChallengeResponse
-from lyra.authenticator.guard import origin_allowed, parse_siteverify
+from lyra.authenticator.guard import hash_secret, origin_allowed, parse_siteverify, secret_matches, solved_on
 from lyra.db.database import get_db
 from lyra.api.users_api import _admin_emails, get_current_user
 from lyra.db.models import Site, UsageRecord, User, VerifiedToken
@@ -118,20 +118,13 @@ async def verify_challenge(req: VerifyRequest, request: Request, db: Session = D
 
     site_id = site.id if site else None
 
-    # Check free-tier limit
-    if site and site.owner.tier == "free":
-        from lyra.api.sites_api import FREE_TIER_MONTHLY_LIMIT
-        now = datetime.now(timezone.utc)
-        prefix = now.strftime("%Y-%m")
-        records = db.query(UsageRecord).filter(
-            UsageRecord.site_id == site_id,
-            UsageRecord.date.like(f"{prefix}%"),
-        ).all()
-        month_total = sum(r.count for r in records)
-        if month_total >= FREE_TIER_MONTHLY_LIMIT:
+    # Every plan has a monthly allowance, shared across the account's sites.
+    if site:
+        from lyra.api.sites_api import month_limit_reached
+        if month_limit_reached(site.owner, db):
             return {
                 "success": False,
-                "message": "Monthly verification limit reached. Upgrade to Pro.",
+                "message": "This site has used its verifications for this month.",
                 "upgrade_url": "https://lyraauth.com/dashboard/billing.html",
             }
 
@@ -140,7 +133,8 @@ async def verify_challenge(req: VerifyRequest, request: Request, db: Session = D
     expires = datetime.now(timezone.utc) + timedelta(minutes=TOKEN_TTL_MINUTES)
 
     if site_id:
-        db.add(VerifiedToken(token=token, site_id=site_id, expires_at=expires))
+        db.add(VerifiedToken(token=token, site_id=site_id, expires_at=expires, score=round(confidence, 2),
+                             hostname=solved_on(request.headers.get("origin"), request.headers.get("referer"))))
         db.commit()
 
     return {"success": True, "token": token, "confidence": round(confidence, 2)}
@@ -164,10 +158,10 @@ async def server_verify(request: Request, db: Session = Depends(get_db)):
 
     # Validate secret key
     site = db.query(Site).filter(
-        Site.secret_key == secret_key,
+        Site.secret_key == hash_secret(secret_key),
         Site.is_active == True,
     ).first()
-    if not site:
+    if not site or not secret_matches(site.secret_key, secret_key):
         return {"success": False, "error-codes": ["invalid-secret-key"]}
 
     # Validate token
@@ -188,20 +182,21 @@ async def server_verify(request: Request, db: Session = Depends(get_db)):
     vt.used = True
     # Trial accounts: a fixed number of verifications, and only while the trial is open.
     owner = site.owner
-    if owner is not None and (owner.tier or "free") not in ("starter", "pro", "business", "enterprise"):
-        from lyra.api.entitlements import trial_days_left
-        from lyra.api.sites_api import FREE_TIER_MONTHLY_LIMIT, _monthly_usage
-        if trial_days_left(owner) == 0 or _monthly_usage(site.id, db) >= FREE_TIER_MONTHLY_LIMIT:
+    if owner is not None:
+        from lyra.api.entitlements import is_paid, trial_days_left
+        from lyra.api.sites_api import month_limit_reached
+        if month_limit_reached(owner, db) or (not is_paid(owner) and trial_days_left(owner) == 0):
             raise HTTPException(402, {"error": "payment_required", "feature": "verifications",
-                                      "message": "This site's LyraAuth trial has ended. The owner needs to choose a plan.",
+                                      "message": "This site's LyraAuth allowance has run out. The owner needs to choose a plan.",
                                       "upgrade_url": "/dashboard/billing.html"})
     _bump_usage(site.id, db)
 
     return {
         "success": True,
-        "hostname": site.domain or None,
+        # Where it was actually solved. Tokens made before this was recorded fall back to the site's domain.
+        "hostname": vt.hostname or site.domain or None,
         "challenge_ts": vt.created_at.isoformat(),
-        "score": 0.9,
+        "score": vt.score,
     }
 
 
@@ -212,7 +207,7 @@ async def register_site_legacy():
     """Gone: it handed out keys to anyone without an account, which skipped the plan limits.
     Sites are added from the dashboard (POST /api/sites, signed in)."""
     raise HTTPException(410, {"error": "use_dashboard",
-                              "message": "Create a free account and add your site at https://lyraauth.com/dashboard/ "
+                              "message": "Create an account and add your site at https://lyraauth.com/dashboard/ "
                                          "to get your site key and secret key."})
 
 

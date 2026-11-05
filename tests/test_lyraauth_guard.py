@@ -40,3 +40,21 @@ def test_origin_allowed(domain, origin, referer, allowed):
 ])
 def test_parse_siteverify(body, content_type, expected):
     assert guard.parse_siteverify(body, content_type) == expected
+
+
+def test_secret_keys_are_hashed_and_compared():
+    stored = guard.hash_secret("lyra_secret_abc")
+    assert stored.startswith("sha256:") and "abc" not in stored
+    assert guard.is_hashed(stored) and not guard.is_hashed("lyra_secret_abc")
+    assert guard.secret_matches(stored, "lyra_secret_abc")
+    assert not guard.secret_matches(stored, "lyra_secret_abd")
+
+
+@pytest.mark.parametrize("origin,referer,host", [
+    ("https://shop.example.com", None, "shop.example.com"),
+    (None, "https://a.example/page", "a.example"),
+    ("null", "https://a.example/", "a.example"),
+    (None, None, ""),
+])
+def test_the_host_a_challenge_was_solved_on(origin, referer, host):
+    assert guard.solved_on(origin, referer) == host

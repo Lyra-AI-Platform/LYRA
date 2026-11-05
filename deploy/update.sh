@@ -20,7 +20,7 @@ echo "→ Installing any new dependencies..."
 sudo -u $APP_USER $APP_DIR/.venv/bin/pip install --quiet -r $APP_DIR/requirements.txt
 
 echo "→ Restarting Lyra..."
-systemctl restart lyra
+systemctl restart lyra   # /health reads the commit from .git, so it updates with the code
 
 echo "→ Reloading nginx..."
 nginx -t && systemctl reload nginx

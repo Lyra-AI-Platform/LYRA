@@ -1,6 +1,6 @@
 /**
  * LyraAuth — Human Intelligence Authenticator
- * Version 1.1.0
+ * Version 1.2.0
  * Copyright (C) 2026 Lyra Contributors
  *
  * Drop-in replacement for reCAPTCHA. Add to any website with one line:
@@ -16,6 +16,10 @@
  * buttons no longer submit the surrounding form; onSuccess works as an alias for callback;
  * the token is also posted as lyraauth-token for integrations built from the old docs.
  *
+ * Changes in 1.2.0: the API address comes from this script's own src, so a local copy talks to
+ * the local server; data-callback, data-expired-callback and data-error-callback name global
+ * functions; a token that expires clears itself, calls back and shows a fresh challenge.
+ *
  * Privacy: Users are clearly told their answer trains an AI.
  * See our Privacy Policy and Terms at https://lyraauth.com/pages/privacy.html and https://lyraauth.com/pages/terms.html
  */
@@ -23,12 +27,19 @@
 (function (window) {
   'use strict';
 
-  const LYRAAUTH_VERSION = '1.1.0';
-  // Auto-detect: use same origin in production, allow override via global var
+  const LYRAAUTH_VERSION = '1.2.0';
+  // currentScript only exists while this file first runs, so it's read here.
+  const SCRIPT_SRC = document.currentScript && document.currentScript.src;
+  // The API lives wherever this script came from. LYRAAUTH_API still overrides it.
   const API_BASE = window.LYRAAUTH_API ||
-    (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-      ? 'http://' + window.location.host + '/api/auth'
-      : 'https://lyraauth.com/api/auth');
+    (SCRIPT_SRC ? new URL(SCRIPT_SRC).origin : 'https://lyraauth.com') + '/api/auth';
+  const TOKEN_LIFETIME_MS = 5 * 60 * 1000;   // TOKEN_TTL_MINUTES in lyra/authenticator/api.py
+
+  // A callback given by name in an attribute: data-callback="onVerified".
+  function namedFunction(container, attribute) {
+    const fn = window[container.getAttribute(attribute) || ''];
+    return typeof fn === 'function' ? fn : null;
+  }
 
   // ── Styles ──────────────────────────────────────────────────────────────────
   const CSS = `
@@ -147,7 +158,7 @@
   }
   .lyraauth-footer-text {
     font-size: 10px;
-    color: #a0aec0;
+    color: #5f6b7a;
   }
   .lyraauth-footer-text a {
     color: #667eea;
@@ -219,7 +230,7 @@
   }
   .lyraauth-training-note {
     font-size: 10px;
-    color: #a0aec0;
+    color: #5f6b7a;
     margin-top: 10px;
     text-align: center;
     line-height: 1.4;
@@ -233,8 +244,10 @@
       this.container = container;
       this.siteKey = options.siteKey || container.getAttribute('data-sitekey') || '';
       this.theme = options.theme || container.getAttribute('data-theme') || 'light';
-      this.callback = options.callback || options.onSuccess || null;
-      this.errorCallback = options.errorCallback || null;
+      this.callback = options.callback || options.onSuccess || namedFunction(container, 'data-callback');
+      this.errorCallback = options.errorCallback || namedFunction(container, 'data-error-callback');
+      this.expiredCallback = options.expiredCallback || namedFunction(container, 'data-expired-callback');
+      this.expiryTimer = null;
 
       this.challenge = null;
       this.selectedAnswer = null;
@@ -462,6 +475,7 @@
 
           // Store token for form submission
           this._injectHiddenToken(result.token);
+          this.expiryTimer = setTimeout(() => this._expire(), TOKEN_LIFETIME_MS);
 
           // Call user callback
           if (this.callback) this.callback(result.token);
@@ -486,6 +500,20 @@
       }
     }
 
+    _removeHiddenToken() {
+      ['lyraauth_token', 'lyraauth-token'].forEach(name => {
+        const existing = document.getElementById(name + '-' + this.sessionId);
+        if (existing) existing.remove();
+      });
+    }
+
+    // The token can't be used any more, so nothing may submit it: clear it and start again.
+    _expire() {
+      if (this.expiredCallback) this.expiredCallback();
+      this.container.dispatchEvent(new CustomEvent('lyraauth-expired', { bubbles: true }));
+      this.reset();
+    }
+
     _injectHiddenToken(token) {
       // lyraauth_token is the real field name. lyraauth-token is what the docs used to say.
       ['lyraauth_token', 'lyraauth-token'].forEach(name => {
@@ -503,6 +531,8 @@
 
     getToken() { return this.token; }
     reset() {
+      clearTimeout(this.expiryTimer);
+      this._removeHiddenToken();
       this.token = null;
       this.selectedAnswer = null;
       this.challenge = null;

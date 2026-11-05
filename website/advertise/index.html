@@ -35,8 +35,14 @@
   .table-wrap { overflow-x: auto; }
 </style>
   <script src="/js/session.js?v=20261026a"></script>
+  <meta property="og:title" content="Advertise on Lyra Watch" />
+  <meta property="og:description" content="Put your product in front of people who follow markets, politics and public figures. Self-serve sponsor slots on Lyra Watch, from one week." />
+  <meta property="og:url" content="https://lyraauth.com/advertise/" />
+  <meta property="og:type" content="website" />
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
@@ -44,13 +50,13 @@
   </div>
 </nav>
 
-<main class="wrap">
+<main id="main" class="wrap">
   <h1>Advertise on Lyra Watch</h1>
   <p class="lede">Lyra Watch readers follow markets, politics and the people who move them. A sponsor slot puts one
     headline, one line and your link in front of every free visitor on Lyra Watch and its live feed. Book it yourself, pay
     by card, and it goes live as soon as it's reviewed.</p>
   <div class="stats" id="stats">
-    <div><b id="sPrice">$49</b><span class="muted">per week</span></div>
+    <div><b id="sPrice">£49</b><span class="muted">per week</span></div>
     <div><b id="sToday">—</b><span class="muted">live stories in 24 h</span></div>
     <div><b>No tracking</b><span class="muted">impressions and clicks only</span></div>
   </div>
@@ -96,7 +102,7 @@
     return n;
   };
   const signedIn = window.lyraSignedIn;
-  let rate = 4900, cur = "usd";
+  let rate = 4900, cur = "gbp";
   const money = (c) => new Intl.NumberFormat("en", { style: "currency", currency: cur.toUpperCase(), maximumFractionDigits: 0 }).format(c / 100);
   const toLogin = () => { try { localStorage.setItem("lyra_next", "/advertise/"); } catch {} location.href = "/dashboard/login.html"; };
   const note = (text, warn) => $("msg").replaceChildren(el("div", { class: "note" + (warn ? " warn" : ""), text }));

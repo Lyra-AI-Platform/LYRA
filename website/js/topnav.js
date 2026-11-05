@@ -8,7 +8,7 @@
   window.lyraTopNav = true;
 
   var PRODUCTS = [
-    ['/market', 'Tremor Index', 'Market-stress readings and the news behind them', 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6'],
+    ['/tremor/reading', 'Tremor Index', 'Market-stress readings and the news behind them', 'M4 19V5M4 19h16M8 15l3-4 3 2 5-6'],
     ['/dashboard/chat.html', 'Lyra chat', 'Ask anything; it searches the web when needed', 'M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z'],
     ['/watch/live/', 'Watch Live', 'Real-time stream of who is moving markets', 'M12 12m-2 0a2 2 0 1 0 4 0 2 2 0 1 0-4 0M7.8 7.8a6 6 0 0 0 0 8.4M16.2 16.2a6 6 0 0 0 0-8.4'],
     ['/watch/', 'Watch directory', 'Every public figure we track', 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21a7 7 0 0 1 14 0M17 11a3 3 0 1 0 0-6M22 21a5 5 0 0 0-4-5'],
@@ -22,7 +22,8 @@
     ['/index.html#how-it-works', 'How it works', null],
     ['/index.html#integrate', 'Integrate', null],
     ['/news/', 'News', /^\/news/],
-    ['/#pricing', 'Pricing', /^$/],
+    ['/pricing/', 'Pricing', /^\/pricing/],
+    ['/watch/account/', 'Watch Pro / API keys', /^\/watch\/account/],
     ['/tremor/', 'Tremor Index', /^\/(tremor|market)/],
     ['/watch/', 'Watch', /^\/watch\/?$/],
     ['/watch/live/', 'Live', /^\/watch\/live/],

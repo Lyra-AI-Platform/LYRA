@@ -327,6 +327,9 @@ def test_failed_sources_are_reported_not_hidden(monkeypatch):
         monkeypatch.setattr(mod, "fetch_text", broken)
     import lyra.market.market_data as md
     monkeypatch.setattr(md, "fetch_text", broken)
+    # Lyra Watch's saved profiles are a backup for these feeds. Other tests leave some on disk.
+    monkeypatch.setattr(smart_money, "profiles_ready", lambda: False)
+    monkeypatch.setattr(smart_money, "watch_congress_trades", lambda ticker: [])
     r = asyncio.run(expert.analyze("NVDA"))
     assert r["partial"] and "price" in r["failed_sources"]
     assert r["sources"]["congress"]["status"] == "failed"

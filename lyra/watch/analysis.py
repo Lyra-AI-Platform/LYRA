@@ -16,7 +16,7 @@ from lyra.market import sentiment
 COMPANIES = {
     "Apple": "AAPL", "Microsoft": "MSFT", "NVIDIA": "NVDA", "Nvidia": "NVDA", "Amazon": "AMZN",
     "Alphabet": "GOOGL", "Google": "GOOGL", "Meta Platforms": "META", "Meta": "META", "Facebook": "META", "Instagram": "META",
-    "WhatsApp": "META", "Tesla": "TSLA", "SpaceX": "SPCX", "Berkshire Hathaway": "BRK-B", "JPMorgan": "JPM",
+    "WhatsApp": "META", "Tesla": "TSLA", "SpaceX": "", "Berkshire Hathaway": "BRK-B", "JPMorgan": "JPM",
     "Goldman Sachs": "GS", "Morgan Stanley": "MS", "Bank of America": "BAC", "Citigroup": "C",
     "Wells Fargo": "WFC", "BlackRock": "BLK", "Mastercard": "MA", "PayPal": "PYPL",
     "Oracle": "ORCL", "Salesforce": "CRM", "Adobe": "ADBE", "Intel": "INTC", "AMD": "AMD",

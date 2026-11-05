@@ -25,7 +25,7 @@
 <meta name="twitter:description" content="Free directory of politicians, investors, executives and public figures: popularity, documented politics, interests, companies, posts and disclosed trades, every item sourced." />
 <meta name="twitter:image" content="https://lyraauth.com/img/watch-og.png" />
 <link rel="alternate" type="application/feed+json" title="Lyra Watch stories" href="/api/watch/feed.json" />
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lyra Watch", "url": "https://lyraauth.com/watch/", "description": "Free directory of politicians, investors, executives and public figures: popularity, documented politics, interests, companies, posts and disclosed trades, every item sourced.", "applicationCategory": "NewsApplication", "operatingSystem": "Web", "publisher": {"@type": "Organization", "name": "Lyra AI", "url": "https://lyraauth.com/"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lyra Watch", "url": "https://lyraauth.com/watch/", "description": "Free directory of politicians, investors, executives and public figures: popularity, documented politics, interests, companies, posts and disclosed trades, every item sourced.", "applicationCategory": "NewsApplication", "operatingSystem": "Web", "publisher": {"@type": "Organization", "name": "Lyra AI", "url": "https://lyraauth.com/"}, "offers": {"@type": "Offer", "price": "0", "priceCurrency": "GBP"}}</script>
 <link rel="stylesheet" href="/css/main.css?v=20261026a" />
 <style>
   :root { --buy: #15803d; --sell: #b45309; --bar: #2a78d6; --chip: #eef2f7; }
@@ -97,19 +97,21 @@
 </style>
   <script src="/js/session.js?v=20261026a"></script>
   <script src="/js/preview.js?v=20261026b" data-product="watch" defer></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
     <div class="nav-cta"><a href="https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Flyraauth.com%2Fwatch%2F" target="_blank" rel="noopener" class="btn btn-outline hide-sm" style="padding:6px 12px;font-size:13px;" title="Share Lyra Watch on LinkedIn">Share on LinkedIn</a>
       <a href="/watch/account/" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Go Pro</a>
-      <a href="/market" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Markets</a>
+      <a href="/tremor/" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Tremor Index</a>
       <a href="/watch/live/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">● Watch live</a></div>
   </div>
 </nav>
 
-<main class="wrap">
+<main id="main" class="wrap">
   <!-- Directory -->
   <section id="directory">
     <h1>Lyra Watch</h1>
@@ -403,7 +405,7 @@
   }
 
   // Listed companies open their Tremor reading on the market page.
-  function marketLink(ticker) { return `/market?t=${encodeURIComponent(ticker)}`; }
+  function marketLink(ticker) { return `/tremor/reading?ticker=${encodeURIComponent(ticker)}`; }
   function companyChip(c, text) {
     return c.ticker ? el("a", { class: "chip", href: marketLink(c.ticker), title: `${c.ticker} on Lyra Markets`, text })
       : el("span", { class: "chip", text });
@@ -420,7 +422,7 @@
     try {
       const data = await api("impact?limit=25");
       $("moverRows").replaceChildren(...data.people.map((r) => el("tr", {},
-        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }), el("div", { class: "meta", text: r.job || "" })),
+        el("td", {}, el("a", { class: "who", href: `/watch/${r.id}`, text: r.name }), el("div", { class: "meta", text: r.job || "" })),
         el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.by_ticker.slice(0, 3).map((b) => companyChip(b, b.ticker)))),
         el("td", { class: "num", text: String(r.days) }),
         el("td", { class: "num", text: `${r.big_moves} (${Math.round(r.big_share * 100)}%)` }),
@@ -469,7 +471,7 @@
     try {
       const data = await api(`people?limit=150&q=${encodeURIComponent(q)}${peopleWatched ? `&watched=${peopleWatched}` : ""}`);
       $("peopleRows").replaceChildren(...data.people.map((r) => el("tr", {},
-        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }),
+        el("td", {}, el("a", { class: "who", href: `/watch/${r.id}`, text: r.name }),
           r.slug ? el("div", { class: "meta" }, el("a", { href: `#${r.slug}`, text: "Trades & moves" })) : null),
         el("td", {}, el("span", { text: r.job || "—" }),
           r.job_source && r.job_source !== "watchlist" ? el("div", { class: "meta", text: `from ${r.job_source}` }) : null),
@@ -591,6 +593,9 @@
   }
 
   function route() {
+    // /watch/nancy-pelosi: the server named the person. Old #person/ links still work below.
+    const named = document.querySelector('meta[name="lyra-person"]');
+    if (named) return showPerson(named.content);
     const slug = location.hash.slice(1);
     if (slug.startsWith("person/")) return showPerson(slug.slice(7));
     $("person").hidden = true;

@@ -42,8 +42,10 @@
   <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
   <link rel="stylesheet" href="css/main.css?v=20261026a" />
   <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav class="nav nav-wide" id="nav">
   <div class="nav-inner">
@@ -54,8 +56,8 @@
       <li><a href="/labs/">Labs</a></li>
       <li><a href="#how-it-works">How It Works</a></li>
       <li><a href="#integrate">Integrate</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="tremor/">Tremor Index</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/tremor/">Tremor Index</a></li>
       <li><a href="watch/">Watch</a></li>
       <li><a href="watch/live/"><span class="live-dot">Live</span></a></li>
       <li><a href="pages/docs.html">Docs</a></li>
@@ -69,14 +71,14 @@
     </button>
   </div>
 </nav>
-<div class="nav-mobile" id="nav-mobile">
+<div id="main" class="nav-mobile" id="nav-mobile">
   <a href="#products">Products</a>
   <a href="/news/">News</a>
   <a href="/labs/">Labs</a>
   <a href="#how-it-works">How It Works</a>
   <a href="#integrate">Integrate</a>
-  <a href="#pricing">Pricing</a>
-  <a href="tremor/">Tremor Index</a>
+  <a href="/pricing/">Pricing</a>
+  <a href="/tremor/">Tremor Index</a>
   <a href="watch/">Lyra Watch</a>
   <a href="watch/live/">Lyra Watch Live</a>
   <a href="pages/docs.html">Docs</a>
@@ -245,7 +247,7 @@
       <div class="step">
         <div class="step-num">1</div>
         <h3>Register Your Site</h3>
-        <p style="font-size:13.5px;">Get a site key and secret key. Takes 30 seconds. No credit card required for free tier.</p>
+        <p style="font-size:13.5px;">Get a site key and secret key. Takes 30 seconds. No credit card required for the Free plan.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
@@ -582,7 +584,7 @@ onMounted(() => {
         <a href="watch/" class="btn btn-outline">Explore the free directory</a>
         <a href="watch/account/" class="btn btn-outline">Watch Pro · API</a>
       </div>
-      <p class="muted" style="margin-top:10px;font-size:13px;">The directory is free. Watch Pro ($7/month) adds the real-time stream and the full market record, and every paid plan includes it. <a href="/advertise/"><u>Advertise here</u></a>.</p>
+      <p class="muted" style="margin-top:10px;font-size:13px;">The directory is free. Watch Pro (£7/month) adds the real-time stream and the full market record, and every paid plan includes it. <a href="/advertise/"><u>Advertise here</u></a>.</p>
     </div>
   </div>
 </section>
@@ -610,8 +612,8 @@ onMounted(() => {
         large US stocks found the price-and-VIX model does not yet beat simple baselines, so readings show a lean, not
         exact odds. Every reading's outcome is published.</p>
       <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;">
-        <a href="tremor/" class="btn btn-primary">Methodology, backtest &amp; track record &rarr;</a>
-        <a href="/market" class="btn btn-outline">Open the Tremor Index</a>
+        <a href="/tremor/" class="btn btn-primary">Methodology, backtest &amp; track record &rarr;</a>
+        <a href="/tremor/reading" class="btn btn-outline">Open the Tremor Index</a>
       </div>
     </div>
   </div>
@@ -669,7 +671,7 @@ onMounted(() => {
       <!-- FREE -->
       <div class="price-card5">
         <div class="price-tier5">Trial</div>
-        <div class="price-amount">$0<span>/14 days</span></div>
+        <div class="price-amount">£0<span>/14 days</span></div>
         <p class="price-desc5">Try everything before you pay.</p>
         <ul class="price-features">
           <li>1,000 verifications</li>
@@ -684,7 +686,7 @@ onMounted(() => {
       <!-- STARTER -->
       <div class="price-card5">
         <div class="price-tier5">Starter</div>
-        <div class="price-amount">$9<span>/mo</span></div>
+        <div class="price-amount">£9<span>/mo</span></div>
         <p class="price-desc5">Small businesses getting started.</p>
         <ul class="price-features">
           <li>100,000 verifications / mo</li>
@@ -699,7 +701,7 @@ onMounted(() => {
       <!-- PRO — FEATURED -->
       <div class="price-card5 price-card5-featured">
         <div class="price-tier5" style="color:var(--text);">Pro — Most Popular</div>
-        <div class="price-amount">$29<span>/mo</span></div>
+        <div class="price-amount">£29<span>/mo</span></div>
         <p class="price-desc5">Growing sites that need real scale.</p>
         <ul class="price-features">
           <li>500,000 verifications / mo</li>
@@ -715,7 +717,7 @@ onMounted(() => {
       <!-- BUSINESS -->
       <div class="price-card5">
         <div class="price-tier5">Business</div>
-        <div class="price-amount">$79<span>/mo</span></div>
+        <div class="price-amount">£79<span>/mo</span></div>
         <p class="price-desc5">High-traffic sites &amp; teams.</p>
         <ul class="price-features">
           <li>2,000,000 verifications / mo</li>
@@ -731,7 +733,7 @@ onMounted(() => {
       <!-- ENTERPRISE -->
       <div class="price-card5">
         <div class="price-tier5">Enterprise</div>
-        <div class="price-amount">$249<span>/mo</span></div>
+        <div class="price-amount">£249<span>/mo</span></div>
         <p class="price-desc5">Large orgs. Full control.</p>
         <ul class="price-features">
           <li>Unlimited verifications</li>
@@ -782,7 +784,7 @@ onMounted(() => {
           <li><a href="pages/accessibility.html">Accessibility AI</a></li>
           <li><a href="pages/physics.html">Physics Reasoning</a></li>
           <li><a href="pages/vibe.html">Vibe &amp; Tone</a></li>
-          <li><a href="tremor/">Tremor Index</a></li>
+          <li><a href="/tremor/">Tremor Index</a></li>
           <li><a href="watch/">Lyra Watch</a></li>
           <li><a href="watch/live/">Lyra Watch Live</a></li>
           <li><a href="watch/account/">Watch Pro &amp; API</a></li>

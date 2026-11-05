@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Lyra Watch Live</title>
+<title>Lyra Live</title>
 <meta name="description" content="A live feed of what the media says about politicians, investors, executives and public figures, as it happens. For subscribers." />
 <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -25,13 +25,14 @@
 <meta name="twitter:description" content="A live stream of new headlines and posts about public figures, with who's named, their popularity, the companies involved and the tone. Included with every Lyra plan." />
 <meta name="twitter:image" content="https://lyraauth.com/img/watch-og.png" />
 <link rel="alternate" type="application/feed+json" title="Lyra Watch stories" href="/api/watch/feed.json" />
-<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lyra Watch Live", "url": "https://lyraauth.com/watch/live/", "description": "A live stream of new headlines and posts about public figures, with who's named, their popularity, the companies involved and the tone. Included with every Lyra plan.", "applicationCategory": "NewsApplication", "operatingSystem": "Web", "publisher": {"@type": "Organization", "name": "Lyra AI", "url": "https://lyraauth.com/"}, "offers": {"@type": "Offer", "price": "9", "priceCurrency": "USD"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Lyra Watch Live", "url": "https://lyraauth.com/watch/live/", "description": "A live stream of new headlines and posts about public figures, with who's named, their popularity, the companies involved and the tone. Included with every Lyra plan.", "applicationCategory": "NewsApplication", "operatingSystem": "Web", "publisher": {"@type": "Organization", "name": "Lyra AI", "url": "https://lyraauth.com/"}, "offers": {"@type": "Offer", "price": "9", "priceCurrency": "GBP"}}</script>
 <link rel="stylesheet" href="/css/main.css" />
 <style>
   /* A dark "studio" look in both colour schemes: the live room is meant to feel like a broadcast. */
-  .studio { --s-bg: #0e0e10; --s-panel: #18181b; --s-panel2: #1f1f23; --s-line: rgba(255,255,255,.08);
+  .studio, .gate { --s-bg: #0e0e10; --s-panel: #18181b; --s-panel2: #1f1f23; --s-line: rgba(255,255,255,.08);
     --s-text: #efeff1; --s-muted: #adadb8; --s-live: #eb0400; --s-accent: #a970ff; --s-pos: #34d399; --s-neg: #f87171;
-    background: var(--s-bg); color: var(--s-text); min-height: 100vh; padding: 76px 16px 48px; }
+  }
+  .studio { background: var(--s-bg); color: var(--s-text); min-height: 100vh; padding: 76px 16px 48px; }
   .studio a { color: inherit; }
   .bar { max-width: 1280px; margin: 0 auto 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
   .bar h1 { font-size: 1.35rem; margin: 0; color: var(--s-text); letter-spacing: -.02em; }
@@ -45,7 +46,7 @@
   .stat b { color: var(--s-text); }
   .spacer { flex: 1; }
   .studio-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 14px; }
-  @media (max-width: 900px) { .studio-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 900px) { .studio-grid { grid-template-columns: minmax(0, 1fr); } }
   .panel { background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 10px; }
   .stage { padding: 22px; position: relative; overflow: hidden; min-height: 320px; }
   .stage .kicker { font-size: 12px; color: var(--s-muted); text-transform: uppercase; letter-spacing: .06em; }
@@ -94,35 +95,92 @@
   .feed .p { font-weight: 600; color: #d6c2ff; }
   .empty { color: var(--s-muted); font-size: 14px; padding: 14px; }
   /* Paywall */
-  .locked .studio-grid { filter: blur(6px); pointer-events: none; user-select: none; }
-  .gate { position: fixed; inset: 0; display: grid; place-items: center; padding: 16px; z-index: 20;
+  /* The public feed stays usable, so the offer sits at the foot of the page, not over it. */
+  .gate { position: fixed; left: 0; right: 0; bottom: 0; display: grid; place-items: end center; padding: 12px; z-index: 20; pointer-events: none;
     background: rgba(14,14,16,.55); }
-  .gate .card { background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 12px; padding: 26px; max-width: 440px;
+  .gate .card { pointer-events: auto; position: relative; background: var(--s-panel); border: 1px solid var(--s-line); border-radius: 12px; padding: 26px; max-width: 440px;
     text-align: center; color: var(--s-text); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
   .gate h2 { font-size: 1.4rem; margin: 10px 0 8px; color: var(--s-text); }
   .gate p { color: var(--s-muted); font-size: 14.5px; line-height: 1.55; }
   .gate .go { display: inline-block; margin-top: 16px; background: var(--s-accent); color: #fff; font-weight: 600; border: 0;
     border-radius: 6px; padding: 10px 18px; font: inherit; cursor: pointer; text-decoration: none; }
   .gate .alt { display: block; margin-top: 10px; font-size: 13px; color: var(--s-muted); }
+  .board { padding: 14px 16px; margin-top: 14px; }
+  .board-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .board-head h2 { margin: 0; font-size: 1rem; color: var(--s-text); text-transform: none; letter-spacing: 0; }
+  .board-head span { font-size: 12px; color: var(--s-muted); }
+  .board ol { list-style: none; margin: 10px 0 0; padding: 0; }
+  .board li { display: grid; grid-template-columns: 22px 16px minmax(0, 1fr) 120px 28px auto; gap: 8px; align-items: center; padding: 8px 6px;
+    border-top: 1px solid var(--s-line); cursor: pointer; border-radius: 6px; transition: background .3s; }
+  .board li:hover, .board li:focus-visible { background: var(--s-panel2); }
+  .board .rk { font-variant-numeric: tabular-nums; color: var(--s-muted); font-size: 13px; }
+  .board .arrow { font-size: 12px; } .board .arrow.up { color: var(--s-pos); } .board .arrow.down { color: var(--s-neg); }
+  .board .co b { font-size: 14px; } .board .co span { color: var(--s-muted); font-size: 13px; }
+  .board .why { display: block; font-size: 12px; color: var(--s-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .board .bar-track { display: block; height: 6px; border-radius: 3px; background: var(--s-panel2); overflow: hidden; }
+  .board .bar-fill { display: block; height: 100%; background: var(--s-accent); transition: width .6s; }
+  .board .sc { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; font-size: 13px; }
+  .board .sdot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #71717a; vertical-align: 1px; }
+  .board .sdot.calm { background: var(--s-pos); } .board .sdot.rising { background: #fbbf24; } .board .sdot.high { background: var(--s-live); }
+  .board .new { margin-left: 6px; padding: 0 5px; border-radius: 3px; background: var(--s-accent); color: #fff; font-size: 10px; font-weight: 700; }
+  .board li.jumped { background: rgba(169,112,255,.2); }
+  .board .news { font-size: 12px; color: var(--s-muted); }
+  .board .more { display: none; margin-top: 8px; width: 100%; padding: 8px; background: var(--s-panel2); color: var(--s-text); border: 1px solid var(--s-line); border-radius: 6px; font: inherit; cursor: pointer; }
+  .board .note { margin: 8px 0 0; font-size: 12px; color: var(--s-muted); }
+  @media (max-width: 640px) {
+    .board li { grid-template-columns: 22px 16px minmax(0, 1fr) 28px auto; }
+    .board .bar-track { display: none; }
+    .board ol:not(.all) li:nth-child(n+6) { display: none; }
+    .board .more { display: block; }
+  }
+  @media (prefers-reduced-motion: reduce) { .board li, .board .bar-fill { transition: none; } .story-row.spike { animation: none; } }
+  .gate { background: none !important; backdrop-filter: none !important; }
+  .gate .card { max-width: 560px; padding: 14px 40px 14px 18px; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+  .gate h2 { font-size: 1.05rem; margin: 6px 0 4px; }
+  .gate #gText, .gate #gNumbers, .gate #gAd, .gate .card > .pill, .gate .card > p.stat { display: none; }
+  .gate .go { margin-top: 8px; padding: 8px 14px; }
+  .gate .alt { display: inline-block; margin: 0 0 0 12px; }
+  .gate .close { position: absolute; top: 8px; right: 10px; background: none; border: 0; color: var(--s-muted); font-size: 20px; cursor: pointer; }
+  .channels { display: flex; gap: 6px; overflow-x: auto; padding: 10px 12px 0; }
+  .channels button { flex: none; background: var(--s-panel2); color: var(--s-muted); border: 1px solid var(--s-line); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 12.5px; cursor: pointer; }
+  .channels button[aria-pressed="true"] { background: var(--s-accent); color: #fff; }
+  .feed-head[hidden] { display: none; }
+  .story-row { list-style: none; padding: 11px 14px; border-bottom: 1px solid var(--s-line); font-size: 14px; line-height: 1.4; }
+  .story-row a { text-decoration: none; }
+  .story-row a:hover { text-decoration: underline; }
+  .story-row .t { display: block; margin-top: 4px; font-size: 12px; color: var(--s-muted); }
+  .badge { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; font-size: 10.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; background: var(--s-live); color: #fff; }
+  .story-row.spike { border-left: 3px solid var(--s-live); animation: spikepulse 1.6s ease-out 3; }
+  .story-row.spike ul { margin: 6px 0 0; padding-left: 16px; font-size: 13px; color: var(--s-muted); }
+  @keyframes spikepulse { 0% { background: rgba(235,4,0,.28); } 100% { background: transparent; } }
+  .mine { padding: 10px 14px; border-bottom: 1px solid var(--s-line); font-size: 13px; color: var(--s-muted); }
+  .mine form { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .mine input, .mine select { min-width: 0; flex: 1; background: var(--s-panel2); color: var(--s-text); border: 1px solid var(--s-line); border-radius: 6px; padding: 6px 8px; font: inherit; }
+  .mine button { background: var(--s-accent); color: #fff; border: 0; border-radius: 6px; padding: 6px 10px; font: inherit; cursor: pointer; }
+  .mine .follow { display: inline-flex; align-items: center; gap: 4px; margin: 6px 6px 0 0; padding: 3px 8px; border-radius: 999px; background: var(--s-panel2); color: var(--s-text); }
+  .mine .follow button { background: none; padding: 0 2px; color: var(--s-muted); }
   [hidden] { display: none !important; }
 </style>
   <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/watchcard.js" defer></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
-    <div class="nav-cta"><a href="/market" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Markets</a>
+    <div class="nav-cta"><a href="/tremor/" class="btn btn-outline" style="padding:6px 15px;font-size:13px;">Tremor Index</a>
       <a href="/watch/" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Lyra Watch</a></div>
   </div>
 </nav>
 
-<main class="studio" id="studio">
+<main id="main" class="studio" id="studio">
   <div class="bar">
-    <h1>Lyra Watch Live</h1>
+    <h1>Lyra Live</h1>
     <span class="pill off" id="livePill">Offline</span>
-    <span class="stat"><b id="viewers">–</b> watching</span>
-    <span class="stat"><b id="today">–</b> stories in 24 h</span>
+    <span class="stat"><b id="viewers">0</b> watching</span>
+    <span class="stat"><b id="today">0</b> stories in 24 h</span>
     <span class="spacer"></span>
     <span class="stat" id="conn"></span>
   </div>
@@ -136,6 +194,12 @@
         <div class="cast" id="sCast"></div>
         <div class="tags" id="sTags"></div>
       </div>
+      <div class="panel board" aria-labelledby="boardTitle">
+        <div class="board-head"><h2 id="boardTitle">Companies with unusual activity</h2><span id="boardAge"></span></div>
+        <ol id="board"></ol>
+        <button class="more" id="boardMore" type="button">Show all 10</button>
+        <p class="note">General information, not financial advice. The score measures unusual activity, not where a price will go.</p>
+      </div>
       <div class="below">
         <div class="panel"><h2>Talked about now · 24 h</h2><ol class="rank buzz" id="buzz"></ol>
           <p class="t" id="buzzNote" style="margin-top:8px;font-size:11.5px;color:var(--s-muted)"></p></div>
@@ -145,8 +209,11 @@
     </section>
 
     <aside class="panel feed">
-      <div class="feed-head" role="group" aria-label="Filter the feed">
-        <h2>Live feed</h2>
+      <div class="channels" id="channels" role="group" aria-label="Live channels"></div>
+      <div class="mine" id="mine" hidden></div>
+      <ol id="stories" aria-live="polite"></ol>
+      <div class="feed-head" id="streamHead" role="group" aria-label="Filter the Watch stream" hidden>
+        <h2>Watch stream</h2>
         <button data-f="" aria-pressed="true">All</button>
         <button data-f="moves" aria-pressed="false">Power moves</button>
         <button data-f="posts" aria-pressed="false">Posts</button>
@@ -156,19 +223,20 @@
         <button data-f="positive" aria-pressed="false">Positive</button>
         <button data-f="negative" aria-pressed="false">Negative</button>
       </div>
-      <ol id="feed"></ol>
+      <ol id="feed" hidden></ol>
     </aside>
   </div>
 </main>
 
 <div class="gate" id="gate" hidden>
   <div class="card">
+    <button class="close" id="gClose" type="button" aria-label="Close">×</button>
     <span class="pill live">Live</span>
     <h2 id="gTitle">Watch the news move, live</h2>
     <p id="gText">Every new headline about the politicians, investors, executives and public figures we track, the
       moment it lands: who's named, their job and popularity, the companies involved and the tone.</p>
     <p id="gNumbers" class="stat"></p>
-    <a class="go" id="gGo" href="/watch/account/">Get Watch Pro · $7/month</a>
+    <a class="go" id="gGo" href="/watch/account/">Get Watch Pro · £7/month</a>
     <a class="alt" id="gAlt" href="/watch/">Browse the free directory instead</a>
     <p class="stat" style="margin-top:10px">Building an AI agent? <a href="/watch/account/#api" style="color:inherit"><u>Pay per request with an API key</u></a></p>
     <a id="gAd" hidden style="display:block;margin-top:14px;padding:10px 12px;border:1px solid rgba(255,255,255,.15);border-radius:10px;color:inherit;text-decoration:none;font-size:13px"></a>
@@ -209,12 +277,12 @@
     $("sKicker").textContent = `${kindLabel(e)}${e.feed} · ${e.source || "News"} · ${when(e)}`;
     $("sHeadline").replaceChildren(link(e.url, e.title));
     $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
-      p.id ? el("a", { class: "n", href: `/watch/#person/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
+      p.id ? el("a", { class: "n", href: `/watch/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
       el("div", { class: "j", text: p.job || "" }), meter(p.popularity))));
     $("sTags").replaceChildren(
       ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
       ...e.companies.map((c) => c.ticker
-        ? el("a", { class: "tag co", href: `/market?t=${encodeURIComponent(c.ticker)}`, title: "Tremor reading", text: `${c.name} · ${c.ticker} ↗` })
+        ? el("a", { class: "tag co", href: `/tremor/reading?ticker=${encodeURIComponent(c.ticker)}`, title: "Tremor reading", text: `${c.name} · ${c.ticker} ↗` })
         : el("span", { class: "tag co", text: c.name })),
       ...e.topics.slice(0, 3).map((t) => el("span", { class: "tag", text: t })));
   }
@@ -294,12 +362,12 @@
   function setStatus(s) {
     $("livePill").className = `pill ${s.live ? "live" : "off"}`;
     $("livePill").textContent = s.live ? "Live" : "Offline";
-    $("viewers").textContent = s.viewers;
-    $("today").textContent = s.events_today;
+    $("viewers").textContent = s.watching ?? s.viewers ?? 0;
+    $("today").textContent = s.stories_24h ?? s.events_today ?? 0;
   }
 
   function gate(kind, status) {
-    document.body.classList.add("locked");
+    try { if (sessionStorage.getItem("lyra_gate_closed")) return; } catch {}
     $("gate").hidden = false;
     fetch("/api/watch/account/pricing").then((r) => r.json()).then((p) => {
       if (kind !== "signin") $("gGo").textContent = `Get Watch Pro · ${new Intl.NumberFormat("en", { style: "currency", currency: p.currency.toUpperCase() }).format(p.watch_pro.price_cents / 100)}/month`;
@@ -321,6 +389,150 @@
     }
   }
 
+  // ── Companies with unusual activity ─────────────────────────────────────
+  let boardAt = 0;
+  const stressLevel = (s) => s == null ? "" : s < 55 ? "calm" : s < 70 ? "rising" : "high";
+
+  function boardRow(r) {
+    const reading = `/tremor/reading?ticker=${encodeURIComponent(r.ticker)}`;
+    const li = el("li", { "data-ticker": r.ticker, tabindex: "0", role: "link", "aria-label": `${r.rank}. ${r.name}, score ${r.score}. Open Tremor reading` },
+      el("span", { class: "rk", text: String(r.rank) }),
+      el("span", { class: `arrow ${r.change > 0 ? "up" : r.change < 0 ? "down" : ""}`, title: r.change ? `${Math.abs(r.change)} place${Math.abs(r.change) === 1 ? "" : "s"} ${r.change > 0 ? "up" : "down"}` : "", text: r.change > 0 ? "▲" : r.change < 0 ? "▼" : "" }),
+      el("span", { class: "co" }, el("span", { class: `sdot ${stressLevel(r.stress)}`, title: r.stress == null ? "No Tremor reading yet" : `Tremor stress ${stressLevel(r.stress)}` }),
+        el("b", { text: r.ticker }), el("span", { text: ` ${r.name === r.ticker ? "" : r.name}` }), r.new ? el("span", { class: "new", text: "NEW" }) : null,
+        el("span", { class: "why", text: r.reason })),
+      el("span", { class: "bar-track" }, el("span", { class: "bar-fill", style: `width:${r.score}%` })),
+      el("span", { class: "sc", text: String(r.score) }),
+      el("a", { class: "news", href: `/news/?tickers=${encodeURIComponent(r.ticker)}`, text: "News" }));
+    li.onclick = (e) => { if (!e.target.closest("a")) location.href = reading; };
+    li.onkeydown = (e) => { if (e.key === "Enter" && e.target === li) location.href = reading; };
+    if (r.jump) li.classList.add("jumped");
+    return li;
+  }
+
+  // Rows slide from where they were to where they are now. Reduced motion skips the slide.
+  function renderBoard(rows) {
+    const list = $("board"), before = new Map([...list.children].map((li) => [li.dataset.ticker, li.getBoundingClientRect().top]));
+    list.replaceChildren(...(rows.length ? rows.map(boardRow) : [el("li", { class: "empty", style: "display:block", text: "Measuring. Companies appear once they have 3 stories in 24 hours." })]));
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    for (const li of list.children) {
+      const was = before.get(li.dataset.ticker);
+      if (was === undefined) continue;
+      const shift = was - li.getBoundingClientRect().top;
+      if (shift) li.animate([{ transform: `translateY(${shift}px)` }, { transform: "none" }], { duration: 500, easing: "ease-out" });
+    }
+  }
+
+  async function loadBoard() {
+    const d = await fetch("/api/pulse/leaderboard").then((r) => r.json()).catch(() => null);
+    if (!d) return;
+    boardAt = d.updated;
+    renderBoard(d.rows);
+    boardAge();
+  }
+
+  function boardAge() {
+    if (boardAt) $("boardAge").textContent = `Updated ${Math.max(0, Math.round(Date.now() / 1000 - boardAt))}s ago`;
+  }
+
+  // ── Channels: the Newswire pipeline, grouped and ranked ──────────────────
+  const CHANNELS = [["", "Everything"], ["people", "People"], ["markets", "Markets"], ["politics", "Politics"], ["central-banks", "Central banks"],
+    ["energy", "Energy"], ["pharma", "Pharma"], ["trade-policy", "Tariffs & sanctions"], ["ai", "AI"], ["chemicals", "Chemistry"],
+    ["mine", "My Live"], ["watch", "Watch stream"]];
+  const params = new URLSearchParams(location.search);
+  let channel = params.get("channel") || "", search = params.get("q") || "", delayed = false, stageFilled = false;
+
+  const personId = (n) => n.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  function storyRow(c) {
+    return el("li", { class: "story-row" },
+      c.breaking ? el("span", { class: "badge", text: "Breaking" }) : null,
+      safeUrl(c.url) ? el("a", { href: c.url, target: "_blank", rel: "noopener nofollow", text: c.title }) : c.title,
+      el("span", { class: "t" },
+        c.outlets > 1 ? el("a", { href: `/news/?q=${encodeURIComponent(c.title.slice(0, 80))}`, text: `${c.outlets} outlets reporting` }) : (c.source || ""),
+        ` · ${ago(c.last_seen)}`, ...c.tickers.slice(0, 3).flatMap((t) => [" · ", el("a", { href: `/tremor/reading?ticker=${encodeURIComponent(t)}`, text: t })]),
+        ...c.people.slice(0, 2).flatMap((p) => [" · ", el("a", { href: `/watch/${personId(p)}`, text: p })])));
+  }
+
+  function spikeRow(e) {
+    return el("li", { class: "story-row spike" }, el("span", { class: "badge", text: "Tremor spike" }),
+      el("a", { href: `/tremor/reading?ticker=${encodeURIComponent(e.spike.ticker)}`, text: e.title }),
+      el("ul", {}, ...(e.headlines || []).map((h) => el("li", {}, link(h.url, h.title)))));
+  }
+
+  async function loadStories() {
+    if (channel === "watch") return;
+    const q = new URLSearchParams({ sort: "importance" });
+    if (channel === "mine") q.set("mine", "1"); else if (channel) q.set("channel", channel);
+    if (search) q.set("q", search);
+    const r = await fetch("/api/pulse/live?" + q).catch(() => null);
+    if (!r) return;
+    if (r.status === 402) {
+      $("stories").replaceChildren(el("li", { class: "empty" }, "My Live is part of Markets Pro. ", el("a", { href: "/pricing/", text: "See plans" })));
+      return;
+    }
+    if (!r.ok) return;
+    const d = await r.json();
+    delayed = !d.full;
+    // Until the stream delivers something, the headline card shows the top story.
+    if (!events.length && d.stories[0] && !stageFilled) {
+      const top = d.stories[0];
+      stageFilled = true;
+      $("sKicker").textContent = `${top.breaking ? "Breaking · " : ""}${top.outlets} outlet${top.outlets === 1 ? "" : "s"} reporting · ${ago(top.last_seen)}`;
+      $("sHeadline").replaceChildren(link(top.url, top.title));
+    }
+    const stories = d.stories.map(storyRow), rows = [...d.spikes.map(spikeRow), ...stories];
+    $("stories").replaceChildren(...(rows.length ? rows : [el("li", { class: "empty", text: "No stories here in the last 24 hours." })]));
+    const names = [...new Set(d.stories.flatMap((c) => c.people.slice(0, 1)))];
+    if (names.length && window.lyraWatchCards) {
+      const cards = await window.lyraWatchCards(names), shown = new Set();
+      d.stories.forEach((c, i) => {
+        const n = c.people[0];
+        if (n && cards[n] && !shown.has(n)) { shown.add(n); stories[i].append(cards[n]); }
+      });
+    }
+    if (delayed) $("conn").textContent = "Showing the feed an hour behind";
+  }
+
+  async function renderMine() {
+    const box = $("mine");
+    box.hidden = channel !== "mine";
+    if (box.hidden) return;
+    const r = await fetch("/api/pulse/follows").catch(() => null);
+    if (!r || !r.ok) { box.hidden = true; return; }
+    const { follows } = await r.json();
+    const pick = el("select", { "aria-label": "Follow a" }, ...["company", "person", "topic", "search"].map((k) => el("option", { value: k, text: k })));
+    const value = el("input", { placeholder: "NVDA, Nancy Pelosi, energy…", "aria-label": "What to follow", required: "" });
+    const alerts = el("input", { type: "checkbox", style: "flex:none", "aria-label": "Email me alerts" });
+    const form = el("form", {}, pick, value, el("label", {}, alerts, " Alerts"), el("button", { type: "submit", text: "Follow" }));
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      await fetch("/api/pulse/follows", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: pick.value, value: value.value, alerts: alerts.checked }) });
+      renderMine(); loadStories();
+    };
+    box.replaceChildren(el("span", { text: follows.length ? "Following" : "Follow people, companies or topics to fill this channel." }),
+      el("div", {}, ...follows.map((f) => {
+        const x = el("button", { type: "button", "aria-label": `Stop following ${f.label}`, text: "×" });
+        x.onclick = async () => { await fetch(`/api/pulse/follows/${f.id}`, { method: "DELETE" }); renderMine(); loadStories(); };
+        return el("span", { class: "follow" }, `${f.label}${f.alerts ? " · alerts" : ""}`, x);
+      })), form);
+  }
+
+  function renderChannels() {
+    $("channels").replaceChildren(...CHANNELS.map(([id, name]) => {
+      const b = el("button", { type: "button", "aria-pressed": String(id === channel), text: name });
+      b.onclick = () => { channel = id; search = ""; renderChannels(); showChannel(); };
+      return b;
+    }));
+  }
+
+  function showChannel() {
+    const stream = channel === "watch";
+    $("stories").hidden = stream; $("feed").hidden = !stream; $("streamHead").hidden = !stream;
+    renderMine(); loadStories();
+  }
+
   async function teaser() {
     try {
       const [s, p] = await Promise.all([fetch("/api/watch/live/status").then((r) => r.json()),
@@ -328,7 +540,7 @@
       setStatus(s);
       events = p.events; renderFeed(); renderSide(); stage(events[0]);
       return s;
-    } catch { return null; }
+    } catch { refreshStatus(); return null; }
   }
 
   async function refreshStatus() {
@@ -399,6 +611,14 @@
     document.querySelectorAll(".feed-head button").forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
     renderFeed();
   });
+  $("gClose").onclick = () => { $("gate").hidden = true; try { sessionStorage.setItem("lyra_gate_closed", "1"); } catch {} };
+  $("boardMore").onclick = () => { $("board").classList.add("all"); $("boardMore").hidden = true; };
+  loadBoard();
+  setInterval(loadBoard, 60000);
+  setInterval(boardAge, 1000);
+  renderChannels(); showChannel();
+  setInterval(loadStories, 30000);
+  setInterval(refreshStatus, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { unseen = 0; document.title = baseTitle; } });
   setInterval(() => { if (events[0]) $("sKicker").textContent = `${kindLabel(events[0])}${events[0].feed} · ${events[0].source || "News"} · ${when(events[0])}`; }, 30000);
   start();

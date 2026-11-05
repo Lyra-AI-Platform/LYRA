@@ -87,8 +87,15 @@
     @media (prefers-reduced-motion: reduce) { .tile, .reveal { animation: none; opacity: 1; transform: none; } .tile:hover, .quick a:hover { transform: none; } }
     @media (max-width: 860px) { .band-in { grid-template-columns: 1fr; padding: 36px 16px 40px; gap: 28px; } main { padding: 4px 16px 80px; } .group-head h2 { font-size: 1.6rem; } }
   </style>
+  <meta name="description" content="My Lyra on lyraauth.com." />
+  <link rel="canonical" href="https://lyraauth.com/home/" />
+  <meta property="og:title" content="My Lyra" />
+  <meta property="og:description" content="My Lyra on lyraauth.com." />
+  <meta property="og:url" content="https://lyraauth.com/home/" />
+  <meta property="og:type" content="website" />
 </head>
 <body data-appnav="drawer">
+<a class="skip-link" href="#main">Skip to content</a>
 
 <section class="band">
   <div class="band-in">
@@ -98,14 +105,14 @@
       <div class="chips reveal r3" id="status"><span class="chip">Loading your plan…</span></div>
     </div>
     <nav class="quick reveal r3" aria-label="Quick actions">
-      <a class="primary" href="/market"><span class="n">01</span><span><b>Open today's Tremor reading</b><small>Market stress, with the news behind it</small></span><span class="arr">→</span></a>
+      <a class="primary" href="/tremor/reading"><span class="n">01</span><span><b>Open today's Tremor reading</b><small>Market stress, with the news behind it</small></span><span class="arr">→</span></a>
       <a href="/dashboard/chat.html"><span class="n">02</span><span><b>Ask Lyra</b><small>Private chat that can search the web</small></span><span class="arr">→</span></a>
       <a href="/watch/live/"><span class="n">03</span><span><b>Watch who's moving markets</b><small>The live stream</small></span><span class="arr">→</span></a>
     </nav>
   </div>
 </section>
 
-<main>
+<main id="main">
   <div class="group-head"><h2>Your products</h2><span>Everything in your plan</span></div>
   <div class="grid" id="products"></div>
 
@@ -196,7 +203,7 @@
       const st = document.getElementById('status');
       st.replaceChildren();
       const tier = (bill && bill.tier) || (me && me.tier) || 'free';
-      st.append(chip('Plan <b>' + esc(paid ? tier[0].toUpperCase() + tier.slice(1) : 'Trial') + '</b>'));
+      st.append(chip('Plan <b>' + esc((bill && bill.plan_name) || 'Free') + '</b>'));
       if (trial) st.append(trial.expired ? chip('Trial ended · <a href="/dashboard/billing.html"><b>choose a plan</b></a>', true)
                                          : chip('<b>' + trial.days_left + '</b> trial day' + (trial.days_left === 1 ? '' : 's') + ' left', trial.days_left <= 3));
       st.append(chip('Watch Pro <b>' + (watchOn ? 'on' : 'off') + '</b>'));

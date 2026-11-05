@@ -76,8 +76,15 @@
   <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
   <meta name="theme-color" content="#14120e" />
   <meta name="apple-mobile-web-app-title" content="Lyra" />
+  <meta name="description" content="Billing — LyraAuth on lyraauth.com." />
+  <link rel="canonical" href="https://lyraauth.com/dashboard/billing.html" />
+  <meta property="og:title" content="Billing — LyraAuth" />
+  <meta property="og:description" content="Billing — LyraAuth on lyraauth.com." />
+  <meta property="og:url" content="https://lyraauth.com/dashboard/billing.html" />
+  <meta property="og:type" content="website" />
 </head>
 <body data-appnav="drawer">
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav class="dash-nav" data-appnav-hide>
   <div class="dash-nav-logo"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="border-radius:6px" />LyraAuth</div>
@@ -87,10 +94,10 @@
   </div>
 </nav>
 
-<div class="dash-body">
+<div id="main" class="dash-body">
   <div class="page-head">
     <h1>Billing &amp; Plan</h1>
-    <p>Every paid plan includes LyraAuth, the Tremor Index and Lyra chat. Upgrade, downgrade or cancel anytime;
+    <p>LyraAuth plans include the Tremor Index and Lyra chat. Markets Pro, Watch Pro and the bundle are for following news, companies and people. Upgrade, downgrade or cancel anytime;
       payments are handled securely by Stripe.</p>
   </div>
   <div id="msg-test" class="alert alert-info" style="display:none;"><b>Test mode.</b> Payments use Stripe test cards
@@ -114,22 +121,61 @@
   <div class="plans-grid" id="plans-grid">
 
     <div class="plan" id="plan-free">
-      <div class="plan-name">Trial</div>
-      <div class="plan-price">$0<span>/14 days</span></div>
-      <div class="plan-tagline">Try everything, then pick a plan.</div>
+      <div class="plan-name">Free</div>
+      <div class="plan-price">£0</div>
+      <div class="plan-tagline">Search, headlines and the public Live feed.</div>
       <ul class="plan-features">
-        <li>1,000 verifications</li>
-        <li>1 site</li>
-        <li>3 Tremor readings</li>
-        <li>20 chat messages</li>
+        <li>Newswire search and headlines</li>
+        <li>1 Tremor reading a day</li>
+        <li>The public Live feed</li>
+        <li>1 LyraAuth site, 1,000 verifications a month</li>
         <li>No card needed</li>
       </ul>
-      <button class="plan-btn current" disabled id="btn-free">Trial</button>
+      <button class="plan-btn current" disabled id="btn-free">Free</button>
+    </div>
+
+    <div class="plan" id="plan-markets">
+      <div class="plan-name">Markets Pro</div>
+      <div class="plan-price">£12<span>/mo</span></div>
+      <div class="plan-tagline">Everything for following companies.</div>
+      <ul class="plan-features">
+        <li>Unlimited Tremor readings</li>
+        <li>Watchlist stress alerts</li>
+        <li>"Why is it moving?" timeline</li>
+        <li>Saved searches</li>
+        <li>My Live</li>
+      </ul>
+      <button class="plan-btn primary" id="btn-markets" onclick="checkout('markets')">Subscribe — £12/mo</button>
+    </div>
+
+    <div class="plan" id="plan-watch">
+      <div class="plan-name">Watch Pro</div>
+      <div class="plan-price" id="watch-price">&nbsp;</div>
+      <div class="plan-tagline">Real-time Lyra Watch.</div>
+      <ul class="plan-features">
+        <li>Real-time Live stream</li>
+        <li>Full Who moves markets record</li>
+        <li>Every person's market impact</li>
+        <li>Said &amp; traded</li>
+        <li>Ad-free</li>
+      </ul>
+      <a class="plan-btn" href="/watch/account/" style="display:block;text-align:center;text-decoration:none;">Get Watch Pro</a>
+    </div>
+
+    <div class="plan" id="plan-bundle">
+      <div class="plan-name">Bundle</div>
+      <div class="plan-price">£18<span>/mo</span></div>
+      <div class="plan-tagline">Markets Pro and Watch Pro together.</div>
+      <ul class="plan-features">
+        <li>Everything in Markets Pro</li>
+        <li>Everything in Watch Pro</li>
+      </ul>
+      <button class="plan-btn" id="btn-bundle" onclick="checkout('bundle')">Subscribe — £18/mo</button>
     </div>
 
     <div class="plan" id="plan-starter">
       <div class="plan-name">Starter</div>
-      <div class="plan-price">$9<span>/mo</span></div>
+      <div class="plan-price">£9<span>/mo</span></div>
       <div class="plan-tagline">Small businesses.</div>
       <ul class="plan-features">
         <li>100,000 verifications/mo</li>
@@ -138,12 +184,12 @@
         <li>Email support</li>
         <li>Training data export (coming soon)</li>
       </ul>
-      <button class="plan-btn" id="btn-starter" onclick="checkout('starter')">Subscribe — $9/mo</button>
+      <button class="plan-btn" id="btn-starter" onclick="checkout('starter')">Subscribe — £9/mo</button>
     </div>
 
     <div class="plan" id="plan-pro">
       <div class="plan-name">Pro — Most Popular</div>
-      <div class="plan-price">$29<span>/mo</span></div>
+      <div class="plan-price">£29<span>/mo</span></div>
       <div class="plan-tagline">Growing sites.</div>
       <ul class="plan-features">
         <li>500,000 verifications/mo</li>
@@ -153,12 +199,12 @@
         <li>Analytics dashboard</li>
         <li>Priority support</li>
       </ul>
-      <button class="plan-btn primary" id="btn-pro" onclick="checkout('pro')">Subscribe — $29/mo</button>
+      <button class="plan-btn primary" id="btn-pro" onclick="checkout('pro')">Subscribe — £29/mo</button>
     </div>
 
     <div class="plan" id="plan-business">
       <div class="plan-name">Business</div>
-      <div class="plan-price">$79<span>/mo</span></div>
+      <div class="plan-price">£79<span>/mo</span></div>
       <div class="plan-tagline">High-traffic &amp; teams.</div>
       <ul class="plan-features">
         <li>2M verifications/mo</li>
@@ -168,12 +214,12 @@
         <li>White-label widget</li>
         <li>Priority support</li>
       </ul>
-      <button class="plan-btn" id="btn-business" onclick="checkout('business')">Subscribe — $79/mo</button>
+      <button class="plan-btn" id="btn-business" onclick="checkout('business')">Subscribe — £79/mo</button>
     </div>
 
     <div class="plan" id="plan-enterprise">
       <div class="plan-name">Enterprise</div>
-      <div class="plan-price">$249<span>/mo</span></div>
+      <div class="plan-price">£249<span>/mo</span></div>
       <div class="plan-tagline">Large orgs. Full control.</div>
       <ul class="plan-features">
         <li>Unlimited verifications</li>
@@ -183,13 +229,13 @@
         <li>Dedicated manager</li>
         <li>Custom contracts</li>
       </ul>
-      <button class="plan-btn" id="btn-enterprise" onclick="checkout('enterprise')">Subscribe — $249/mo</button>
+      <button class="plan-btn" id="btn-enterprise" onclick="checkout('enterprise')">Subscribe — £249/mo</button>
       <a href="mailto:support@lyraauth.com" style="display:block;text-align:center;font-size:.8125rem;color:var(--muted);margin-top:8px;">or contact sales</a>
     </div>
 
   </div>
 
-  <p style="font-size:.8125rem;color:var(--dim);margin-top:8px;">All plans billed monthly. Once you’re subscribed, Manage billing has your invoices and lets you cancel. Lyra Watch Pro on its own is <a href="/watch/account/">$7 a month</a>. Need help? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">support@lyraauth.com</a></p>
+  <p style="font-size:.8125rem;color:var(--dim);margin-top:8px;">All plans billed monthly. Once you’re subscribed, Manage billing has your invoices and lets you cancel. Lyra Watch Pro on its own is <a href="/watch/account/">£7 a month</a>. Need help? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">support@lyraauth.com</a></p>
 </div>
 
 <script>
@@ -202,7 +248,7 @@
   const NEED = { market: 'the Tremor Index', chat: 'Lyra chat', coshh: 'the COSHH database' };
   if (NEED[params.get('need')]) {
     const m = document.getElementById('msg-need');
-    m.textContent = `Your trial has ended, so ${NEED[params.get('need')]} needs a plan. Pick one below to carry on.`;
+    m.textContent = `${NEED[params.get('need')]} needs a plan. Pick one below to carry on.`.replace(/^./, (c) => c.toUpperCase());
     m.style.display = '';
   }
   const wantPlan = params.get('plan');
@@ -212,7 +258,9 @@
   function authH() { return { 'Content-Type':'application/json' }; }
 
   const TIER_LABELS = {
-    free:       { name:'Trial',           sub:'14 days · 1 site · 1,000 verifications · 3 Tremor readings · 20 chat messages' },
+    markets:    { name:'Markets Pro',     sub:'Unlimited Tremor · Stress alerts · Timeline · Saved searches · My Live' },
+    bundle:     { name:'Markets Pro + Watch Pro', sub:'Everything in Markets Pro · Real-time Lyra Watch' },
+    free:       { name:'Free plan',       sub:'1 site · 1,000 verifications a month · 14-day trial of chat and Tremor' },
     starter:    { name:'Starter plan',    sub:'100,000 verifications/month · Tremor Index · Lyra chat' },
     pro:        { name:'Pro plan',        sub:'500,000 verifications/month · Unlimited sites · Tremor Index · Lyra chat' },
     business:   { name:'Business plan',   sub:'2,000,000 verifications/month · Team access · Tremor Index · Lyra chat' },
@@ -236,7 +284,7 @@
       if (bil.trial) {
         const t = bil.trial, r = t.remaining || {};
         document.getElementById('cur-sub').textContent = t.expired
-          ? 'Your trial has ended. Choose a plan to keep using Lyra.'
+          ? 'Your trial has ended. You still have the Free plan: search, headlines and one Tremor reading a day.'
           : `${t.days_left} day${t.days_left === 1 ? '' : 's'} left · ${r.market ?? 0} Tremor readings and ${r.chat ?? 0} chat messages remaining`;
       }
       if (bil.payments_configured && bil.payments_mode === 'test') document.getElementById('msg-test').style.display = '';
@@ -246,7 +294,7 @@
       }
 
       // Highlight current plan card
-      ['free','starter','pro','business','enterprise'].forEach(t => {
+      ['free','markets','bundle','starter','pro','business','enterprise'].forEach(t => {
         document.getElementById('plan-'+t)?.classList.toggle('active', t === tier);
         const b = document.getElementById('btn-'+t);
         if (b && t === tier) {
@@ -268,7 +316,7 @@
           b.onclick = portal;
         });
         document.getElementById('portal-btn-wrap').innerHTML =
-          `<button class="btn btn-outline" onclick="portal()" style="padding:8px 18px;font-size:.875rem;">Manage billing</button>`;
+          `<button class="btn btn-outline" onclick="portal()" style="padding:8px 18px;font-size:.875rem;">Invoices and cancel</button>`;
       }
     } catch(e) { console.error(e); }
   }
@@ -306,6 +354,10 @@
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  fetch('/api/watch/account/pricing').then((r) => r.json()).then((p) => {
+    document.getElementById('watch-price').innerHTML = new Intl.NumberFormat('en', { style: 'currency', currency: p.currency.toUpperCase(), maximumFractionDigits: 0 })
+      .format(p.watch_pro.price_cents / 100) + '<span>/mo</span>';
+  }).catch(() => {});
   load();
   // After Stripe sends people back, the upgrade arrives by webhook a moment later; refresh until it shows.
   if (new URLSearchParams(location.search).has('success')) {
