@@ -355,6 +355,17 @@
       go.className = 'golive'; go.href = '/watch/live/?' + live; go.textContent = 'Go live →';
       $('rcount').append(go);
     }
+    if (S.q) {
+      const save = document.createElement('a');
+      save.className = 'golive'; save.href = '#'; save.textContent = 'Save search';
+      save.onclick = async (e) => {
+        e.preventDefault();
+        const r = await fetch('/api/pulse/follows', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ kind: 'search', value: S.q }) }).catch(() => null);
+        if (r && r.ok) save.textContent = 'Saved to My Live';
+        else location.href = r && r.status === 401 ? '/dashboard/register.html?next=/pricing/' : '/pricing/';
+      };
+      $('rcount').append(save);
+    }
     const after = $('after');
     after.replaceChildren();
     if (full && S.offset + 30 < res.total) {

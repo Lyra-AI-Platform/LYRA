@@ -61,3 +61,10 @@ def test_pricing_means_the_pricing_page():
     for page in pages():
         if page.parent.name != "slabsign":
             assert "index.html#pricing" not in page.read_text(errors="ignore"), page
+
+
+def test_the_plans_on_the_pricing_and_billing_pages():
+    for name in ("pricing/index.html", "dashboard/billing.html"):
+        text = (WEBSITE / name).read_text()
+        for needed in ("£12", "£18", "Markets Pro", "Watch Pro", "1 Tremor reading a day"):
+            assert needed in text, (name, needed)

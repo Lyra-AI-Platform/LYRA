@@ -148,7 +148,7 @@
   </section>
 
   <section class="full">
-    <h2>Why is it moving?</h2>
+    <h2>Why is it moving? <button class="ghost" id="watchbtn" type="button" hidden style="float:right;padding:3px 10px;font-size:13px">Alert me on stress jumps</button></h2>
     <div id="timeline"><p class="empty">News volume and the Tremor score, with the headlines behind each spike, appear after an analysis.</p></div>
     <p class="muted">General information, not financial advice.</p>
   </section>
@@ -334,8 +334,16 @@ function drawTimeline(d) {
       <span class="muted">${new Date(p.ts * 1000).toLocaleDateString()} · ${p.stories} stories that hour</span></li>`).join("")}</ul>`;
 }
 
+$("watchbtn").onclick = async () => {
+  const r = await fetch("/api/pulse/follows", { method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ kind: "company", value: currentTicker, alerts: true }) }).catch(() => null);
+  if (r && r.ok) $("watchbtn").textContent = "Alerts on"; else location.href = "/pricing/";
+};
+
 async function loadTimeline(ticker) {
   const box = $("timeline");
+  $("watchbtn").hidden = false;
+  $("watchbtn").textContent = "Alert me on stress jumps";
   try {
     const r = await fetch("/api/pulse/timeline/" + encodeURIComponent(ticker));
     if (r.status === 402 || r.status === 401) {
