@@ -158,7 +158,7 @@
   }
   .lyraauth-footer-text {
     font-size: 10px;
-    color: #a0aec0;
+    color: #5f6b7a;
   }
   .lyraauth-footer-text a {
     color: #667eea;
@@ -230,7 +230,7 @@
   }
   .lyraauth-training-note {
     font-size: 10px;
-    color: #a0aec0;
+    color: #5f6b7a;
     margin-top: 10px;
     text-align: center;
     line-height: 1.4;

@@ -107,8 +107,10 @@
     .outlets { font-weight: 600; color: var(--ink); text-decoration: none; }
   </style>
   <script src="/js/watchcard.js" defer></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body data-appnav="drawer">
+<a class="skip-link" href="#main">Skip to content</a>
 
 <nav class="nav" id="nav" data-appnav-hide>
   <div class="nav-inner">
@@ -170,7 +172,7 @@
     <button class="clear" id="clear" type="button">Clear all filters</button>
   </aside>
 
-  <main>
+  <main id="main">
     <button class="filters-toggle" id="ftoggle" type="button" aria-controls="filters" aria-expanded="false">Filters</button>
     <div class="resulthead"><h2 id="rtitle">Latest</h2><span id="rcount"></span></div>
     <div class="chips" id="active"></div>
@@ -185,6 +187,8 @@
 (function () {
   const $ = (id) => document.getElementById(id);
   // Feeds aren't trusted: only a plain web address becomes a link.
+  // The same id the server gives a person: "Flávio Bolsonaro" becomes "flavio-bolsonaro".
+  const personId = (n) => n.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
   const webUrl = (u) => /^https?:\/\//i.test(String(u || '').trim()) ? u : '';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const TOPICS = { ai: 'AI', semiconductors: 'Semiconductors', chemicals: 'Chemicals', pharma: 'Pharma', energy: 'Energy', politics: 'Politics',
@@ -231,7 +235,7 @@
       const tags = [
         ...r.topics.map((t) => `<button class="tag" data-f="topics" data-v="${esc(t)}">${esc(TOPICS[t] || t)}</button>`),
         ...r.tickers.map((t) => `<a class="tag tk" href="/tremor/reading?ticker=${encodeURIComponent(t)}" title="Tremor reading for ${esc(t)}">${esc(t)}</a>`),
-        ...r.people.map((p) => `<button class="tag pp" data-f="people" data-v="${esc(p)}">${esc(p)}</button>`),
+        ...r.people.map((p) => `<a class="tag pp" href="/watch/${esc(personId(p))}">${esc(p)}</a>`),
       ].join('');
       a.innerHTML = `<div class="meta"><span class="kind ${r.kind}">${r.kind === 'research' ? 'Research' : 'News'}</span>` +
         (r.outlets > 1 ? `<a class="outlets" href="/news/?q=${encodeURIComponent(r.title.slice(0, 80))}">${fmt(r.outlets)} outlets reporting</a>` : '') +
@@ -345,6 +349,12 @@
     render(res.results, !!more);
     if (!more) { tremorCard(); companyMinis(res.results); }
     $('rcount').textContent = (res.total_capped ? 'over ' : '') + fmt(res.total) + ' match' + (res.total === 1 ? '' : 'es');
+    const live = S.topics ? 'channel=' + encodeURIComponent(S.topics) : S.q ? 'q=' + encodeURIComponent(S.q) : '';
+    if (live) {
+      const go = document.createElement('a');
+      go.className = 'golive'; go.href = '/watch/live/?' + live; go.textContent = 'Go live →';
+      $('rcount').append(go);
+    }
     const after = $('after');
     after.replaceChildren();
     if (full && S.offset + 30 < res.total) {

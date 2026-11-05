@@ -12,7 +12,7 @@
   --border-hi: rgba(20,18,14,0.18);
   --text:      #14120e;
   --muted:     #6e6b67;
-  --dim:       #a8a5a0;
+  --dim:       #716d67;
   --accent:    #14120e;
   --accent-hi: #292524;
   --green:     #16a34a;
@@ -507,4 +507,14 @@ code {
   .nav-wide .nav-links, .nav-wide .nav-cta .btn-outline { display: none; }
   .nav-wide .nav-hamburger { display: flex; }
   .nav-wide .nav-cta { margin-left: auto; margin-right: 8px; }
+}
+
+/* Skip link: first thing a keyboard reaches on every page */
+.skip-link { position: absolute; left: 8px; top: -60px; z-index: 1000; padding: 8px 14px; border-radius: 6px; background: #14120e; color: #faf9f7; font: 600 14px Inter, system-ui, sans-serif; }
+.skip-link:focus { top: 8px; }
+@media (max-width: 768px) { .nav .nav-links { display: flex; overflow-x: auto; gap: 4px; max-width: 60vw; } .nav .nav-links a { white-space: nowrap; } }
+
+/* Anyone who asked for less motion gets none */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }

@@ -87,8 +87,15 @@
     @media (prefers-reduced-motion: reduce) { .tile, .reveal { animation: none; opacity: 1; transform: none; } .tile:hover, .quick a:hover { transform: none; } }
     @media (max-width: 860px) { .band-in { grid-template-columns: 1fr; padding: 36px 16px 40px; gap: 28px; } main { padding: 4px 16px 80px; } .group-head h2 { font-size: 1.6rem; } }
   </style>
+  <meta name="description" content="My Lyra on lyraauth.com." />
+  <link rel="canonical" href="https://lyraauth.com/home/" />
+  <meta property="og:title" content="My Lyra" />
+  <meta property="og:description" content="My Lyra on lyraauth.com." />
+  <meta property="og:url" content="https://lyraauth.com/home/" />
+  <meta property="og:type" content="website" />
 </head>
 <body data-appnav="drawer">
+<a class="skip-link" href="#main">Skip to content</a>
 
 <section class="band">
   <div class="band-in">
@@ -105,7 +112,7 @@
   </div>
 </section>
 
-<main>
+<main id="main">
   <div class="group-head"><h2>Your products</h2><span>Everything in your plan</span></div>
   <div class="grid" id="products"></div>
 

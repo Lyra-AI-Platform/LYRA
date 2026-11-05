@@ -435,8 +435,10 @@ if SERVE_WEBSITE:
         if pid in pages.RESERVED:
             return RedirectResponse(f"/watch/{pid}/", status_code=308)
         rec = service.person_record(pid[:120])
-        if not rec or rec["id"] != pid:
+        if not rec:
             return FileResponse(str(WEBSITE_DIR / "404.html"), status_code=404)
+        if rec["id"] != pid:   # a former spelling of their name
+            return RedirectResponse(f"/watch/{rec['id']}", status_code=301)
         return HTMLResponse(pages.render((WEBSITE_DIR / "watch" / "index.html").read_text(), rec))
 
     @app.get("/widget.js")

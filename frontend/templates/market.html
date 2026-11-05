@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex, nofollow, noarchive">
 <title>Lyra — Tremor Index</title>
+<meta name="description" content="Tremor Index readings: price trend, news, insiders, funds and politicians for one US stock.">
+<link rel="canonical" href="https://lyraauth.com/tremor/reading">
+<meta property="og:title" content="Lyra — Tremor Index">
+<meta property="og:description" content="Tremor Index readings for one US stock.">
+<meta property="og:url" content="https://lyraauth.com/tremor/reading">
+<script src="/js/sitenav.js" defer></script>
 <style>
   :root {
     --bg: #0d0f14; --panel: #151922; --panel-2: #1c2130; --border: #262c3d;
@@ -77,10 +83,14 @@
           justify-content: center; z-index: 100; padding: 16px; }
   .gate > div { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
                 max-width: 560px; }
+  .skip-link { position: absolute; left: 8px; top: -60px; z-index: 1000; padding: 8px 14px; border-radius: 6px; background: var(--accent); color: #fff; }
+  .skip-link:focus { top: 8px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 </style>
   <script src="/js/session.js?v=20261023c"></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <header>
   <h1>✦ Tremor Index</h1>
   <a href="/dashboard/index.html">← Dashboard</a>
@@ -107,7 +117,7 @@
   </div>
 </div>
 
-<main>
+<main id="main">
   <section>
     <h2>Stock reading</h2>
     <form id="lookup">

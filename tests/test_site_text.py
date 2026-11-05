@@ -37,3 +37,27 @@ def test_widget_finds_its_api_from_its_own_address():
     assert "document.currentScript" in widget
     for name in ("data-callback", "data-expired-callback"):
         assert name in widget
+
+
+def test_every_page_has_the_basics():
+    for page in pages():
+        if page.parent.name == "admin":
+            continue
+        text = page.read_text(errors="ignore")
+        assert 'name="description"' in text, page
+        assert 'class="skip-link"' in text, page
+        if page.parent.name != "share":
+            assert 'rel="canonical"' in text and 'property="og:title"' in text, page
+
+
+def test_skip_links_have_somewhere_to_go():
+    for page in pages():
+        text = page.read_text(errors="ignore")
+        if 'class="skip-link"' in text:
+            assert 'id="main"' in text, page
+
+
+def test_pricing_means_the_pricing_page():
+    for page in pages():
+        if page.parent.name != "slabsign":
+            assert "index.html#pricing" not in page.read_text(errors="ignore"), page

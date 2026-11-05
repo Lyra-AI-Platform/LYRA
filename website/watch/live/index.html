@@ -156,8 +156,10 @@
 </style>
   <script src="/js/session.js?v=20261026a"></script>
   <script src="/js/watchcard.js" defer></script>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 <nav class="nav">
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
@@ -166,7 +168,7 @@
   </div>
 </nav>
 
-<main class="studio" id="studio">
+<main id="main" class="studio" id="studio">
   <div class="bar">
     <h1>Lyra Live</h1>
     <span class="pill off" id="livePill">Offline</span>
@@ -433,6 +435,8 @@
   const params = new URLSearchParams(location.search);
   let channel = params.get("channel") || "", search = params.get("q") || "", delayed = false;
 
+  const personId = (n) => n.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
   function storyRow(c) {
     return el("li", { class: "story-row" },
       c.breaking ? el("span", { class: "badge", text: "Breaking" }) : null,
@@ -440,7 +444,7 @@
       el("span", { class: "t" },
         c.outlets > 1 ? el("a", { href: `/news/?q=${encodeURIComponent(c.title.slice(0, 80))}`, text: `${c.outlets} outlets reporting` }) : (c.source || ""),
         ` · ${ago(c.last_seen)}`, ...c.tickers.slice(0, 3).flatMap((t) => [" · ", el("a", { href: `/tremor/reading?ticker=${encodeURIComponent(t)}`, text: t })]),
-        ...c.people.slice(0, 2).flatMap((p) => [" · ", el("a", { href: `/news/?people=${encodeURIComponent(p)}`, text: p })])));
+        ...c.people.slice(0, 2).flatMap((p) => [" · ", el("a", { href: `/watch/${personId(p)}`, text: p })])));
   }
 
   function spikeRow(e) {
