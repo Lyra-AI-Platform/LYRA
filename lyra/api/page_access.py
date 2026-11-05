@@ -6,7 +6,6 @@ can be skipped (view-source, curl, scripts off). Here the page itself is withhel
   public    marketing, docs, legal, pricing: anyone
   account   signed in (dashboard, billing)
   member    signed in with a paid plan or a trial that hasn't run out (the products)
-  watch     signed in with Lyra Watch Pro or any paid plan (Watch Live)
   owner     the site owner only (LYRA_ADMIN_EMAILS); everyone else gets a plain 404
   unlisted  anyone holding the link, but never linked from the site or listed by search engines
 
@@ -50,8 +49,6 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/coshh/", "member", "coshh"),
     ("/coshh", "member", "coshh"),
     ("/api/coshh/", "member", "coshh"),
-    ("/watch/live/", "watch", "watch_live"),
-    ("/watch/live", "watch", "watch_live"),
     # FuelTrack's App Store privacy policy: the App Store links to it, Lyra pages don't.
     # /fuelwise/privacy/ is its old address and now just redirects to the new one.
     ("/fueltrack/privacy/", "unlisted", ""),
