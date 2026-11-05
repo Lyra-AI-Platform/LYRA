@@ -112,11 +112,10 @@ def test_paid_plans_open_everything(site, tier):
         assert c.get(path).status_code == 200, path
 
 
-def test_watch_live_needs_watch_pro(site):
+def test_watch_live_page_shows_its_own_preview(site):
+    """The page is public and shows a delayed preview. The live data is checked by its own APIs."""
     app, Session = site
-    r = _client(app, Session).get("/watch/live/")
-    assert r.status_code == 303
-    assert r.headers["location"] == "/watch/account/?need=watch"
+    assert _client(app, Session).get("/watch/live/").status_code == 200
 
 
 def test_owner_pages_are_invisible_to_everyone_else(site, monkeypatch):
