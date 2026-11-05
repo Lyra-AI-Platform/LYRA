@@ -215,6 +215,8 @@ class Collector:
         while True:
             try:
                 await self.cycle()
+                # Older articles join the pipeline a batch at a time, between cycles.
+                await asyncio.to_thread(get_wire().backfill, retag=tagger.tag)
                 await asyncio.sleep(60)
             except asyncio.CancelledError:
                 raise

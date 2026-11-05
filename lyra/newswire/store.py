@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
 from lyra.market.config import DATA_DIR
+from lyra.newswire import clusters as CL
 
 DB_PATH = Path(DATA_DIR) / "newswire.db"
 KEEP_DAYS = 400   # older rows are pruned so the file can't fill the disk
@@ -33,7 +34,22 @@ CREATE TRIGGER IF NOT EXISTS wire_ai AFTER INSERT ON wire BEGIN
 CREATE TRIGGER IF NOT EXISTS wire_ad AFTER DELETE ON wire BEGIN
   INSERT INTO wire_fts(wire_fts, rowid, title, summary) VALUES ('delete', old.rowid, old.title, old.summary); END;
 CREATE TABLE IF NOT EXISTS wire_runs (source TEXT PRIMARY KEY, last_ok REAL, last_error TEXT, added INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS cluster (
+  id TEXT PRIMARY KEY, title TEXT NOT NULL, url TEXT NOT NULL, source TEXT DEFAULT '', first_seen REAL NOT NULL,
+  last_seen REAL NOT NULL, stories INTEGER DEFAULT 1, outlets INTEGER DEFAULT 1, breaking_at REAL,
+  topics TEXT DEFAULT ',', tickers TEXT DEFAULT ',', people TEXT DEFAULT ','
+);
+CREATE INDEX IF NOT EXISTS cluster_last ON cluster(last_seen DESC);
+CREATE TABLE IF NOT EXISTS cluster_outlet (cluster TEXT NOT NULL, outlet TEXT NOT NULL, first_at REAL NOT NULL,
+  PRIMARY KEY (cluster, outlet)) WITHOUT ROWID;
+-- Stories per company per hour: Tremor, the leaderboard and the timeline read these, not the articles.
+CREATE TABLE IF NOT EXISTS ticker_hour (ticker TEXT NOT NULL, hour INTEGER NOT NULL, stories INTEGER DEFAULT 0,
+  PRIMARY KEY (ticker, hour)) WITHOUT ROWID;
+CREATE TABLE IF NOT EXISTS ticker_outlet (ticker TEXT NOT NULL, hour INTEGER NOT NULL, outlet TEXT NOT NULL,
+  PRIMARY KEY (ticker, hour, outlet)) WITHOUT ROWID;
+CREATE INDEX IF NOT EXISTS ticker_hour_hour ON ticker_hour(hour);
 """
+BREAKING_SHOWN = 6 * 3600   # how long a cluster keeps its Breaking badge
 
 def safe_url(url: str) -> str:
     """Only http(s) links reach a page. A javascript: or data: link in a feed could run in a
@@ -83,7 +99,9 @@ class WireStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA synchronous=NORMAL")
         self._conn.executescript(SCHEMA)
+        self._index = CL.ClusterIndex()
         self._upgrade()
+        self._load_index()
 
     def _upgrade(self):
         """One-off data fixes, each run once (PRAGMA user_version counts them)."""
@@ -95,6 +113,71 @@ class WireStore:
                 self._conn.execute("UPDATE wire SET language=? WHERE language=? AND via='GDELT'", (right, wrong))
             self._conn.execute("PRAGMA user_version=1")
             self._conn.commit()
+        if version < 2:
+            if "cluster" not in {r[1] for r in self._conn.execute("PRAGMA table_info(wire)")}:
+                self._conn.execute("ALTER TABLE wire ADD COLUMN cluster TEXT DEFAULT ''")
+            self._conn.execute("CREATE INDEX IF NOT EXISTS wire_cluster ON wire(cluster)")
+            self._conn.execute("PRAGMA user_version=2")
+            self._conn.commit()
+
+    def _load_index(self):
+        since = time.time() - CL.WINDOW
+        for cid, title, last in self._conn.execute("SELECT id, title, last_seen FROM cluster WHERE last_seen >= ?", (since,)):
+            self._index.remember(cid, CL.words(title), last)
+
+    def backfill(self, days: int = 30, batch: int = 5000, retag=None) -> int:
+        """Bring articles stored before the pipeline into it, newest two days clustered and 30 days
+        counted. Safe to stop and rerun: it only takes articles with no cluster yet. Runs in the
+        collector's thread between cycles, a batch at a time, so the site stays responsive.
+        retag re-reads each article first, so old mistakes (Google News links counted as
+        Alphabet, fake tickers) don't reach the new counts."""
+        since = time.time() - days * 86400
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT id,url,title,summary,language,source,topics,tickers,people,published FROM wire "
+                "WHERE cluster='' AND published >= ? ORDER BY published LIMIT ?", (since, batch)).fetchall()
+            for r in rows:
+                it = dict(r)
+                if retag:
+                    fixed = retag({**it, "topics": _untag(it["topics"])})
+                    it.update(topics=_tags(fixed["topics"]), tickers=_tags(fixed["tickers"]), people=_tags(fixed["people"]))
+                    self._conn.execute("UPDATE wire SET topics=?, tickers=?, people=? WHERE id=?",
+                                       (it["topics"], it["tickers"], it["people"], it["id"]))
+                self._place(it)
+            self._conn.commit()
+        return len(rows)
+
+    def _place(self, it: Dict) -> None:
+        """Put one stored article into its cluster and the per-company counts. Lock held by caller."""
+        c, when = self._conn, it["published"]
+        topics, tickers, people = _untag(it["topics"]), _untag(it["tickers"]), _untag(it["people"])
+        title_words = CL.words(it["title"])
+        cid = self._index.find(title_words, when) or it["id"]
+        src = CL.outlet(it.get("source", ""))
+        row = c.execute("SELECT topics,tickers,people,first_seen,last_seen FROM cluster WHERE id=?", (cid,)).fetchone()
+        if row is None:
+            c.execute("INSERT OR IGNORE INTO cluster(id,title,url,source,first_seen,last_seen,topics,tickers,people) "
+                      "VALUES(?,?,?,?,?,?,?,?,?)",
+                      (cid, it["title"], it["url"], it.get("source", ""), when, when, it["topics"], it["tickers"], it["people"]))
+        else:
+            c.execute("UPDATE cluster SET stories=stories+1, first_seen=MIN(first_seen,?), last_seen=MAX(last_seen,?), "
+                      "topics=?, tickers=?, people=? WHERE id=?",
+                      (when, when, _tags(_untag(row[0]) + topics), _tags(_untag(row[1]) + tickers),
+                       _tags(_untag(row[2]) + people), cid))
+        if src:
+            c.execute("INSERT OR IGNORE INTO cluster_outlet(cluster,outlet,first_at) VALUES(?,?,?)", (cid, src, when))
+            c.execute("UPDATE cluster_outlet SET first_at=MIN(first_at,?) WHERE cluster=? AND outlet=?", (when, cid, src))
+            times = [t for (t,) in c.execute("SELECT first_at FROM cluster_outlet WHERE cluster=?", (cid,))]
+            c.execute("UPDATE cluster SET outlets=?, breaking_at=COALESCE(breaking_at,?) WHERE id=?",
+                      (max(len(times), 1), CL.breaking_time(times), cid))
+        c.execute("UPDATE wire SET cluster=? WHERE id=?", (cid, it["id"]))
+        self._index.remember(cid, title_words, when)
+        hour = int(when // 3600)
+        for t in tickers:
+            c.execute("INSERT INTO ticker_hour(ticker,hour,stories) VALUES(?,?,1) "
+                      "ON CONFLICT(ticker,hour) DO UPDATE SET stories=stories+1", (t, hour))
+            if src:
+                c.execute("INSERT OR IGNORE INTO ticker_outlet(ticker,hour,outlet) VALUES(?,?,?)", (t, hour, src))
 
     def add(self, items: List[Dict]) -> int:
         """Insert new items; ones already stored (same URL) are skipped. Returns how many were new."""
@@ -109,10 +192,25 @@ class WireStore:
                          _tags(it.get("topics", [])), _tags(it.get("tickers", [])), _tags(it.get("people", [])),
                          it.get("via", "")[:40], min(float(it.get("published") or now), now), now))
         with self._lock:
-            # rowcount counts the wire rows only (not the search-index rows the trigger adds).
-            cur = self._conn.executemany(f"INSERT OR IGNORE INTO wire ({','.join(COLUMNS)}) VALUES ({','.join('?' * len(COLUMNS))})", rows)
+            ids = [r[0] for r in rows]
+            known = set()
+            for i in range(0, len(ids), 500):
+                part = ids[i:i + 500]
+                known |= {x for (x,) in self._conn.execute(
+                    f"SELECT id FROM wire WHERE id IN ({','.join('?' * len(part))})", part)}
+            fresh = {}
+            for r in rows:
+                if r[0] not in known:
+                    fresh.setdefault(r[0], r)   # a feed can repeat an article within one batch
+            self._conn.executemany(f"INSERT OR IGNORE INTO wire ({','.join(COLUMNS)}) VALUES ({','.join('?' * len(COLUMNS))})",
+                                   list(fresh.values()))
+            # Every article joins the pipeline here, so all products read the same tags and clusters.
+            for r in sorted(fresh.values(), key=lambda x: x[12]):
+                self._place({"id": r[0], "url": r[1], "title": r[2], "source": r[4], "topics": r[8], "tickers": r[9],
+                             "people": r[10], "published": r[12]})
+            self._index.forget_before(now - CL.WINDOW)
             self._conn.commit()
-            return max(cur.rowcount, 0)
+            return len(fresh)
 
     def run(self, source: str, added: int = 0, error: str = ""):
         with self._lock:
@@ -227,10 +325,99 @@ class WireStore:
                 "languages": languages, "publishers": sources, "feeds": runs}
 
     def prune(self, keep_days: int = KEEP_DAYS) -> int:
+        cutoff = time.time() - keep_days * 86400
         with self._lock:
-            n = self._conn.execute("DELETE FROM wire WHERE published < ?", (time.time() - keep_days * 86400,)).rowcount
+            n = self._conn.execute("DELETE FROM wire WHERE published < ?", (cutoff,)).rowcount
+            self._conn.execute("DELETE FROM cluster_outlet WHERE cluster IN (SELECT id FROM cluster WHERE last_seen < ?)", (cutoff,))
+            self._conn.execute("DELETE FROM cluster WHERE last_seen < ?", (cutoff,))
+            self._conn.execute("DELETE FROM ticker_hour WHERE hour < ?", (int(cutoff // 3600),))
+            self._conn.execute("DELETE FROM ticker_outlet WHERE hour < ?", (int(cutoff // 3600),))
             self._conn.commit()
         return n
+
+    # ── What the products read ──────────────────────────────────────────────
+
+    def clusters(self, f: Optional[Dict] = None, limit: int = 50, by_importance: bool = False, now: Optional[float] = None) -> List[Dict]:
+        """Grouped stories, newest or most important first.
+        f: since, until, topics, tickers, people (one value each), channel (a Live tab)."""
+        f, now = f or {}, now or time.time()
+        sql, params = ["last_seen >= ?"], [f.get("since") or now - 86400]
+        if f.get("until"):
+            sql.append("first_seen <= ?")
+            params.append(f["until"])
+        channel = f.get("channel") or ""
+        for col, val in (("topics", f.get("topics") or (channel if channel not in ("", "everything", "people", "markets") else "")),
+                         ("tickers", f.get("tickers")), ("people", f.get("people"))):
+            if val:
+                sql.append(f"{col} LIKE ?")
+                params.append(f"%,{val},%")
+        if channel == "people":
+            sql.append("people != ','")
+        elif channel == "markets":
+            sql.append("(tickers != ',' OR topics LIKE '%,markets,%')")
+        # Importance needs every candidate scored; the newest few hundred are always enough.
+        fetch = max(limit, 400) if by_importance else limit
+        with self._lock:
+            rows = self._conn.execute(f"SELECT * FROM cluster WHERE {' AND '.join(sql)} ORDER BY last_seen DESC LIMIT ?",
+                                      (*params, fetch)).fetchall()
+        out = [self._cluster(r, now) for r in rows]
+        out = [c for c in out if safe_url(c["url"])]
+        if by_importance:
+            out.sort(key=lambda c: (c["importance"], c["last_seen"]), reverse=True)
+        return out[:limit]
+
+    @staticmethod
+    def _cluster(r, now: float) -> Dict:
+        d = dict(r)
+        for k in ("topics", "tickers", "people"):
+            d[k] = _untag(d[k])
+        hours = max((d["last_seen"] - d["first_seen"]) / 3600, 0.25)
+        breaking = bool(d["breaking_at"] and now - d["breaking_at"] < BREAKING_SHOWN)
+        d.update(breaking=breaking, channels=CL.channels_for(d["topics"], d["people"], d["tickers"]),
+                 importance=CL.importance(d["outlets"], d["stories"] / hours, len(d["people"]), len(d["tickers"]), breaking))
+        return d
+
+    def stories_since(self, ticker: str, since: float) -> int:
+        with self._lock:
+            row = self._conn.execute("SELECT COALESCE(SUM(stories),0) FROM ticker_hour WHERE ticker=? AND hour>=?",
+                                     (ticker, int(since // 3600))).fetchone()
+        return row[0]
+
+    def hourly(self, ticker: str, since: float) -> Dict[int, int]:
+        """{hour number: stories} for one company."""
+        with self._lock:
+            return dict(self._conn.execute("SELECT hour, stories FROM ticker_hour WHERE ticker=? AND hour>=? ORDER BY hour",
+                                           (ticker, int(since // 3600))).fetchall())
+
+    def activity(self, now: Optional[float] = None) -> Dict[str, Dict]:
+        """For every company in the news this week: stories this hour, in 24 h and over 7 days, and
+        how many separate outlets in 24 h. The leaderboard's raw material."""
+        now = now or time.time()
+        this_hour, day, week = int(now // 3600), int((now - 86400) // 3600), int((now - 7 * 86400) // 3600)
+        out: Dict[str, Dict] = {}
+        with self._lock:
+            for t, hour, n in self._conn.execute("SELECT ticker,hour,stories FROM ticker_hour WHERE hour>=?", (week,)):
+                a = out.setdefault(t, {"last_hour": 0, "day": 0, "week": 0, "outlets": 0})
+                a["week"] += n
+                if hour >= day:
+                    a["day"] += n
+                if hour >= this_hour - 1:
+                    a["last_hour"] += n
+            for t, n in self._conn.execute("SELECT ticker, COUNT(DISTINCT outlet) FROM ticker_outlet WHERE hour>=? GROUP BY ticker", (day,)):
+                if t in out:
+                    out[t]["outlets"] = n
+        return out
+
+    def spikes(self, ticker: str, since: float, top: int = 6) -> List[Dict]:
+        """The busiest hours for a company, each with its most widely carried headline."""
+        rows = sorted(self.hourly(ticker, since).items(), key=lambda x: -x[1])[:top]
+        out = []
+        for hour, stories in sorted(rows):
+            found = self.clusters({"tickers": ticker, "since": hour * 3600, "until": (hour + 1) * 3600}, limit=1, by_importance=True,
+                                  now=(hour + 1) * 3600)
+            if found:
+                out.append({"ts": hour * 3600, "stories": stories, "title": found[0]["title"], "url": found[0]["url"]})
+        return out
 
 
 _store: Optional[WireStore] = None
