@@ -39,7 +39,7 @@ def test_trial_allowance_then_402(db):
     with pytest.raises(HTTPException) as e:
         ent.check(u, "market", db, consume=1)
     assert e.value.status_code == 402
-    assert e.value.detail["upgrade_url"] == ent.UPGRADE_URL
+    assert e.value.detail["upgrade_url"] == "/pricing/"
     # reading (no consume) is still allowed while the trial window is open
     ent.check(u, "market", db)
     # a different feature has its own allowance
