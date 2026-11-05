@@ -17,6 +17,11 @@ def test_tremor_has_one_address():
         assert not re.search(r'/market\?t(icker)?=', text), page
 
 
+def test_people_have_real_addresses():
+    for name in ("watch/index.html", "watch/live/index.html"):
+        assert "#person/" not in (WEBSITE / name).read_text().replace("Old #person/ links", "")
+
+
 def test_forgotten_password_goes_to_the_reset_page():
     login = (WEBSITE / "dashboard/login.html").read_text()
     assert 'href="forgot.html"' in login and "mailto:" not in login

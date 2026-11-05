@@ -1,3 +1,5 @@
+Sitemap: https://lyraauth.com/sitemap-people.xml
+
 # Public marketing pages may be indexed; app data may not, except Lyra Watch's public data.
 User-agent: *
 Allow: /api/watch/

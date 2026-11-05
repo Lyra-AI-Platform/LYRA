@@ -155,6 +155,7 @@
   [hidden] { display: none !important; }
 </style>
   <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/watchcard.js" defer></script>
 </head>
 <body>
 <nav class="nav">
@@ -267,7 +268,7 @@
     $("sKicker").textContent = `${kindLabel(e)}${e.feed} · ${e.source || "News"} · ${when(e)}`;
     $("sHeadline").replaceChildren(link(e.url, e.title));
     $("sCast").replaceChildren(...e.people.map((p) => el("div", { class: "who" },
-      p.id ? el("a", { class: "n", href: `/watch/#person/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
+      p.id ? el("a", { class: "n", href: `/watch/${p.id}`, text: p.name }) : el("div", { class: "n", text: p.name }),
       el("div", { class: "j", text: p.job || "" }), meter(p.popularity))));
     $("sTags").replaceChildren(
       ...e.moves.map((m) => el("span", { class: "tag mv", text: m })),
@@ -462,8 +463,16 @@
     if (!r.ok) return;
     const d = await r.json();
     delayed = !d.full;
-    const rows = [...d.spikes.map(spikeRow), ...d.stories.map(storyRow)];
+    const stories = d.stories.map(storyRow), rows = [...d.spikes.map(spikeRow), ...stories];
     $("stories").replaceChildren(...(rows.length ? rows : [el("li", { class: "empty", text: "No stories here in the last 24 hours." })]));
+    const names = [...new Set(d.stories.flatMap((c) => c.people.slice(0, 1)))];
+    if (names.length && window.lyraWatchCards) {
+      const cards = await window.lyraWatchCards(names), shown = new Set();
+      d.stories.forEach((c, i) => {
+        const n = c.people[0];
+        if (n && cards[n] && !shown.has(n)) { shown.add(n); stories[i].append(cards[n]); }
+      });
+    }
     if (delayed) $("conn").textContent = "Showing the feed an hour behind";
   }
 

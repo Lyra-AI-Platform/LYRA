@@ -106,6 +106,7 @@
     .golive { margin-left: 10px; font: 600 12px Inter, system-ui, sans-serif; color: var(--signal); text-decoration: none; }
     .outlets { font-weight: 600; color: var(--ink); text-decoration: none; }
   </style>
+  <script src="/js/watchcard.js" defer></script>
 </head>
 <body data-appnav="drawer">
 
@@ -239,6 +240,22 @@
         (r.summary ? `<p>${esc(r.summary.length > 240 ? r.summary.slice(0, 237) + '…' : r.summary)}</p>` : '') +
         (tags ? `<div class="tags">${tags}</div>` : '');
       box.appendChild(a);
+      a.dataset.people = JSON.stringify(r.people.slice(0, 2));
+    }
+    watchCards();
+  }
+
+  // A tracked person named in a story gets their Watch card under it.
+  async function watchCards() {
+    const rows = [...document.querySelectorAll('article.r[data-people]:not([data-carded])')];
+    const names = [...new Set(rows.flatMap((a) => JSON.parse(a.dataset.people)))];
+    if (!names.length || !window.lyraWatchCards) return;
+    const cards = await window.lyraWatchCards(names);
+    const shown = new Set();
+    for (const a of rows) {
+      a.dataset.carded = '1';
+      const name = JSON.parse(a.dataset.people).find((n) => cards[n] && !shown.has(n));
+      if (name) { shown.add(name); a.append(cards[name].cloneNode(true)); }
     }
   }
 

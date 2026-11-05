@@ -155,8 +155,8 @@ async def person(pid: str, response: Response, request: Request, viewer: Viewer 
 def _links(rec):
     base = "https://lyraauth.com"
     return {"self": f"{base}/api/watch/people/{rec['id']}",
-            "page": f"{base}/watch/#person/{rec['id']}",
-            "profile": f"{base}/watch/#{rec['slug']}" if rec.get("slug") else None,
+            "page": f"{base}/watch/{rec['id']}",
+            "profile": f"{base}/watch/{rec['slug']}" if rec.get("slug") else None,
             "wikipedia": (rec.get("wiki") or {}).get("url") or None}
 
 

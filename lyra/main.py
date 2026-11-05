@@ -421,6 +421,24 @@ def csp(path: str = "") -> str:
             "upgrade-insecure-requests")
 
 if SERVE_WEBSITE:
+    @app.get("/sitemap-people.xml", include_in_schema=False)
+    async def people_sitemap():
+        from lyra.watch import pages, service
+        ids = [r.get("id") for r in service.load_people().get("people", []) if service.is_public_figure(r)]
+        return Response(pages.sitemap(ids), media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})
+
+    @app.get("/watch/{pid}", response_class=HTMLResponse, include_in_schema=False)
+    async def watch_profile(pid: str):
+        """A person's own address. Unknown names get the site's 404, not an empty profile."""
+        from starlette.responses import RedirectResponse
+        from lyra.watch import pages, service
+        if pid in pages.RESERVED:
+            return RedirectResponse(f"/watch/{pid}/", status_code=308)
+        rec = service.person_record(pid[:120])
+        if not rec or rec["id"] != pid:
+            return FileResponse(str(WEBSITE_DIR / "404.html"), status_code=404)
+        return HTMLResponse(pages.render((WEBSITE_DIR / "watch" / "index.html").read_text(), rec))
+
     @app.get("/widget.js")
     async def serve_widget():
         return FileResponse(str(ROOT / "lyra" / "authenticator" / "frontend" / "lyraauth.js"),

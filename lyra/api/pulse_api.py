@@ -92,6 +92,25 @@ def _sector_text(sector: Dict, vix: Optional[Dict]) -> str:
     return text + (f" The VIX is {vix['level']:.1f}." if vix and vix.get("available") else "")
 
 
+@router.get("/people")
+def people_cards(response: Response, names: str = ""):
+    """Watch cards for the tracked people named in a set of stories: who they are, recent trades."""
+    from lyra.watch import pages, service
+    response.headers["Cache-Control"] = "public, max-age=300"
+    out = []
+    for name in dict.fromkeys(n.strip() for n in names.split("|") if n.strip()):
+        rec = service.person_record(pid_for(name)) if len(out) < 25 else None
+        if rec:
+            profile = service.load_profile(rec["slug"]) if rec.get("slug") else None
+            out.append({"name": rec["name"], "job": rec.get("job", ""), "page": f"/watch/{rec['id']}", "trades": pages.trades_of(profile)})
+    return {"people": out}
+
+
+def pid_for(name: str) -> str:
+    from lyra.watch.people import person_id
+    return person_id(name)
+
+
 @router.get("/sectors")
 def sectors(response: Response):
     response.headers["Cache-Control"] = "public, max-age=120"

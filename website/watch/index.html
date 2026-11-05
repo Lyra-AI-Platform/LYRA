@@ -420,7 +420,7 @@
     try {
       const data = await api("impact?limit=25");
       $("moverRows").replaceChildren(...data.people.map((r) => el("tr", {},
-        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }), el("div", { class: "meta", text: r.job || "" })),
+        el("td", {}, el("a", { class: "who", href: `/watch/${r.id}`, text: r.name }), el("div", { class: "meta", text: r.job || "" })),
         el("td", {}, el("div", { class: "chips", style: "margin:0" }, ...r.by_ticker.slice(0, 3).map((b) => companyChip(b, b.ticker)))),
         el("td", { class: "num", text: String(r.days) }),
         el("td", { class: "num", text: `${r.big_moves} (${Math.round(r.big_share * 100)}%)` }),
@@ -469,7 +469,7 @@
     try {
       const data = await api(`people?limit=150&q=${encodeURIComponent(q)}${peopleWatched ? `&watched=${peopleWatched}` : ""}`);
       $("peopleRows").replaceChildren(...data.people.map((r) => el("tr", {},
-        el("td", {}, el("a", { class: "who", href: `#person/${r.id}`, text: r.name }),
+        el("td", {}, el("a", { class: "who", href: `/watch/${r.id}`, text: r.name }),
           r.slug ? el("div", { class: "meta" }, el("a", { href: `#${r.slug}`, text: "Trades & moves" })) : null),
         el("td", {}, el("span", { text: r.job || "—" }),
           r.job_source && r.job_source !== "watchlist" ? el("div", { class: "meta", text: `from ${r.job_source}` }) : null),
@@ -591,6 +591,9 @@
   }
 
   function route() {
+    // /watch/nancy-pelosi: the server named the person. Old #person/ links still work below.
+    const named = document.querySelector('meta[name="lyra-person"]');
+    if (named) return showPerson(named.content);
     const slug = location.hash.slice(1);
     if (slug.startsWith("person/")) return showPerson(slug.slice(7));
     $("person").hidden = true;
