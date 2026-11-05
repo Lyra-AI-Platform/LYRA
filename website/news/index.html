@@ -92,6 +92,19 @@
       .searchbar button { padding: 0 16px; }
     }
     @media (prefers-reduced-motion: reduce) { article.r { animation: none; } }
+    /* Tremor inside Newswire */
+    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: #a8a29e; vertical-align: 1px; }
+    .dot.calm { background: #059669; } .dot.rising { background: #d97706; } .dot.high { background: #e11d48; }
+    .tcard { margin: 14px 0 6px; padding: 16px 18px; border-radius: 14px; background: var(--ink); color: var(--paper); }
+    .tcard h3 { margin: 0 0 4px; font-size: 16px; color: var(--paper); }
+    .tcard p { margin: 4px 0 10px; font-size: 14px; line-height: 1.5; color: rgba(250,249,247,.82); }
+    .tcard .facts { display: flex; flex-wrap: wrap; gap: 14px; font: 12px Inter, system-ui, sans-serif; color: rgba(250,249,247,.72); }
+    .tcard .facts b { color: var(--paper); }
+    .tcard a { color: var(--paper); font-weight: 600; }
+    .minis { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+    .mini { display: inline-flex; align-items: center; font: 12px var(--mono); padding: 6px 10px; border-radius: 9px; border: 1px solid var(--rule-hi); background: var(--sheet); color: var(--ink); text-decoration: none; }
+    .golive { margin-left: 10px; font: 600 12px Inter, system-ui, sans-serif; color: var(--signal); text-decoration: none; }
+    .outlets { font-weight: 600; color: var(--ink); text-decoration: none; }
   </style>
 </head>
 <body data-appnav="drawer">
@@ -160,6 +173,8 @@
     <button class="filters-toggle" id="ftoggle" type="button" aria-controls="filters" aria-expanded="false">Filters</button>
     <div class="resulthead"><h2 id="rtitle">Latest</h2><span id="rcount"></span></div>
     <div class="chips" id="active"></div>
+    <div id="tcard"></div>
+    <div class="minis" id="minis"></div>
     <div id="results"><p class="empty">Loading the wire…</p></div>
     <div id="after"></div>
   </main>
@@ -218,6 +233,7 @@
         ...r.people.map((p) => `<button class="tag pp" data-f="people" data-v="${esc(p)}">${esc(p)}</button>`),
       ].join('');
       a.innerHTML = `<div class="meta"><span class="kind ${r.kind}">${r.kind === 'research' ? 'Research' : 'News'}</span>` +
+        (r.outlets > 1 ? `<a class="outlets" href="/news/?q=${encodeURIComponent(r.title.slice(0, 80))}">${fmt(r.outlets)} outlets reporting</a>` : '') +
         `<span>${flag(r.country)} ${esc(r.source)}</span>${r.language && r.language !== 'en' ? `<span>${esc(lang(r.language))}</span>` : ''}<span>${ago(r.published)}</span></div>` +
         (webUrl(r.url) ? `<h3><a href="${esc(r.url)}" target="_blank" rel="noopener nofollow">${esc(r.title)}</a></h3>` : `<h3>${esc(r.title)}</h3>`) +
         (r.summary ? `<p>${esc(r.summary.length > 240 ? r.summary.slice(0, 237) + '…' : r.summary)}</p>` : '') +
@@ -256,6 +272,47 @@
     }
   }
 
+  // Tremor beside the news: a card when a search names a company or sector, and a gauge per company.
+  const mini = (c) => `<a class="mini" href="${esc(c.reading_url)}"><span class="dot ${esc(c.level)}"></span>${esc(c.ticker)}` +
+    `${c.stress == null ? '' : ' · Tremor ' + c.stress} · ${fmt(c.stories_week)} stories this week</a>`;
+
+  async function tremorCard() {
+    const box = $('tcard');
+    box.replaceChildren();
+    const q = S.q || S.tickers;
+    if (!q) return;
+    const c = await fetch('/api/pulse/card?q=' + encodeURIComponent(q)).then((r) => r.json()).catch(() => null);
+    if (!c || !c.match || (S.q || S.tickers) !== q) return;
+    const facts = [c.stress != null ? `Stress <b>${c.stress}</b> (${esc(c.level)})` : '',
+      c.insiders ? `Insiders <b>${esc(c.insiders)}</b>` : '', c.politicians ? `Politicians <b>${esc(c.politicians)}</b>` : '',
+      c.vix != null ? `VIX <b>${Number(c.vix).toFixed(1)}</b>` : ''].filter(Boolean).map((f) => `<span>${f}</span>`).join('');
+    const more = c.match === 'company' ? `<a href="${esc(c.reading_url)}">Full Tremor reading →</a>`
+      : `<a href="/tremor/">Open the Tremor Index →</a>`;
+    box.innerHTML = `<div class="tcard"><h3><span class="dot ${esc(c.level)}"></span>${esc(c.name)}</h3><p>${esc(c.summary)}</p>` +
+      `<div class="facts">${facts}</div><p style="margin:10px 0 0">${more}</p></div>`;
+  }
+
+  async function companyMinis(rows) {
+    const seen = [...new Set(rows.flatMap((r) => r.tickers))].slice(0, 6);
+    if (!seen.length) { $('minis').replaceChildren(); return; }
+    const d = await fetch('/api/pulse/companies?tickers=' + encodeURIComponent(seen.join(','))).then((r) => r.json()).catch(() => null);
+    $('minis').innerHTML = d ? d.companies.map(mini).join('') : '';
+  }
+
+  async function sectorPills() {
+    const d = await fetch('/api/pulse/sectors').then((r) => r.json()).catch(() => null);
+    if (!d) return;
+    const by = Object.fromEntries(d.sectors.map((s) => [s.topic, s]));
+    document.querySelectorAll('.quick button').forEach((b) => {
+      const topic = JSON.parse(b.dataset.set).topics, s = by[topic];
+      if (!s || b.querySelector('.dot')) return;
+      const dot = document.createElement('span');
+      dot.className = 'dot ' + s.level;
+      dot.title = s.stress == null ? 'No Tremor reading yet' : `Tremor stress ${s.level}`;
+      b.prepend(dot);
+    });
+  }
+
   async function run(more) {
     if (!more) S.offset = 0;
     syncUrl(); chips();
@@ -269,6 +326,7 @@
     if (!res) { $('results').innerHTML = '<p class="empty">The wire is busy. Try again in a moment.</p>'; return; }
     full = res.full;
     render(res.results, !!more);
+    if (!more) { tremorCard(); companyMinis(res.results); }
     $('rcount').textContent = (res.total_capped ? 'over ' : '') + fmt(res.total) + ' match' + (res.total === 1 ? '' : 'es');
     const after = $('after');
     after.replaceChildren();
@@ -303,6 +361,7 @@
   $('results').addEventListener('click', (e) => { const t = e.target.closest('button.tag'); if (t) { S[t.dataset.f] = t.dataset.v; run(); window.scrollTo({ top: 0, behavior: 'smooth' }); } });
   $('clear').onclick = () => { Object.assign(S, { q: '', kind: '', topics: '', country: '', language: '', tickers: '', people: '', when: '2592000' }); $('q').value = ''; $('ticker').value = ''; run(); };
   $('ftoggle').onclick = () => { const f = $('filters'); const on = !f.classList.contains('open'); f.classList.toggle('open', on); $('ftoggle').setAttribute('aria-expanded', String(on)); };
+  sectorPills();
   run();
 })();
 </script>

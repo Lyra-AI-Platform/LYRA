@@ -104,7 +104,12 @@ def test_trial_users_get_in(site, path):
     assert _client(app, Session).get(path).status_code == 200
 
 
-@pytest.mark.parametrize("path", MEMBERS)
+def test_tremor_stays_open_after_the_trial_with_its_daily_reading(site):
+    app, Session = site
+    assert _client(app, Session, days_old=400).get("/market").status_code == 200
+
+
+@pytest.mark.parametrize("path", ["/dashboard/chat.html"])
 def test_ended_trial_goes_to_billing(site, path):
     app, Session = site
     r = _client(app, Session, days_old=400).get(path)

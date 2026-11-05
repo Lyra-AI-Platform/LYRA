@@ -10,6 +10,7 @@ from lyra.market.config import (BOOM_THRESHOLD, BUST_THRESHOLD, EXPERIMENTAL_UNT
                                 INDEX_NAME, PERSONAL_SIZING)
 from lyra.market.market_data import get_history, get_vix, history_status, price_stats
 from lyra.market.store import get_store
+from lyra.market.pulse import stress_of
 from lyra.market.tremor_index import build_features, decide, explain, label
 
 logger = logging.getLogger(__name__)
@@ -137,6 +138,9 @@ async def analyze(ticker: str, portfolio_value: Optional[float] = None, shares_h
         "peers": peer_info,
         "disclaimer": DISCLAIMER,
     }
+    # Every complete reading adds a point to the company's stress line for Newswire, Live and Watch.
+    if not failed_core:
+        get_store().log_stress(ticker, stress_of(p_boom, p_bust), reading["score"], x, reading["created_at"])
     # One graded reading per ticker per day, so a popular ticker can't dominate the track record.
     if save and price and not failed_core and not get_store().prediction_saved_since(
             ticker, _day_start(reading["created_at"])):

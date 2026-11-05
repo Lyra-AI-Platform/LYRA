@@ -67,7 +67,7 @@ def _hash(key: str) -> str:
 def has_watch(user: Optional[User], db: Session) -> bool:
     if not user:
         return False
-    if entitlements.is_paid(user):
+    if entitlements.is_paid(user) or user.tier == "bundle":
         return True
     sub = db.query(WatchSubscription).filter(WatchSubscription.user_id == user.id).first()
     return bool(sub and sub.status in ("active", "trialing"))

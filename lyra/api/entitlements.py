@@ -24,6 +24,9 @@ from lyra.db.models import TrialUsage, User
 from lyra.api.users_api import get_current_user
 
 PAID_TIERS = ("starter", "pro", "business", "enterprise")
+# Markets Pro and the bundle unlock Tremor only; they aren't LyraAuth or chat plans.
+MARKETS_TIERS = PAID_TIERS + ("markets", "bundle")
+FREE_READINGS_PER_DAY = int(os.environ.get("LYRA_FREE_TREMOR_PER_DAY", 1))
 TRIAL_DAYS = int(os.environ.get("LYRA_TRIAL_DAYS", 14))
 # Lifetime allowances during the trial. After any one is used up, that feature needs a plan.
 TRIAL_LIMITS: Dict[str, int] = {
@@ -31,7 +34,9 @@ TRIAL_LIMITS: Dict[str, int] = {
     "chat": int(os.environ.get("LYRA_TRIAL_CHAT_MESSAGES", 20)),      # Lyra chat messages
 }
 UPGRADE_URL = "/dashboard/billing.html"
-FEATURE_NAMES = {"market": "Tremor Index readings", "chat": "Lyra chat messages", "watch_live": "Lyra Watch Live"}
+FEATURE_NAMES = {"market": "Tremor Index readings", "chat": "Lyra chat messages", "watch_live": "Lyra Watch Live",
+                 "timeline": "The \"Why is it moving?\" timeline", "my_live": "My Live", "saved_searches": "Saved searches",
+                 "stress_alerts": "Watchlist stress alerts"}
 
 
 def is_admin(user: Optional[User]) -> bool:
@@ -43,6 +48,11 @@ def is_admin(user: Optional[User]) -> bool:
 def is_paid(user: User) -> bool:
     # The owner gets the full version of every product without a subscription.
     return (user.tier or "free") in PAID_TIERS or is_admin(user)
+
+
+def has_markets(user: Optional[User]) -> bool:
+    """Unlimited Tremor, alerts, the timeline, saved searches and My Live."""
+    return bool(user) and ((user.tier or "free") in MARKETS_TIERS or is_admin(user))
 
 
 def trial_days_left(user: User) -> int:
@@ -90,9 +100,11 @@ def _payment_required(feature: str, reason: str) -> HTTPException:
 
 
 def check(user: User, feature: str, db: Session, consume: int = 0) -> None:
-    """Raise 402 unless the user may use `feature`. With consume>0, also spends that much trial allowance."""
-    if is_paid(user):
+    """Raise 402 unless the user may use `feature`. With consume>0, also spends that much allowance."""
+    if is_paid(user) or (feature == "market" and has_markets(user)):
         return
+    if feature == "market":
+        return _check_tremor(user, db, consume)
     if trial_days_left(user) == 0:
         raise _payment_required(feature, "trial_expired")
     row = _usage(user, feature, db)
@@ -103,6 +115,40 @@ def check(user: User, feature: str, db: Session, consume: int = 0) -> None:
         row.count += consume
         row.last_used = datetime.now(timezone.utc)
         db.commit()
+
+
+def _check_tremor(user: User, db: Session, consume: int) -> None:
+    """Free accounts: the trial's readings while they last, then a reading a day for good."""
+    if not consume:
+        return
+    today = datetime.now(timezone.utc).date()
+    trial = _usage(user, "market", db)
+    if trial_days_left(user) and trial.count + consume <= TRIAL_LIMITS["market"]:
+        trial.count += consume
+        trial.last_used = datetime.now(timezone.utc)
+        db.commit()
+        return
+    daily = _usage(user, "market_day", db)
+    if not daily.last_used or daily.last_used.date() != today:
+        daily.count = 0
+    if daily.count + consume > FREE_READINGS_PER_DAY:
+        raise HTTPException(402, {"error": "payment_required", "feature": "market", "reason": "daily_allowance_used",
+                                  "message": "The Free plan includes one Tremor reading a day. "
+                                             "Markets Pro is unlimited.", "upgrade_url": "/pricing/"})
+    daily.count += consume
+    daily.last_used = datetime.now(timezone.utc)
+    db.commit()
+
+
+def require_markets(feature: str):
+    """FastAPI dependency for Markets Pro features: checked on the server, whatever a page shows."""
+    def dep(user: User = Depends(get_current_user)) -> User:
+        if not has_markets(user):
+            raise HTTPException(402, {"error": "payment_required", "feature": feature, "reason": "markets_pro",
+                                      "message": f"{FEATURE_NAMES.get(feature, feature)} is part of Markets Pro.",
+                                      "upgrade_url": "/pricing/"})
+        return user
+    return dep
 
 
 def require(feature: str, consume: int = 0):

@@ -56,6 +56,12 @@
   .full { grid-column: 1 / -1; }
   .empty { color: var(--muted); padding: 20px 0; text-align: center; }
   a { color: var(--accent); }
+  .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .strip a.story { display: block; padding: 10px 12px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); text-decoration: none; font-size: 14px; }
+  .strip .meta { display: block; margin-top: 4px; color: var(--muted); font-size: 12px; }
+  .cause-news { margin: 4px 0 0; font-size: 12.5px; }
+  svg.timeline { width: 100%; height: auto; display: block; }
+  svg.timeline text { fill: var(--muted); font-size: 11px; }
   .warn { background: rgba(234,179,8,.10); border: 1px solid rgba(234,179,8,.35); border-radius: 8px;
           padding: 10px 12px; font-size: 13px; margin: 0 20px; }
   .partial { background: rgba(239,68,68,.10); border: 1px solid rgba(239,68,68,.35); border-radius: 8px;
@@ -124,6 +130,17 @@
   <section class="full" id="readerbox" hidden>
     <h2>Headline <button class="ghost" id="closereader" style="float:right;padding:2px 10px">Close</button></h2>
     <div class="reader" id="reader"></div>
+  </section>
+
+  <section class="full">
+    <h2>News driving this <a href="/news/" id="newslink" style="float:right;font-size:13px;font-weight:400">All coverage →</a></h2>
+    <div id="drivers"><p class="empty">The latest stories on the company appear after an analysis.</p></div>
+  </section>
+
+  <section class="full">
+    <h2>Why is it moving?</h2>
+    <div id="timeline"><p class="empty">News volume and the Tremor score, with the headlines behind each spike, appear after an analysis.</p></div>
+    <p class="muted">General information, not financial advice.</p>
   </section>
 
   <section class="full">
@@ -264,6 +281,61 @@ async function loadPeople(ticker, company) {
   } catch { $("people").innerHTML = `<p class="empty">Lyra Watch is unavailable right now.</p>`; }
 }
 
+const webLink = (u) => /^https?:\/\//i.test(u || "") ? u : "";
+
+// The latest stories, and which of them stand behind each signal in the reading.
+async function loadDrivers(ticker) {
+  const box = $("drivers");
+  $("newslink").href = "/news/?tickers=" + encodeURIComponent(ticker);
+  try {
+    const d = await fetch("/api/pulse/drivers/" + encodeURIComponent(ticker)).then(r => r.json());
+    const story = (c) => `<a class="story" href="${esc(webLink(c.url))}" target="_blank" rel="noopener nofollow">${esc(c.title)}
+      <span class="meta">${c.outlets > 1 ? c.outlets + " outlets reporting · " : ""}${esc(c.source)}</span></a>`;
+    box.innerHTML = d.stories.length ? `<div class="strip">${d.stories.filter(c => webLink(c.url)).map(story).join("")}</div>`
+      : `<p class="empty">No stories on ${esc(ticker)} this week.</p>`;
+    document.querySelectorAll("ul.causes li").forEach((li) => {
+      const s = d.signals.find(x => li.textContent.includes(x.reason));
+      if (!s) return;
+      const p = document.createElement("p");
+      p.className = "cause-news";
+      p.innerHTML = "Behind this: " + s.articles.filter(a => webLink(a.url)).map(a =>
+        `<a href="${esc(a.url)}" target="_blank" rel="noopener nofollow">${esc(a.title)}</a>`).join(" · ");
+      li.append(p);
+    });
+  } catch { box.innerHTML = `<p class="empty">The newswire is unavailable right now.</p>`; }
+}
+
+// News volume as bars, Tremor stress as a line, headlines pinned at the spikes.
+function drawTimeline(d) {
+  const W = 900, H = 260, L = 34, R = 34, T = 16, B = 26, days = d.days, n = days.length;
+  const x = (i) => L + (W - L - R) * (i + 0.5) / n, bw = Math.max(2, (W - L - R) / n - 2);
+  const maxN = Math.max(1, ...days.map(p => p.stories)), y = (v, max) => H - B - (H - B - T) * v / max;
+  const bars = days.map((p, i) => `<rect x="${x(i) - bw / 2}" y="${y(p.stories, maxN)}" width="${bw}" height="${H - B - y(p.stories, maxN)}" fill="#8b5cf6" opacity=".45"><title>${new Date(p.ts * 1000).toLocaleDateString()}: ${p.stories} stories</title></rect>`).join("");
+  const pts = days.map((p, i) => p.stress == null ? null : `${x(i)},${y(p.stress, 100)}`).filter(Boolean).join(" ");
+  const index = (ts) => days.findIndex(p => ts >= p.ts && ts < p.ts + 86400);
+  const pins = d.pins.map((p, k) => { const i = index(p.ts); return i < 0 ? "" : `<a href="${esc(webLink(p.url))}" target="_blank" rel="noopener nofollow"><circle cx="${x(i)}" cy="${T + 4}" r="5" fill="#ef4444"><title>${esc(p.title)}</title></circle></a>`; }).join("");
+  $("timeline").innerHTML = `<svg class="timeline" viewBox="0 0 ${W} ${H}" role="img" aria-label="News volume and Tremor score by day">
+    ${bars}<polyline points="${pts}" fill="none" stroke="#eab308" stroke-width="2"/>${pins}
+    <text x="${L}" y="${H - 8}">${new Date(days[0].ts * 1000).toLocaleDateString()}</text>
+    <text x="${W - R}" y="${H - 8}" text-anchor="end">${new Date(days[n - 1].ts * 1000).toLocaleDateString()}</text>
+    <text x="4" y="${T + 8}">${maxN}</text><text x="${W - 4}" y="${T + 8}" text-anchor="end">100</text></svg>
+    <p class="muted">Bars: stories a day. Yellow line: Tremor stress. Red dots: the busiest news hours.</p>
+    <ul class="causes">${d.pins.filter(p => webLink(p.url)).map(p => `<li><a href="${esc(p.url)}" target="_blank" rel="noopener nofollow">${esc(p.title)}</a>
+      <span class="muted">${new Date(p.ts * 1000).toLocaleDateString()} · ${p.stories} stories that hour</span></li>`).join("")}</ul>`;
+}
+
+async function loadTimeline(ticker) {
+  const box = $("timeline");
+  try {
+    const r = await fetch("/api/pulse/timeline/" + encodeURIComponent(ticker));
+    if (r.status === 402 || r.status === 401) {
+      box.innerHTML = `<p class="empty">The timeline is part of Markets Pro. <a href="/pricing/">See plans</a></p>`;
+      return;
+    }
+    drawTimeline(await r.json());
+  } catch { box.innerHTML = `<p class="empty">The timeline is unavailable right now.</p>`; }
+}
+
 // Lyra Newswire on this company: politicians and policy news worldwide, other coverage, new research.
 async function loadWire(ticker) {
   const box = $("wire");
@@ -362,6 +434,8 @@ $("lookup").onsubmit = async (e) => {
     renderMoney(r.smart_money, r.sources);
     loadPeople(currentTicker, r.company);
     loadWire(currentTicker);
+    loadDrivers(currentTicker);
+    loadTimeline(currentTicker);
     loadArticles({ ticker: currentTicker });
     loadLearning();
   } catch (err) {

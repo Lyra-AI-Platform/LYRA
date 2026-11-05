@@ -58,6 +58,9 @@ def safe_url(url: str) -> str:
     return url if url.lower().startswith(("http://", "https://")) else ""
 
 
+# What the pages show about a story's cluster, next to each search result.
+CLUSTER_OUTLETS = "(SELECT outlets FROM cluster WHERE cluster.id = wire.cluster) AS outlets"
+
 COLUMNS = ("id", "url", "title", "summary", "source", "country", "language", "kind", "topics", "tickers",
            "people", "via", "published", "fetched")
 PUBLIC = ("id", "url", "title", "summary", "source", "country", "language", "kind", "topics", "tickers", "people",
@@ -254,7 +257,7 @@ class WireStore:
     def search(self, f: Dict, limit: int = 50, offset: int = 0) -> Dict:
         where, params = self._where(f)
         with self._lock:
-            rows = self._conn.execute(f"SELECT {','.join(PUBLIC)} FROM wire WHERE {where} ORDER BY published DESC LIMIT ? OFFSET ?",
+            rows = self._conn.execute(f"SELECT {','.join(PUBLIC)}, cluster, {CLUSTER_OUTLETS} FROM wire WHERE {where} ORDER BY published DESC LIMIT ? OFFSET ?",
                                       (*params, limit, offset)).fetchall()
             total = self._conn.execute(f"SELECT COUNT(*) FROM (SELECT 1 FROM wire WHERE {where} LIMIT 100000)", params).fetchone()[0]
         out = []

@@ -46,6 +46,8 @@
   .tip b { color: #faf9f7; }
   .lean-up { color: #15803d; font-weight: 600; } .lean-down { color: #b45309; font-weight: 600; } .lean-flat { color: var(--muted); font-weight: 600; }
   details summary { cursor: pointer; color: var(--muted); font-size: 14px; margin-top: 8px; }
+  .tsearch { display: flex; gap: 8px; margin: 18px 0 6px; }
+  .tsearch input { flex: 1; min-width: 0; padding: 11px 14px; border-radius: 9px; border: 1px solid var(--border); font: inherit; background: var(--surface, #fff); color: inherit; }
 </style>
   <script src="/js/session.js?v=20261026a"></script>
   <script src="/js/preview.js?v=20261026b" data-product="tremor" defer></script>
@@ -68,6 +70,11 @@
   <div class="callout"><p><b>General information, not financial advice.</b> The Tremor Index is not a recommendation to
     buy or sell, does not take your circumstances into account, and has not been shown to forecast prices. See the
     <a href="/pages/terms.html#market-data" style="text-decoration:underline">Terms</a>.</p></div>
+  <form class="tsearch" id="tsearch" role="search">
+    <input id="tq" type="search" placeholder="Search a company by name or ticker: Nvidia, BASF, TSLA" aria-label="Search a company" required />
+    <button type="submit" class="btn btn-primary">Open reading</button>
+  </form>
+  <p class="muted" id="tmiss" hidden></p>
   <div class="toc">
     <a href="#sample">Example reading</a><a href="#backtest">Backtest</a><a href="#track-record">Live track record</a>
     <a href="#methodology">Methodology</a><a href="#about">About and contact</a><a href="#corrections">Corrections</a>
@@ -76,6 +83,7 @@
   <h2 id="sample">Example reading</h2>
   <p>A live reading for one stock, refreshed every few hours, so you can see what the tool shows before you sign up.</p>
   <div class="card" id="sample-card"><p class="muted">Loading…</p></div>
+  <div id="sample-news"></div>
 
   <h2 id="backtest">Backtest</h2>
   <div id="backtest-body"><p class="muted">Loading…</p></div>
@@ -320,6 +328,36 @@ async function loadTrack() {
 }
 
 loadSample(); loadBacktest(); loadTrack();
+
+// Search by name or ticker, then show the full reading.
+(function () {
+  const miss = document.getElementById('tmiss');
+  document.getElementById('tsearch').onsubmit = async (e) => {
+    e.preventDefault();
+    const q = document.getElementById('tq').value.trim();
+    const c = await fetch('/api/pulse/card?q=' + encodeURIComponent(q)).then((r) => r.json()).catch(() => ({}));
+    const ticker = c.match === 'company' ? c.ticker : /^[A-Za-z.\-]{1,6}$/.test(q) ? q.toUpperCase() : '';
+    if (ticker) { location.href = '/tremor/reading?ticker=' + encodeURIComponent(ticker); return; }
+    if (c.match === 'sector') { location.href = '/news/?topics=' + encodeURIComponent(c.topic); return; }
+    miss.hidden = false;
+    miss.textContent = "We couldn't match that to a company. Try its ticker.";
+  };
+  // News driving the example reading.
+  fetch('/api/market/public/sample').then((r) => r.json()).then((s) => fetch('/api/pulse/drivers/' + encodeURIComponent(s.ticker)))
+    .then((r) => r.json()).then((d) => {
+      if (!d.stories || !d.stories.length) return;
+      const box = document.getElementById('sample-news'), h = document.createElement('h3'), ul = document.createElement('ul');
+      h.textContent = 'News driving this';
+      for (const c of d.stories.slice(0, 5)) {
+        if (!/^https?:\/\//i.test(c.url)) continue;
+        const li = document.createElement('li'), a = document.createElement('a');
+        a.href = c.url; a.target = '_blank'; a.rel = 'noopener nofollow'; a.textContent = c.title;
+        li.append(a, c.outlets > 1 ? ` · ${c.outlets} outlets reporting` : '');
+        ul.append(li);
+      }
+      box.append(h, ul);
+    }).catch(() => {});
+})();
 </script>
 </body>
 </html>
