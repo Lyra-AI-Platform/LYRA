@@ -56,7 +56,7 @@
     headline, one line and your link in front of every free visitor on Lyra Watch and its live feed. Book it yourself, pay
     by card, and it goes live as soon as it's reviewed.</p>
   <div class="stats" id="stats">
-    <div><b id="sPrice">$49</b><span class="muted">per week</span></div>
+    <div><b id="sPrice">£49</b><span class="muted">per week</span></div>
     <div><b id="sToday">—</b><span class="muted">live stories in 24 h</span></div>
     <div><b>No tracking</b><span class="muted">impressions and clicks only</span></div>
   </div>
@@ -102,7 +102,7 @@
     return n;
   };
   const signedIn = window.lyraSignedIn;
-  let rate = 4900, cur = "usd";
+  let rate = 4900, cur = "gbp";
   const money = (c) => new Intl.NumberFormat("en", { style: "currency", currency: cur.toUpperCase(), maximumFractionDigits: 0 }).format(c / 100);
   const toLogin = () => { try { localStorage.setItem("lyra_next", "/advertise/"); } catch {} location.href = "/dashboard/login.html"; };
   const note = (text, warn) => $("msg").replaceChildren(el("div", { class: "note" + (warn ? " warn" : ""), text }));
