@@ -3,619 +3,869 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>LyraAuth — The reCAPTCHA replacement without Google</title>
-  <meta name="description" content="LyraAuth is a drop-in reCAPTCHA replacement from a UK company. Same site-key and siteverify pattern, no ad tracking, no cookies. Free for 10,000 checks a month." />
+  <title>Lyra — Live news, market signals and bot protection</title>
+  <style>
+    .announce { display: inline-flex; align-items: center; gap: 8px; font-size: 13.5px; padding: 6px 14px 6px 8px;
+      border: 1px solid var(--border-hi); border-radius: 999px; background: var(--surface); color: var(--text);
+      margin-bottom: 18px; text-decoration: none; transition: border-color .15s; }
+    .announce:hover { border-color: var(--text); opacity: 1; }
+    .live-dot { display: inline-flex; align-items: center; gap: 5px; background: #eb0400; color: #fff; font-size: 11px;
+      font-weight: 700; letter-spacing: .05em; border-radius: 999px; padding: 2px 8px; text-transform: uppercase; }
+    .live-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: livepulse 1.4s infinite; }
+    @keyframes livepulse { 50% { opacity: .25; } }
+    @media (prefers-reduced-motion: reduce) { .live-dot::before { animation: none; } }
+    .watch-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 22px 0 6px; }
+    .watch-stat { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+    .watch-stat b { display: block; font-size: 1.6rem; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+    .watch-stat span { font-size: 12.5px; color: var(--muted); }
+    .watch-feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-top: 22px; }
+    .watch-feats div { font-size: 14px; line-height: 1.55; color: var(--muted); }
+    .watch-feats b { display: block; color: var(--text); margin-bottom: 3px; }
+    @media (min-width: 1001px) { .wn-grid.five { grid-template-columns: 1.4fr 1fr 1fr; } .wn-grid.five .wn-feature { grid-row: span 2; } }
+    .wn-for { font-size: 12px; font-weight: 600; color: #a8320f; letter-spacing: .02em; }
+    .wn-feature .wn-for { color: #ffb4a0; }
+    .try-box { max-width: 560px; margin: 48px auto 0; background: var(--surface); border: 1px solid var(--border-hi); border-radius: 16px; padding: 24px; }
+    .try-box h3 { font-size: 1.1rem; margin-bottom: 4px; }
+    .try-box input[type=email] { width: 100%; font: inherit; padding: 10px 12px; border: 1px solid var(--border-hi); border-radius: 8px; margin: 6px 0 12px; background: var(--bg); color: var(--text); }
+    .try-out { margin-top: 12px; font: 12.5px/1.55 "JetBrains Mono", monospace; background: #14120e; color: #efe8da; border-radius: 8px; padding: 10px 12px; white-space: pre-wrap; }
+  </style>
+  <meta name="description" content="Lyra Watch shows who is moving the news and the markets, live. Plus the Tremor market-stress index, a world Newswire, Lyra Labs for your own AI, and LyraAuth bot protection for websites. One free account." />
   <link rel="canonical" href="https://lyraauth.com/" />
-  <meta name="theme-color" content="#f4efe6" />
+  <meta name="theme-color" content="#14120e" />
   <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="LyraAuth" />
+  <meta property="og:site_name" content="Lyra" />
   <meta property="og:url" content="https://lyraauth.com/" />
-  <meta property="og:title" content="LyraAuth — The reCAPTCHA replacement without Google" />
-  <meta property="og:description" content="Drop-in bot protection for your forms. Same API shape as reCAPTCHA, no ad tracking, no cookies, free for 10,000 checks a month." />
+  <meta property="og:title" content="Lyra — Who is moving the news and the markets, live" />
+  <meta property="og:description" content="Lyra Watch, the Tremor Index, Newswire, Lyra Labs and LyraAuth bot protection, under one free account." />
   <meta property="og:image" content="https://lyraauth.com/img/watch-og.png" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="LyraAuth — The reCAPTCHA replacement without Google" />
-  <meta name="twitter:description" content="Drop-in bot protection for your forms. No ad tracking, no cookies, free for 10,000 checks a month." />
+  <meta name="twitter:title" content="Lyra — Who is moving the news and the markets, live" />
+  <meta name="twitter:description" content="Lyra Watch, the Tremor Index, Newswire, Lyra Labs and LyraAuth, under one free account." />
   <meta name="twitter:image" content="https://lyraauth.com/img/watch-og.png" />
-  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://lyraauth.com/#org","name":"Lyra Labs","legalName":"Lyra Ventures Ltd","url":"https://lyraauth.com/","logo":"https://lyraauth.com/img/logo-mark.svg","email":"support@lyraauth.com"},{"@type":"SoftwareApplication","name":"LyraAuth","applicationCategory":"SecurityApplication","operatingSystem":"Web","url":"https://lyraauth.com/","publisher":{"@id":"https://lyraauth.com/#org"},"offers":{"@type":"Offer","price":"0","priceCurrency":"GBP","description":"Free plan: 10,000 verifications a month, 1 site"}}]}</script>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://lyraauth.com/#org","name":"Lyra Labs","url":"https://lyraauth.com/","logo":"https://lyraauth.com/img/logo-mark.svg","email":"support@lyraauth.com"},{"@type":"WebSite","@id":"https://lyraauth.com/#site","url":"https://lyraauth.com/","name":"Lyra","publisher":{"@id":"https://lyraauth.com/#org"}}]}</script>
   <link rel="icon" href="/img/logo-mark.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
-  <meta name="apple-mobile-web-app-title" content="LyraAuth" />
+  <meta name="apple-mobile-web-app-title" content="Lyra" />
   <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,600&family=Hanken+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="css/main.css?v=20261026a" />
   <script src="/js/session.js?v=20261026a"></script>
-  <style>
-    :root {
-      --paper: #f4efe6;
-      --paper-2: #ebe4d6;
-      --card: #fffdf8;
-      --ink: #16130e;
-      --ink-2: #3b352c;
-      --muted: #6b6356;
-      --rule: rgba(22, 19, 14, .14);
-      --rule-hi: rgba(22, 19, 14, .32);
-      --signal: #d9461c;
-      --signal-ink: #a8320f;
-      --ok: #1f7a4a;
-      --code-bg: #16130e;
-      --code-ink: #efe8da;
-      --code-dim: #8f877a;
-      --code-key: #f0a37f;
-      --code-str: #b9d98a;
-      --display: 'Fraunces', Georgia, serif;
-      --body: 'Hanken Grotesk', 'Helvetica Neue', sans-serif;
-      --mono: 'JetBrains Mono', ui-monospace, monospace;
-      --wrap: 1140px;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --paper: #14110c; --paper-2: #1c1811; --card: #1f1a13; --ink: #f1eadc; --ink-2: #d8cfbe;
-        --muted: #a69c8a; --rule: rgba(241, 234, 220, .13); --rule-hi: rgba(241, 234, 220, .3);
-        --signal: #f0663b; --signal-ink: #ff8a63; --ok: #5cc68d; --code-bg: #0b0906;
-      }
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { animation: none !important; transition: none !important; } }
-    body {
-      margin: 0; font-family: var(--body); color: var(--ink); background: var(--paper);
-      font-size: 17px; line-height: 1.6; -webkit-font-smoothing: antialiased; overflow-x: hidden;
-      background-image:
-        radial-gradient(circle at 1px 1px, var(--rule) 1px, transparent 0);
-      background-size: 22px 22px;
-    }
-    a { color: inherit; }
-    img { max-width: 100%; }
-    .wrap { max-width: var(--wrap); margin: 0 auto; padding: 0 16px; }
-    @media (min-width: 720px) { .wrap { padding: 0 28px; } }
-    .skip-link { position: absolute; left: -999px; top: 8px; background: var(--ink); color: var(--paper); padding: 8px 14px; border-radius: 6px; z-index: 100; }
-    .skip-link:focus { left: 8px; }
-    :focus-visible { outline: 2px solid var(--signal); outline-offset: 3px; }
-
-    /* ── Nav ── */
-    .nav { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--rule); }
-    .nav .wrap { display: flex; align-items: center; gap: 24px; height: 62px; }
-    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 21px; letter-spacing: -.02em; }
-    .brand img { border-radius: 7px; }
-    .brand small { font-family: var(--mono); font-weight: 400; font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); border: 1px solid var(--rule-hi); border-radius: 4px; padding: 1px 5px; }
-    .nav ul { display: flex; gap: 22px; list-style: none; margin: 0 0 0 auto; padding: 0; font-size: 15px; }
-    .nav ul a { text-decoration: none; color: var(--ink-2); }
-    .nav ul a:hover { color: var(--signal-ink); }
-    .nav-cta { display: flex; gap: 8px; align-items: center; }
-    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font: 600 15px/1 var(--body); text-decoration: none; padding: 12px 18px; border-radius: 8px; border: 1.5px solid var(--ink); transition: transform .15s, background .15s, color .15s; white-space: nowrap; cursor: pointer; }
-    .btn:hover { transform: translateY(-1px); }
-    .btn-ink { background: var(--ink); color: var(--paper); }
-    .btn-ink:hover { background: var(--signal); border-color: var(--signal); color: #fff; }
-    .btn-line { background: transparent; color: var(--ink); }
-    .btn-line:hover { background: var(--ink); color: var(--paper); }
-    .btn-sm { padding: 8px 13px; font-size: 14px; }
-    .menu-btn { display: none; margin-left: auto; background: none; border: 1.5px solid var(--rule-hi); border-radius: 7px; padding: 7px 10px; font: 600 14px var(--body); color: var(--ink); }
-    .mobile-menu { display: none; }
-    @media (max-width: 440px) { .brand small { display: none; } }
-    @media (max-width: 880px) {
-      .nav ul, .nav-cta .hide-sm { display: none; }
-      .nav-cta { margin-left: auto; }
-      .menu-btn { display: inline-block; margin-left: 0; }
-      .nav .wrap { gap: 10px; }
-      .mobile-menu.open { display: grid; gap: 2px; padding: 8px 16px 16px; border-bottom: 1px solid var(--rule); background: var(--paper); }
-      .mobile-menu a { padding: 10px 0; text-decoration: none; border-bottom: 1px solid var(--rule); }
-    }
-
-    /* ── Hero ── */
-    .hero { padding: 64px 0 56px; }
-    .hero .wrap { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr); gap: 56px; align-items: center; }
-    @media (max-width: 960px) { .hero .wrap { grid-template-columns: 1fr; gap: 40px; } .hero { padding-top: 40px; } }
-    .kicker { font-family: var(--mono); font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--signal-ink); display: flex; align-items: center; gap: 10px; }
-    .kicker::before { content: ""; width: 26px; height: 1.5px; background: currentColor; }
-    h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.5rem, 5.6vw, 4.3rem); line-height: 1.02; letter-spacing: -.022em; word-spacing: .04em; margin: 18px 0 22px; text-wrap: balance; font-variation-settings: "opsz" 144; }
-    h1 em { font-style: italic; font-weight: 400; color: var(--signal); }
-    .lede { font-size: clamp(1.05rem, 1.6vw, 1.22rem); color: var(--ink-2); max-width: 560px; margin: 0 0 30px; }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-    .fineprint { margin-top: 16px; font-size: 14px; color: var(--muted); }
-    .fineprint b { color: var(--ink); }
-
-    .demo { position: relative; background: var(--card); border: 1.5px solid var(--ink); border-radius: 14px; padding: 26px 24px 20px; box-shadow: 10px 10px 0 var(--ink); }
-    .demo-tag { position: absolute; top: -13px; left: 20px; background: var(--signal); color: #fff; font: 600 11.5px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; padding: 6px 9px; border-radius: 4px; }
-    .demo h2 { font-family: var(--display); font-size: 1.45rem; font-weight: 600; letter-spacing: -.02em; margin: 4px 0 4px; }
-    .demo p { margin: 0 0 16px; color: var(--muted); font-size: 14.5px; }
-    .demo label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
-    .demo input[type=email] { width: 100%; font: 16px var(--body); padding: 11px 12px; border: 1.5px solid var(--rule-hi); border-radius: 8px; background: var(--paper); color: var(--ink); margin-bottom: 14px; }
-    .demo input[type=email]:focus { border-color: var(--ink); outline: none; }
-    .demo .lyraauth { min-height: 120px; margin-bottom: 14px; }
-    .demo .btn { width: 100%; }
-    .demo-out { margin-top: 14px; font: 12.5px/1.55 var(--mono); background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 12px 14px; overflow-x: auto; white-space: pre; }
-    .demo-out .k { color: var(--code-key); } .demo-out .s { color: var(--code-str); } .demo-out .d { color: var(--code-dim); }
-
-    /* ── Proof strip ── */
-    .facts { border-top: 1.5px solid var(--ink); border-bottom: 1.5px solid var(--ink); background: var(--paper-2); }
-    .facts .wrap { display: grid; grid-template-columns: repeat(4, 1fr); }
-    .fact { padding: 22px 18px; border-left: 1px solid var(--rule-hi); }
-    .fact:first-child { border-left: 0; }
-    .fact b { display: block; font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.3rem); font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
-    .fact span { font-size: 14px; color: var(--muted); }
-    @media (max-width: 720px) { .facts .wrap { grid-template-columns: 1fr 1fr; } .fact:nth-child(3) { border-left: 0; } .fact:nth-child(n+3) { border-top: 1px solid var(--rule-hi); } }
-
-    /* ── Sections ── */
-    section.block { padding: 96px 0; }
-    @media (max-width: 720px) { section.block { padding: 64px 0; } }
-    .eyebrow { font-family: var(--mono); font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
-    h2.title { font-family: var(--display); font-weight: 800; font-size: clamp(2rem, 4.2vw, 3.2rem); line-height: 1.02; letter-spacing: -.03em; margin: 0 0 18px; max-width: 760px; }
-    h2.title em { font-style: italic; font-weight: 400; color: var(--signal); }
-    .intro { color: var(--ink-2); max-width: 620px; margin: 0 0 44px; }
-
-    /* Steps */
-    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1.5px solid var(--ink); border-radius: 14px; overflow: hidden; background: var(--card); }
-    .step { padding: 28px 24px; border-left: 1px solid var(--rule-hi); display: flex; flex-direction: column; gap: 10px; min-width: 0; }
-    .step:first-child { border-left: 0; }
-    .step-n { font-family: var(--display); font-size: 3rem; font-weight: 400; font-style: italic; line-height: 1; color: var(--signal); }
-    .step h3 { font-size: 1.15rem; margin: 0; }
-    .step p { margin: 0; color: var(--muted); font-size: 15px; }
-    @media (max-width: 880px) { .steps { grid-template-columns: 1fr; } .step { border-left: 0; border-top: 1px solid var(--rule-hi); } .step:first-child { border-top: 0; } }
-
-    pre.code { margin: 6px 0 0; background: var(--code-bg); color: var(--code-ink); border-radius: 9px; padding: 14px 16px; font: 13px/1.6 var(--mono); overflow-x: auto; }
-    .code .k { color: var(--code-key); } .code .s { color: var(--code-str); } .code .d { color: var(--code-dim); }
-    .tabs { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
-    .tabs button { font: 600 12.5px var(--mono); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--rule-hi); background: transparent; color: var(--muted); cursor: pointer; }
-    .tabs button[aria-selected=true] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-
-    /* Migrate */
-    .migrate { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    @media (max-width: 880px) { .migrate { grid-template-columns: 1fr; } }
-    .diff { background: var(--code-bg); color: var(--code-ink); border-radius: 12px; padding: 18px 0; font: 13.5px/1.75 var(--mono); overflow-x: auto; }
-    .diff div { padding: 0 18px; white-space: pre; }
-    .diff .rm { background: rgba(217, 70, 28, .2); color: #ffb8a0; }
-    .diff .add { background: rgba(120, 190, 90, .17); color: #c9eaa6; }
-    .diff .hd { color: var(--code-dim); padding-bottom: 6px; }
-    .migrate-notes { display: grid; gap: 14px; align-content: start; }
-    .note-card { background: var(--card); border: 1px solid var(--rule-hi); border-radius: 12px; padding: 18px 20px; }
-    .note-card h3 { margin: 0 0 4px; font-size: 1.05rem; }
-    .note-card p { margin: 0; color: var(--muted); font-size: 15px; }
-
-    /* Why */
-    .why { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-top: 1.5px solid var(--ink); }
-    .why > div { padding: 30px 28px 30px 0; border-bottom: 1px solid var(--rule-hi); }
-    .why > div:nth-child(even) { padding-left: 28px; padding-right: 0; border-left: 1px solid var(--rule-hi); }
-    .why h3 { font-family: var(--display); font-size: 1.5rem; font-weight: 600; letter-spacing: -.02em; margin: 0 0 8px; }
-    .why p { margin: 0; color: var(--ink-2); }
-    @media (max-width: 760px) { .why { grid-template-columns: 1fr; } .why > div, .why > div:nth-child(even) { padding: 24px 0; border-left: 0; } }
-
-    /* Data ledger */
-    .dark { background: var(--ink); color: var(--paper); background-image: radial-gradient(circle at 1px 1px, rgba(244, 239, 230, .08) 1px, transparent 0); background-size: 22px 22px; }
-    @media (prefers-color-scheme: dark) { .dark { background-color: #070604; color: #f1eadc; } }
-    .dark .eyebrow { color: #a69c8a; }
-    .dark .intro { color: #d8cfbe; }
-    .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-    @media (max-width: 760px) { .ledger { grid-template-columns: 1fr; } }
-    .ledger-col { border: 1px solid rgba(244, 239, 230, .2); border-radius: 12px; padding: 22px 24px; }
-    .ledger-col h3 { font: 600 12.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; margin: 0 0 12px; }
-    .ledger-col.yes h3 { color: #b9d98a; } .ledger-col.no h3 { color: #f0a37f; }
-    .ledger-col ul { list-style: none; margin: 0; padding: 0; }
-    .ledger-col li { padding: 10px 0; border-top: 1px dashed rgba(244, 239, 230, .18); display: flex; gap: 12px; }
-    .ledger-col li:first-child { border-top: 0; }
-    .ledger-col li::before { font-family: var(--mono); flex: none; }
-    .ledger-col.yes li::before { content: "+"; color: #b9d98a; }
-    .ledger-col.no li::before { content: "×"; color: #f0a37f; }
-    .ledger-foot { margin-top: 24px; font-size: 15px; color: #d8cfbe; max-width: 820px; }
-    .ledger-foot a { color: #f0a37f; }
-
-    /* Pricing */
-    .plans { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-    @media (max-width: 1060px) { .plans { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 680px) { .plans { grid-template-columns: 1fr; } }
-    .plan { background: var(--card); border: 1px solid var(--rule-hi); border-radius: 12px; padding: 22px 20px; display: flex; flex-direction: column; }
-    .plan.free { border: 1.5px solid var(--ink); box-shadow: 6px 6px 0 var(--signal); }
-    .plan h3 { margin: 0; font: 600 12.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-    .plan .price { font-family: var(--display); font-size: 2.4rem; font-weight: 800; letter-spacing: -.03em; margin: 8px 0 2px; }
-    .plan .price span { font: 400 14px var(--body); color: var(--muted); letter-spacing: 0; }
-    .plan .vol { font-weight: 600; margin: 0 0 12px; }
-    .plan ul { margin: 0 0 18px; padding: 0; list-style: none; font-size: 14.5px; color: var(--ink-2); flex: 1; }
-    .plan li { padding: 4px 0; }
-    .plan .btn { width: 100%; }
-    .plans-note { margin-top: 18px; font-size: 14.5px; color: var(--muted); }
-
-    /* FAQ */
-    .faq { max-width: 820px; border-top: 1.5px solid var(--ink); }
-    .faq details { border-bottom: 1px solid var(--rule-hi); }
-    .faq summary { cursor: pointer; list-style: none; padding: 20px 40px 20px 0; position: relative; font-family: var(--display); font-weight: 600; font-size: 1.25rem; letter-spacing: -.01em; }
-    .faq summary::-webkit-details-marker { display: none; }
-    .faq summary::after { content: "+"; position: absolute; right: 4px; top: 16px; font: 400 1.6rem var(--mono); color: var(--signal); transition: transform .2s; }
-    .faq details[open] summary::after { transform: rotate(45deg); }
-    .faq details p { margin: 0 0 20px; color: var(--ink-2); max-width: 700px; }
-
-    /* CTA + also */
-    .cta { text-align: center; padding: 88px 0; border-top: 1.5px solid var(--ink); }
-    .cta h2 { font-family: var(--display); font-weight: 800; font-size: clamp(2.2rem, 5vw, 3.8rem); letter-spacing: -.035em; line-height: 1; margin: 0 0 16px; }
-    .cta h2 em { font-style: italic; font-weight: 400; color: var(--signal); }
-    .cta p { color: var(--ink-2); margin: 0 auto 28px; max-width: 520px; }
-    .cta .hero-actions { justify-content: center; }
-    .also { border-top: 1px solid var(--rule-hi); padding: 30px 0; font-size: 15px; color: var(--muted); }
-    .also .wrap { display: flex; flex-wrap: wrap; gap: 8px 22px; align-items: baseline; }
-    .also b { color: var(--ink); font-weight: 600; margin-right: 4px; }
-    .also a { color: var(--ink-2); }
-
-    footer { background: var(--paper-2); border-top: 1.5px solid var(--ink); padding: 48px 0 32px; font-size: 14.5px; }
-    .foot-grid { display: grid; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 28px; }
-    @media (max-width: 760px) { .foot-grid { grid-template-columns: 1fr 1fr; } }
-    footer h4 { font: 600 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 10px; }
-    footer ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
-    footer a { text-decoration: none; color: var(--ink-2); }
-    footer a:hover { color: var(--signal-ink); }
-    .legal { margin-top: 36px; padding-top: 18px; border-top: 1px solid var(--rule-hi); color: var(--muted); font-size: 13px; }
-
-    /* Load-in */
-    .rise { opacity: 0; transform: translateY(14px); animation: rise .7s cubic-bezier(.2, .7, .2, 1) forwards; }
-    .r1 { animation-delay: .05s; } .r2 { animation-delay: .15s; } .r3 { animation-delay: .27s; } .r4 { animation-delay: .4s; } .r5 { animation-delay: .55s; }
-    @keyframes rise { to { opacity: 1; transform: none; } }
-  </style>
+  <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header class="nav">
-  <div class="wrap">
-    <a href="/" class="brand"><img src="/img/logo-mark.svg" alt="" width="28" height="28" />LyraAuth <small>beta</small></a>
-    <ul>
-      <li><a href="#how">How it works</a></li>
-      <li><a href="#migrate">Switch from reCAPTCHA</a></li>
-      <li><a href="#data">Your data</a></li>
-      <li><a href="#pricing">Pricing</a></li>
-      <li><a href="/pages/docs.html">Docs</a></li>
+<nav class="nav nav-wide" id="nav">
+  <div class="nav-inner">
+    <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
+    <ul class="nav-links">
+      <li><a href="#products">Products</a></li>
+      <li><a href="/news/">News</a></li>
+      <li><a href="/labs/">Labs</a></li>
+      <li><a href="#how-it-works">How It Works</a></li>
+      <li><a href="#integrate">Integrate</a></li>
+      <li><a href="/pricing/">Pricing</a></li>
+      <li><a href="/tremor/">Tremor Index</a></li>
+      <li><a href="watch/">Watch</a></li>
+      <li><a href="watch/live/"><span class="live-dot">Live</span></a></li>
+      <li><a href="pages/docs.html">Docs</a></li>
     </ul>
     <div class="nav-cta">
-      <a href="/dashboard/login.html" class="btn btn-line btn-sm hide-sm">Sign in</a>
-      <a href="/dashboard/register.html?next=/dashboard/" class="btn btn-ink btn-sm">Get a site key</a>
+      <a href="dashboard/login.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a>
+      <a href="dashboard/register.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Create account</a>
     </div>
-    <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="mobileMenu">Menu</button>
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
   </div>
-  <nav class="mobile-menu" id="mobileMenu" aria-label="Mobile">
-    <a href="#how">How it works</a>
-    <a href="#migrate">Switch from reCAPTCHA</a>
-    <a href="#data">Your data</a>
-    <a href="#pricing">Pricing</a>
-    <a href="/pages/docs.html">Docs</a>
-    <a href="/dashboard/login.html">Sign in</a>
-  </nav>
-</header>
-
-<main id="main">
+</nav>
+<div id="main" class="nav-mobile" id="nav-mobile">
+  <a href="#products">Products</a>
+  <a href="/news/">News</a>
+  <a href="/labs/">Labs</a>
+  <a href="#how-it-works">How It Works</a>
+  <a href="#integrate">Integrate</a>
+  <a href="/pricing/">Pricing</a>
+  <a href="/tremor/">Tremor Index</a>
+  <a href="watch/">Lyra Watch</a>
+  <a href="watch/live/">Lyra Watch Live</a>
+  <a href="pages/docs.html">Docs</a>
+  <a href="dashboard/login.html">Sign in</a>
+  <a href="dashboard/register.html" class="btn btn-primary mobile-cta" style="text-align:center;">Start free trial</a>
+</div>
 
 <!-- ══ HERO ══ -->
-<section class="hero">
-  <div class="wrap">
-    <div>
-      <div class="kicker rise r1">Bot protection for your forms</div>
-      <h1 class="rise r2">Stop the bots.<br />Leave <em>Google</em> out of it.</h1>
-      <p class="lede rise r3">LyraAuth is a drop-in replacement for reCAPTCHA. Same site key, same secret, one POST to check the answer. No ad tracking, no cookies and no profile of your visitors built across the web.</p>
-      <div class="hero-actions rise r4">
-        <a href="/dashboard/register.html?next=/dashboard/" class="btn btn-ink">Get a free site key &rarr;</a>
-        <a href="#how" class="btn btn-line">See the 2-line install</a>
+<section class="hero hero-ed" id="home">
+  <div class="hero-ed-in">
+    <div class="hero-ed-copy">
+      <a class="announce fade-up" href="watch/#movers"><span class="live-dot">New</span> Who moves markets: measured from real prices, not guessed &rarr;</a>
+      <div class="hero-kicker fade-up">Lyra Labs · people, markets, news, your own AI and bot protection</div>
+      <h1 class="hero-ed-title fade-up-2">See who's moving the news<br /><em>and the markets, live.</em></h1>
+      <p class="hero-ed-sub fade-up-3">
+        Lyra Watch follows the politicians, investors and executives in the news and measures how their stocks moved. Around it: the Tremor market-stress index, a Newswire of every country's news, Lyra Labs for your own AI, and LyraAuth to keep bots off your website. One free account covers all five.
+      </p>
+      <div class="hero-ed-stats fade-up-4">
+        <div><b>5</b><span>products, one account</span></div>
+        <div><b id="hs-stories">8,000+</b><span>stories in 24 h</span></div>
+        <div><b>0</b><span>ad tracking</span></div>
+        <div><b>£0</b><span>to start, no card</span></div>
       </div>
-      <p class="fineprint rise r5"><b>Free for 10,000 checks a month</b>, forever. No card needed.</p>
     </div>
 
-    <aside class="demo rise r3" aria-labelledby="demoTitle">
-      <span class="demo-tag">Live demo</span>
-      <h2 id="demoTitle">Try it on a real form</h2>
-      <p>This is the actual widget, running against the production API.</p>
-      <form id="demoForm" novalidate>
-        <label for="demoEmail">Email</label>
-        <input id="demoEmail" type="email" placeholder="you@example.com" autocomplete="off" />
-        <div class="lyraauth" data-sitekey="lyra_site_demo0000000000000000000000000000" data-callback="lyraDemoVerified" data-expired-callback="lyraDemoExpired"></div>
-        <button type="submit" class="btn btn-ink">Submit form</button>
-        <div class="demo-out" id="demoOut" aria-live="polite"><span class="d">// Answer the challenge, then submit.</span></div>
-      </form>
+    <aside class="hero-card fade-up-3" aria-label="Create your Lyra account">
+      <div class="hero-card-kicker">Start free · no card needed</div>
+      <h2>Create your account in one click.</h2>
+      <div class="hero-providers">
+        <a class="hp-btn" href="/api/oauth/google/start?next=/"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.4h6.5a5.6 5.6 0 0 1-2.4 3.6v3h3.9c2.2-2.1 3.5-5.1 3.5-8.7z"/><path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24z"/><path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1z"/><path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.9 3.6-4.9 6.7-4.9z"/></svg>Continue with Google</a>
+        <a class="hp-btn hp-apple" href="/api/oauth/apple/start?next=/"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.7c0-2.6 2.1-3.8 2.2-3.9a4.8 4.8 0 0 0-3.8-2c-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9a5 5 0 0 0-4.2 2.6c-1.8 3.1-.5 7.7 1.3 10.2.8 1.2 1.8 2.6 3.1 2.6s1.7-.8 3.3-.8 2 .8 3.4.8 2.2-1.3 3-2.5a10 10 0 0 0 1.4-2.8 4.4 4.4 0 0 1-2.4-4.2zM13.9 5.1A4.4 4.4 0 0 0 15 1.9a4.5 4.5 0 0 0-3 1.5 4.2 4.2 0 0 0-1 3.1c1.1.1 2.2-.6 2.9-1.4z"/></svg>Continue with Apple</a>
+        <a class="hp-btn" href="/api/oauth/github/start?next=/"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.6.2 2.8.1 3.1.8.8 1.2 1.9 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.2c0 .3.2.7.8.6A11.5 11.5 0 0 0 12 .5z"/></svg>Continue with GitHub</a>
+      </div>
+      <div class="hero-or">or</div>
+      <a class="hp-main" href="dashboard/register.html">Sign up with email &rarr;</a>
+      <p class="hero-card-foot">Already have an account? <a href="dashboard/login.html">Sign in</a> · <a href="#pricing">See pricing</a></p>
     </aside>
   </div>
 </section>
-
-<div class="facts">
-  <div class="wrap">
-    <div class="fact"><b>2 lines</b><span>of HTML on your form</span></div>
-    <div class="fact"><b>1 POST</b><span>to verify on your server</span></div>
-    <div class="fact"><b>0</b><span>cookies or ad trackers</span></div>
-    <div class="fact"><b>UK</b><span>company, UK GDPR, with a DPA</span></div>
+<!-- ══ WHAT'S NEW ══ -->
+<section class="whatsnew" aria-labelledby="wn-title">
+  <div class="wn-in">
+    <div class="wn-head">
+      <div class="hero-kicker" style="color:#6e6b67">Everything in Lyra</div>
+      <h2 id="wn-title">Five products, <em>one account.</em></h2>
+    </div>
+    <div class="wn-grid five">
+      <a class="wn-card wn-feature" href="/news/">
+        <span class="wn-tag">New · Newswire</span>
+        <span class="wn-for">For readers and researchers</span>
+        <h3>Every country's news and new research, in one search.</h3>
+        <p>Dozens of languages, plus fresh papers in AI, chemistry, pharma and energy. Filter by topic, country, company or person.</p>
+        <div class="wn-live"><div><b id="wn-articles">—</b><span>articles &amp; papers</span></div><div><b id="wn-countries">—</b><span>countries</span></div><div><b id="wn-langs">—</b><span>languages</span></div></div>
+        <span class="wn-go">Search the wire &rarr;</span>
+      </a>
+      <a class="wn-card" href="/watch/">
+        <span class="wn-tag"><span class="live-dot">Live</span> Lyra Watch</span>
+        <span class="wn-for">For anyone following power and money</span>
+        <h3>Who moves markets, measured from real prices.</h3>
+        <p>Politicians, investors and executives, the stories about them, and how stocks moved on those days.</p>
+        <span class="wn-go">Open Lyra Watch &rarr;</span>
+      </a>
+      <a class="wn-card" href="/tremor/">
+        <span class="wn-tag">Tremor Index</span>
+        <span class="wn-for">For investors who want the why</span>
+        <h3>Market stress, with the politicians and policy behind it.</h3>
+        <p>Each reading now shows who's in the company's news, the tariffs and votes affecting it, and new research that could move it.</p>
+        <span class="wn-go">See how it works &rarr;</span>
+      </a>
+      <a class="wn-card" href="/labs/">
+        <span class="wn-tag">New · Lyra Labs</span>
+        <span class="wn-for">For people who build with AI</span>
+        <h3>Plug in your AI. Pair it 50/50 with ours.</h3>
+        <p>Connect Claude, OpenAI or a model on your own computer, and give it Lyra's live data: a co-scientist, research agents and more.</p>
+        <span class="wn-go">Try Lyra Labs &rarr;</span>
+      </a>
+      <a class="wn-card" href="#products">
+        <span class="wn-tag">LyraAuth</span>
+        <span class="wn-for">For website owners</span>
+        <h3>Keep bots off your forms, without Google.</h3>
+        <p>A drop-in reCAPTCHA replacement. Two lines to install, no ad tracking, free for 10,000 checks a month.</p>
+        <span class="wn-go">Try the live demo &rarr;</span>
+      </a>
+    </div>
   </div>
-</div>
+</section>
 
-<!-- ══ HOW ══ -->
-<section class="block" id="how">
-  <div class="wrap">
-    <p class="eyebrow">How it works</p>
-    <h2 class="title">Three steps. <em>About five minutes.</em></h2>
-    <p class="intro">If you've ever added reCAPTCHA, you already know how to add LyraAuth. Works with any framework, any language and any host.</p>
 
-    <div class="steps">
+<div class="divider"></div>
+
+<!-- ══ PRODUCTS ══ -->
+<section class="section" id="products">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">LyraAuth · for websites</span>
+      <h2>Bot protection that<br /><span class="gradient-text">doesn't track your visitors</span></h2>
+      <p style="max-width:560px;margin:14px auto 0;">LyraAuth replaces reCAPTCHA. Instead of picking out traffic lights, visitors answer one short text question. These are the five kinds of question it asks, and each one also teaches Lyra AI something.</p>
+    </div>
+
+    <div class="products-grid">
+      <div class="product-card" style="--card-color:#8b5cf6;">
+        <div class="product-icon">🔐</div>
+        <h3>Everyday questions</h3>
+        <p>Number patterns, word scrambles, emoji meanings and common knowledge. Quick for people, awkward for bots.</p>
+        <div><span class="product-tag">Bot Detection</span><span class="product-tag">Training Data</span><span class="product-tag">Drop-in</span></div>
+        <div style="margin-top:16px;"><a href="pages/lyraauth.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#ec4899;">
+        <div class="product-icon">🤖</div>
+        <h3>Real or Fake</h3>
+        <p>Visitors pick which text a person wrote. It helps Lyra learn to spot AI-written text.</p>
+        <div><span class="product-tag">AI Detection</span><span class="product-tag">RLHF Data</span></div>
+        <div style="margin-top:16px;"><a href="pages/detect.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#10b981;">
+        <div class="product-icon">♿</div>
+        <h3>Accessibility AI</h3>
+        <p>Visitors choose the best description of a scene for a screen reader. It helps Lyra write better alt text.</p>
+        <div><span class="product-tag">Image Captioning</span><span class="product-tag">Alt Text</span></div>
+        <div style="margin-top:16px;"><a href="pages/accessibility.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#3b82f6;">
+        <div class="product-icon">🎱</div>
+        <h3>Physics Reasoning</h3>
+        <p>Visitors predict what happens next in a simple physical setup. It teaches Lyra how the real world works.</p>
+        <div><span class="product-tag">Spatial</span><span class="product-tag">Reasoning</span></div>
+        <div style="margin-top:16px;"><a href="pages/physics.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+      <div class="product-card" style="--card-color:#f59e0b;">
+        <div class="product-icon">💬</div>
+        <h3>Vibe &amp; Tone AI</h3>
+        <p>Visitors say whether a message sounds friendly, sarcastic or worried. It helps Lyra read tone.</p>
+        <div><span class="product-tag">Sentiment</span><span class="product-tag">Intent</span></div>
+        <div style="margin-top:16px;"><a href="pages/vibe.html" class="btn btn-outline" style="padding:7px 16px;font-size:12px;">Learn More &rarr;</a></div>
+      </div>
+
+    </div>
+
+    <div class="try-box" id="try">
+      <h3>Try LyraAuth now</h3>
+      <p style="font-size:13.5px;margin-bottom:8px;">This is the real widget on a real form, checked by the live API.</p>
+      <form id="demoForm" novalidate>
+        <label for="demoEmail" style="font-size:13px;font-weight:600;">Email</label>
+        <input id="demoEmail" type="email" placeholder="you@example.com" autocomplete="off" />
+        <div class="lyraauth" data-sitekey="lyra_site_demo0000000000000000000000000000" data-callback="lyraDemoVerified" data-expired-callback="lyraDemoExpired"></div>
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:12px;">Submit form</button>
+        <div class="try-out" id="demoOut" aria-live="polite">// Answer the question, then submit.</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ HOW IT WORKS ══ -->
+<section class="section" id="how-it-works">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">How LyraAuth works</span>
+      <h2>Live in five minutes.<br /><span class="gradient-text">Honest with your visitors.</span></h2>
+      <p style="max-width:520px;margin:14px auto 0;">The widget tells every visitor, before they answer, that answers are anonymised and help train Lyra AI.</p>
+    </div>
+
+    <div class="flywheel">
+      <div class="flywheel-items">
+        <span class="flywheel-item">🌐 Install on your site</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">👤 Users solve challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🗂️ Labeled training data saved</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">🧠 AI gets smarter</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item">⚡ Better challenges</span>
+        <span class="flywheel-item">→</span>
+        <span class="flywheel-item" style="background:rgba(139,92,246,0.2);border-color:rgba(139,92,246,0.4);">🔁 Loop repeats</span>
+      </div>
+      <p style="color:var(--muted);max-width:480px;margin:0 auto;font-size:13.5px;">
+        Answers are anonymised and quality-filtered, then used to train Lyra AI models, which Lyra Labs owns.
+      </p>
+    </div>
+
+    <div class="steps" style="margin-top:64px;">
       <div class="step">
-        <span class="step-n">1</span>
-        <h3>Register your site</h3>
-        <p>Create an account, add your domain and get a site key for the page and a secret key for your server. Your keys only work on your domain.</p>
-        <pre class="code"><span class="d">// Dashboard → Add site</span>
-<span class="k">site_key</span>   <span class="s">lyra_site_…</span>
-<span class="k">secret_key</span> <span class="s">lyra_secret_…</span></pre>
+        <div class="step-num">1</div>
+        <h3>Register Your Site</h3>
+        <p style="font-size:13.5px;">Get a site key and secret key. Takes 30 seconds. No credit card required for the Free plan.</p>
       </div>
       <div class="step">
-        <span class="step-n">2</span>
-        <h3>Add two lines to your form</h3>
-        <p>A div where the check goes, and the script. When a visitor passes, a token goes in the form as <code>lyraauth_token</code>.</p>
-        <pre class="code"><span class="d">&lt;!-- inside your &lt;form&gt; --&gt;</span>
-&lt;div <span class="k">class</span>=<span class="s">"lyraauth"</span>
-     <span class="k">data-sitekey</span>=<span class="s">"YOUR_SITE_KEY"</span>&gt;&lt;/div&gt;
-&lt;script <span class="k">src</span>=<span class="s">"https://lyraauth.com/widget.js"</span>
-        <span class="k">async</span>&gt;&lt;/script&gt;</pre>
+        <div class="step-num">2</div>
+        <h3>Add Two Lines of HTML</h3>
+        <p style="font-size:13.5px;">Drop the widget div and script tag into your form. Works with any framework.</p>
       </div>
       <div class="step">
-        <span class="step-n">3</span>
-        <h3>Check the token on your server</h3>
-        <p>Send the token and your secret to <code>siteverify</code>. Each token works once.</p>
-        <div class="tabs" role="tablist" aria-label="Server language">
-          <button role="tab" aria-selected="true" data-tab="py">Python</button>
-          <button role="tab" aria-selected="false" data-tab="node">Node</button>
-          <button role="tab" aria-selected="false" data-tab="php">PHP</button>
+        <div class="step-num">3</div>
+        <h3>Verify on Backend</h3>
+        <p style="font-size:13.5px;">One POST request to confirm the token is valid. Same pattern as reCAPTCHA.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Bots Stay Out</h3>
+        <p style="font-size:13.5px;">Each token works once, on your site only, for a few minutes. Answers are anonymised before they help train Lyra AI.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ INTEGRATE ══ -->
+<section class="section-sm" id="integrate">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:48px;">
+      <span class="section-label">Integration</span>
+      <h2>Add to Any Site in<br /><span class="gradient-text">30 Seconds</span></h2>
+      <p style="max-width:480px;margin:14px auto 0;">Works with every framework and language. Same API surface as reCAPTCHA — drop-in replacement.</p>
+    </div>
+
+    <div class="two-col" style="gap:40px;">
+      <div>
+        <h3 style="margin-bottom:20px;">Step 1 — Get your keys</h3>
+        <div class="code-block">
+<span class="comment">1. Create a free account at lyraauth.com</span>
+<span class="comment">2. Dashboard → + Add site → yoursite.com</span>
+
+<span class="comment">↓ Your keys</span>
+
+{
+  <span class="attr">"site_key"</span>:   <span class="string">"lyra_site_..."</span>,
+  <span class="attr">"secret_key"</span>: <span class="string">"lyra_secret_..."</span>
+}</div>
+
+        <div style="margin-top:28px;">
+          <h3 style="margin-bottom:12px;">Step 3 — Verify on your server</h3>
+          <div class="tabs-wrapper">
+            <div class="tabs">
+              <button class="tab-btn active" data-tab="verify-py">Python</button>
+              <button class="tab-btn" data-tab="verify-node">Node.js</button>
+              <button class="tab-btn" data-tab="verify-php">PHP</button>
+            </div>
+            <div id="verify-py" class="tab-pane active">
+              <div class="code-block">
+<span class="kw">import</span> requests
+
+<span class="kw">def</span> <span class="fn">verify_human</span>(token):
+    r = requests.post(
+        <span class="string">"https://lyraauth.com/api/auth/siteverify"</span>,
+        json={<span class="string">"secret_key"</span>: <span class="string">"YOUR_SECRET_KEY"</span>, <span class="string">"token"</span>: token}
+    )
+    <span class="kw">return</span> r.json().get(<span class="string">"success"</span>, False)</div>
+            </div>
+            <div id="verify-node" class="tab-pane">
+              <div class="code-block">
+<span class="kw">async function</span> <span class="fn">verifyHuman</span>(token) {
+  const res = <span class="kw">await</span> fetch(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, {
+    method: <span class="string">'POST'</span>,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ secret_key: <span class="string">'YOUR_SECRET_KEY'</span>, token })
+  });
+  <span class="kw">return</span> (await res.json()).success;
+}</div>
+            </div>
+            <div id="verify-php" class="tab-pane">
+              <div class="code-block">
+<span class="kw">function</span> <span class="fn">verifyHuman</span>($token) {
+    $r = file_get_contents(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+        false, stream_context_create([<span class="string">'http'</span> => [
+            <span class="string">'method'</span> => <span class="string">'POST'</span>,
+            <span class="string">'header'</span> => <span class="string">'Content-Type: application/json'</span>,
+            <span class="string">'content'</span> => json_encode([
+                <span class="string">'secret_key'</span> => <span class="string">'YOUR_SECRET_KEY'</span>,
+                <span class="string">'token'</span>  => $token
+            ])
+        ]])
+    );
+    <span class="kw">return</span> json_decode($r)->success ?? false;
+}</div>
+            </div>
+          </div>
         </div>
-        <pre class="code" data-panel="py">r = requests.post(
-  <span class="s">"https://lyraauth.com/api/auth/siteverify"</span>,
-  json={<span class="s">"secret_key"</span>: SECRET,
-        <span class="s">"token"</span>: form[<span class="s">"lyraauth_token"</span>]})
-ok = r.json()[<span class="s">"success"</span>]</pre>
-        <pre class="code" data-panel="node" hidden>const r = await fetch(
-  <span class="s">'https://lyraauth.com/api/auth/siteverify'</span>, {
-  method: <span class="s">'POST'</span>,
-  headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
-  body: JSON.stringify({ secret_key: SECRET, token })
+      </div>
+
+      <div>
+        <h3 style="margin-bottom:20px;">Step 2 — Add to your form</h3>
+        <div class="tabs-wrapper">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="html-tab">HTML</button>
+            <button class="tab-btn" data-tab="react-tab">React</button>
+            <button class="tab-btn" data-tab="vue-tab">Vue</button>
+            <button class="tab-btn" data-tab="django-tab">Django</button>
+            <button class="tab-btn" data-tab="wp-tab">WordPress</button>
+          </div>
+          <div id="html-tab" class="tab-pane active">
+            <div class="code-block">
+<span class="tag">&lt;form</span> <span class="attr">method</span>=<span class="string">"POST"</span><span class="tag">&gt;</span>
+  <span class="comment">&lt;!-- your form fields --&gt;</span>
+
+  <span class="tag">&lt;div</span> <span class="attr">class</span>=<span class="string">"lyraauth"</span>
+       <span class="attr">data-sitekey</span>=<span class="string">"YOUR_SITE_KEY"</span><span class="tag">&gt;&lt;/div&gt;</span>
+
+  <span class="tag">&lt;button</span> <span class="attr">type</span>=<span class="string">"submit"</span><span class="tag">&gt;</span>Submit<span class="tag">&lt;/button&gt;</span>
+<span class="tag">&lt;/form&gt;</span>
+
+<span class="tag">&lt;script</span> <span class="attr">src</span>=<span class="string">"https://lyraauth.com/widget.js"</span> <span class="attr">async</span><span class="tag">&gt;&lt;/script&gt;</span></div>
+          </div>
+          <div id="react-tab" class="tab-pane">
+            <div class="code-block">
+<span class="kw">import</span> { useEffect, useRef } <span class="kw">from</span> <span class="string">'react'</span>;
+
+<span class="kw">export function</span> <span class="fn">LyraAuth</span>({ siteKey, onVerified }) {
+  const ref = useRef();
+  useEffect(() => {
+    <span class="kw">const</span> script = document.createElement(<span class="string">'script'</span>);
+    script.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+    script.onload = () => window.LyraAuth?.render(ref.current, {
+      siteKey, onSuccess: onVerified
+    });
+    document.body.appendChild(script);
+  }, []);
+  <span class="kw">return</span> &lt;div ref={ref} /&gt;;
+}</div>
+          </div>
+          <div id="vue-tab" class="tab-pane">
+            <div class="code-block">
+<span class="tag">&lt;template&gt;</span>
+  <span class="tag">&lt;div</span> <span class="attr">ref</span>=<span class="string">"widget"</span><span class="tag">&gt;&lt;/div&gt;</span>
+<span class="tag">&lt;/template&gt;</span>
+
+<span class="tag">&lt;script setup&gt;</span>
+<span class="kw">import</span> { ref, onMounted } <span class="kw">from</span> <span class="string">'vue'</span>;
+<span class="kw">const</span> widget = ref();
+onMounted(() => {
+  <span class="kw">const</span> s = document.createElement(<span class="string">'script'</span>);
+  s.src = <span class="string">'https://lyraauth.com/widget.js'</span>;
+  s.onload = () => window.LyraAuth?.render(widget.value, {
+    siteKey: <span class="string">'YOUR_SITE_KEY'</span>
+  });
+  document.head.appendChild(s);
 });
-const ok = (await r.json()).success;</pre>
-        <pre class="code" data-panel="php" hidden>$r = file_get_contents(
-  <span class="s">'https://lyraauth.com/api/auth/siteverify'</span>, false,
-  stream_context_create([<span class="s">'http'</span> =&gt; [
-    <span class="s">'method'</span> =&gt; <span class="s">'POST'</span>,
-    <span class="s">'header'</span> =&gt; <span class="s">'Content-Type: application/json'</span>,
-    <span class="s">'content'</span> =&gt; json_encode([
-      <span class="s">'secret_key'</span> =&gt; $secret, <span class="s">'token'</span> =&gt; $token])]]));
-$ok = json_decode($r)-&gt;success ?? false;</pre>
+<span class="tag">&lt;/script&gt;</span></div>
+          </div>
+          <div id="django-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment"># views.py</span>
+<span class="kw">import</span> requests
+<span class="kw">from</span> django.conf <span class="kw">import</span> settings
+
+<span class="kw">def</span> <span class="fn">contact</span>(request):
+    <span class="kw">if</span> request.method == <span class="string">'POST'</span>:
+        token = request.POST.get(<span class="string">'lyraauth_token'</span>)
+        r = requests.post(
+            <span class="string">'https://lyraauth.com/api/auth/siteverify'</span>,
+            json={<span class="string">'secret_key'</span>: settings.LYRA_SECRET, <span class="string">'token'</span>: token}
+        )
+        <span class="kw">if not</span> r.json().get(<span class="string">'success'</span>):
+            <span class="kw">return</span> HttpResponseForbidden(<span class="string">'Bot detected'</span>)
+        <span class="comment"># process form...</span></div>
+          </div>
+          <div id="wp-tab" class="tab-pane">
+            <div class="code-block">
+<span class="comment">// functions.php — add to contact form</span>
+<span class="kw">add_filter</span>(<span class="string">'wpcf7_spam'</span>, <span class="kw">function</span>($spam) {
+    $token = $_POST[<span class="string">'lyraauth_token'</span>] ?? <span class="string">''</span>;
+    <span class="kw">if</span> (!$token) <span class="kw">return true</span>;
+    $r = wp_remote_post(<span class="string">'https://lyraauth.com/api/auth/siteverify'</span>, [
+        <span class="string">'headers'</span> => [<span class="string">'Content-Type'</span> => <span class="string">'application/json'</span>],
+        <span class="string">'body'</span> => wp_json_encode([<span class="string">'secret_key'</span> => LYRA_SECRET, <span class="string">'token'</span> => $token])
+    ]);
+    $data = json_decode(wp_remote_retrieve_body($r));
+    <span class="kw">return</span> !($data->success ?? false);
+});</div>
+          </div>
+        </div>
+
+        <div class="note" style="margin-top:20px;">
+          <strong>Token field:</strong> After the user completes the challenge, the widget automatically adds a hidden <code>lyraauth_token</code> field to your form. Read this on your server and verify it.
+        </div>
       </div>
     </div>
-    <p class="plans-note">React, Vue, Django and WordPress examples, plus the JavaScript callbacks, are in the <a href="/pages/docs.html">docs</a>.</p>
-  </div>
-</section>
 
-<!-- ══ MIGRATE ══ -->
-<section class="block" id="migrate" style="padding-top:0">
-  <div class="wrap">
-    <p class="eyebrow">Switching from reCAPTCHA</p>
-    <h2 class="title">Change three lines. <em>Keep the rest.</em></h2>
-    <p class="intro">LyraAuth uses the same pattern as reCAPTCHA v2: a site key in the page, a secret on the server and a <code>success</code> field in the reply. Most switches are a find-and-replace.</p>
-    <div class="migrate">
-      <div class="diff" aria-label="Code changes to switch from reCAPTCHA to LyraAuth">
-        <div class="hd">form.html</div>
-        <div class="rm">- &lt;div class="g-recaptcha" data-sitekey="…"&gt;</div>
-        <div class="add">+ &lt;div class="lyraauth"    data-sitekey="…"&gt;</div>
-        <div class="rm">- &lt;script src="https://www.google.com/recaptcha/api.js"&gt;</div>
-        <div class="add">+ &lt;script src="https://lyraauth.com/widget.js"&gt;</div>
-        <div class="hd" style="padding-top:14px">server</div>
-        <div class="rm">- POST https://www.google.com/recaptcha/api/siteverify</div>
-        <div class="add">+ POST https://lyraauth.com/api/auth/siteverify</div>
-        <div>  { secret, token } → { "success": true }</div>
-      </div>
-      <div class="migrate-notes">
-        <div class="note-card"><h3>Callbacks carry over</h3><p><code>data-callback</code>, <code>data-expired-callback</code> and <code>data-error-callback</code> work the way you'd expect, so your form code doesn't change.</p></div>
-        <div class="note-card"><h3>Test before you switch</h3><p>Add LyraAuth to one form on the free plan and watch it in your dashboard before you remove reCAPTCHA anywhere else.</p></div>
-        <div class="note-card"><h3>Stuck?</h3><p>Email <a href="mailto:support@lyraauth.com">support@lyraauth.com</a>. The people who built it will answer.</p></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══ WHY ══ -->
-<section class="block" style="padding-top:0">
-  <div class="wrap">
-    <p class="eyebrow">Why people switch</p>
-    <h2 class="title">Bot protection that <em>doesn't spy</em> on your visitors.</h2>
-    <div class="why">
-      <div><h3>No ad company in the loop</h3><p>reCAPTCHA is run by an advertising business. LyraAuth sets no cookies, uses no ad IDs and doesn't follow your visitors to other sites.</p></div>
-      <div><h3>Questions, not fire hydrants</h3><p>Visitors answer one short question, like a number pattern or an everyday fact. No blurry photo grids. There are more than 14 kinds, so bots can't learn one trick.</p></div>
-      <div><h3>Works with a screen reader</h3><p>Every challenge is text with buttons or a text box. No image-only grids and no audio puzzles, so it works with assistive tech and a keyboard.</p></div>
-      <div><h3>Easy for your lawyer to approve</h3><p>Run by a UK company under UK GDPR. A <a href="/pages/dpa.html">data processing agreement</a>, a plain-English <a href="/pages/privacy.html">privacy policy</a> and one short list of what we collect.</p></div>
+    <div style="text-align:center;margin-top:48px;">
+      <a href="pages/docs.html" class="btn btn-outline">Full Documentation with All Options &rarr;</a>
     </div>
   </div>
 </section>
 
-<!-- ══ DATA ══ -->
-<section class="block dark" id="data">
-  <div class="wrap">
-    <p class="eyebrow">Your visitors' data</p>
-    <h2 class="title">The whole list fits <em>on one screen.</em></h2>
-    <p class="intro">This is everything the widget sends when someone answers a challenge. Nothing else leaves the page.</p>
-    <div class="ledger">
-      <div class="ledger-col yes">
-        <h3>What the widget sends</h3>
-        <ul>
-          <li>The answer they gave to the question</li>
-          <li>How long they took to answer</li>
-          <li>Their browser's user-agent string</li>
-          <li>The page it was solved on, so your key only works on your site</li>
-        </ul>
+<div class="divider"></div>
+
+<!-- ══ WHY NOT RECAPTCHA ══ -->
+<section class="section-sm">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>Privacy-First Verification That<br /><span class="gradient-text">Works for You</span></h2>
+    </div>
+
+    <div class="three-col">
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🔒</div>
+        <h3 style="margin-bottom:6px;">No Google Tracking</h3>
+        <p style="font-size:13.5px;">reCAPTCHA is run by an advertising company. LyraAuth sets no cookies and never shares data with third parties.</p>
       </div>
-      <div class="ledger-col no">
-        <h3>What it never does</h3>
-        <ul>
-          <li>Set cookies or use local storage</li>
-          <li>Use advertising IDs or fingerprint the device</li>
-          <li>Follow the visitor to other websites</li>
-          <li>Sell or share data with third parties</li>
-        </ul>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🧠</div>
+        <h3 style="margin-bottom:6px;">Open About Training</h3>
+        <p style="font-size:13.5px;">Every widget tells people their answer trains Lyra AI and links to the privacy policy. Nothing happens quietly behind the check.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">⚡</div>
+        <h3 style="margin-bottom:6px;">Drop-in Replacement</h3>
+        <p style="font-size:13.5px;">Same site key / secret key pattern as reCAPTCHA. One POST to verify. Migrate any existing integration in minutes.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🎮</div>
+        <h3 style="margin-bottom:6px;">Engaging Challenges</h3>
+        <p style="font-size:13.5px;">No more fire hydrants and crosswalks. Lyra's challenges test real cognitive ability — users find them interesting.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">♿</div>
+        <h3 style="margin-bottom:6px;">Works With Screen Readers</h3>
+        <p style="font-size:13.5px;">Every question is text with buttons or a text box. No image grids, no audio puzzles.</p>
+      </div>
+      <div class="card">
+        <div style="font-size:22px;margin-bottom:10px;">🇬🇧</div>
+        <h3 style="margin-bottom:6px;">UK Company, UK GDPR</h3>
+        <p style="font-size:13.5px;">Run by Lyra Ventures Ltd, with a data processing agreement your lawyer can sign.</p>
       </div>
     </div>
-    <p class="ledger-foot">Answers are anonymised and used to improve Lyra's AI models, and the widget tells every visitor that in one line before they answer. Details are in the <a href="/pages/privacy.html">privacy policy</a> and the <a href="/pages/dpa.html">DPA</a>.</p>
   </div>
 </section>
+
+<div class="divider"></div>
+
+<!-- ══ COMPARISON TABLE ══ -->
+<section class="section-sm" id="compare">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:40px;">
+      <span class="section-label">Why Switch</span>
+      <h2>LyraAuth vs the alternatives</h2>
+      <p style="max-width:460px;margin:14px auto 0;">How LyraAuth compares on the things site owners ask about.</p>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:.875rem;min-width:560px;">
+        <thead>
+          <tr>
+            <th style="padding:10px 16px;text-align:left;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">Feature</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--text);border-bottom:2px solid var(--border);background:var(--surface2);">✦ LyraAuth</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">reCAPTCHA v3</th>
+            <th style="padding:10px 16px;text-align:center;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);border-bottom:2px solid var(--border);background:var(--surface2);">hCaptcha</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Privacy — no third-party tracking</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Independent of ad networks</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Text questions, no image grids</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#dc2626;">✗</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Cognitive challenge variety</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;font-weight:600;color:var(--text);">14 types</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Score only</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--dim);">Image tasks</td>
+          </tr>
+          <tr>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">GDPR-friendly by design</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#ca8a04;font-weight:600;">~</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:#16a34a;font-weight:600;">✓</td>
+          </tr>
+          <tr style="background:var(--surface);">
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);color:var(--muted);">Free tier</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">10,000 / mo, forever</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">Yes</td>
+            <td style="padding:13px 16px;border-bottom:1px solid var(--border);text-align:center;color:var(--text);">Yes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ══ LYRA WATCH ══ -->
+<section style="padding:72px 0;border-top:1px solid var(--border);" id="watch">
+  <div class="container">
+    <div style="max-width:820px;margin:0 auto;">
+      <span class="section-label">New · Lyra Watch</span>
+      <h2 style="margin:10px 0 12px;">Follow the people moving the news,<br /><span class="gradient-text">live</span></h2>
+      <p>Lyra Watch tracks politicians, investors, executives and public figures. It finds everyone the media names,
+        with their job, a popularity rating, documented party and office, the issues they're covered for and the companies
+        they're linked to, plus their own posts and disclosed trades. Every item links to its public source.</p>
+      <div class="watch-stats" aria-live="polite">
+        <div class="watch-stat"><b id="wsPeople">–</b><span>public figures tracked</span></div>
+        <div class="watch-stat"><b id="wsToday">–</b><span>stories in the last 24 h</span></div>
+        <div class="watch-stat"><b id="wsViewers">–</b><span>watching live now</span></div>
+      </div>
+      <div class="watch-feats">
+        <div><b>Live studio</b>New headlines and posts stream in the moment they land, with who's named and how popular they are.</div>
+        <div><b>Popularity &amp; politics</b>A 0–100 attention rating, and only documented party membership and offices. Nothing guessed.</div>
+        <div><b>Posts, not just press</b>YouTube, Bluesky and official sites are read directly; X and Truth Social posts arrive via news coverage.</div>
+        <div><b>Who moves markets</b>On the days someone made news about a company, did its stock really jump? Measured from closing prices, with a record that grows every day.</div>
+        <div><b>Said &amp; traded</b>Every disclosed insider and politician trade, next to the days they were in the news about that same company.</div>
+        <div><b>Built for AI</b>A pay-per-request JSON API with 100 free credits, plus a free feed and <a href="/llms.txt"><u>llms.txt</u></a> for agents.</div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:26px;flex-wrap:wrap;">
+        <a href="watch/live/" class="btn btn-primary"><span class="live-dot" style="margin-right:6px;">Live</span> Watch live &rarr;</a>
+        <a href="watch/" class="btn btn-outline">Explore the free directory</a>
+        <a href="watch/account/" class="btn btn-outline">Watch Pro · API</a>
+      </div>
+      <p class="muted" style="margin-top:10px;font-size:13px;">The directory is free. Watch Pro (£7/month) adds the real-time stream and the full market record, and every paid plan includes it. <a href="/advertise/"><u>Advertise here</u></a>.</p>
+    </div>
+  </div>
+</section>
+<script>
+  (async () => {
+    const set = (id, v) => { const n = document.getElementById(id); if (n && v != null) n.textContent = Number(v).toLocaleString(); };
+    try {
+      const [people, live] = await Promise.all([
+        fetch("/api/watch/people?limit=1").then((r) => r.json()),
+        fetch("/api/watch/live/status").then((r) => r.json())]);
+      set("wsPeople", people.total); set("wsToday", live.events_today);
+      if (live.viewers > 0) set("wsViewers", live.viewers); else document.getElementById("wsViewers").closest(".watch-stat").remove();
+      const hs = document.getElementById("hs-stories"); if (hs && live.stories_24h) hs.textContent = Number(live.stories_24h).toLocaleString();
+    } catch {}
+  })();
+</script>
+
+<!-- ══ TREMOR INDEX ══ -->
+<section style="padding:72px 0;border-top:1px solid var(--border);" id="tremor">
+  <div class="container">
+    <div style="max-width:720px;margin:0 auto;">
+      <span class="section-label">Tremor Index · experimental</span>
+      <h2 style="margin:10px 0 12px;">Read a stock from public data,<br /><span class="gradient-text">with every source shown</span></h2>
+      <p>The Tremor Index reads a US stock from its price trend, the VIX, on-topic news headlines, SEC insider and fund
+        filings and politicians' disclosures. Each reading shows which sources responded and links to the filings behind it.</p>
+      <p style="margin-top:10px;">It is general information, not financial advice. Our backtest over 4 years and 99
+        large US stocks found the price-and-VIX model does not yet beat simple baselines, so readings show a lean, not
+        exact odds. Every reading's outcome is published.</p>
+      <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;">
+        <a href="/tremor/" class="btn btn-primary">Methodology, backtest &amp; track record &rarr;</a>
+        <a href="/tremor/reading" class="btn btn-outline">Open the Tremor Index</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CHAT CTA ══ -->
+<section style="padding:72px 0;background:var(--surface);border-top:1px solid var(--border);">
+  <div class="container">
+    <div style="max-width:640px;margin:0 auto;display:flex;gap:40px;align-items:center;flex-wrap:wrap;">
+      <div style="flex:1;min-width:240px;">
+        <span class="section-label">AI Chat</span>
+        <h2 style="margin:10px 0 12px;">Chat with Lyra —<br /><span class="gradient-text">sign up to try it</span></h2>
+        <p>Once you have an account, unlock the full Lyra AI chat — autonomous memory, real-time web search, and continuously improving reasoning. No local GPU required.</p>
+        <div style="display:flex;gap:10px;margin-top:24px;flex-wrap:wrap;">
+          <a href="dashboard/register.html" class="btn btn-primary">Create free account &rarr;</a>
+          <a href="dashboard/login.html" class="btn btn-outline">Sign in to chat</a>
+        </div>
+      </div>
+      <div style="flex:1;min-width:240px;">
+        <!-- Chat preview mockup -->
+        <div style="background:var(--bg);border:1px solid var(--border-hi);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+          <div style="background:var(--surface2);padding:10px 14px;border-bottom:1px solid var(--border);font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;"><span style="font-weight:600;color:var(--text);">✦ Lyra Chat</span></div>
+          <div style="padding:16px 14px;">
+            <div style="display:flex;gap:10px;margin-bottom:14px;">
+              <div style="width:26px;height:26px;background:var(--text);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6875rem;color:var(--bg);font-weight:700;">Y</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 8px 2px;padding:9px 12px;font-size:.8125rem;color:var(--text);">How does transformer attention work?</div>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <div style="width:26px;height:26px;background:var(--surface2);border:1px solid var(--border-hi);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem;">✦</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px 8px 2px 8px;padding:9px 12px;font-size:.8125rem;color:var(--muted);line-height:1.6;">Transformer attention computes a weighted sum of values, where weights come from the dot-product similarity of queries and keys...</div>
+            </div>
+          </div>
+          <div style="padding:10px 14px;border-top:1px solid var(--border);background:var(--surface);">
+            <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-size:.8125rem;color:var(--dim);">Message Lyra...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
 
 <!-- ══ PRICING ══ -->
-<section class="block" id="pricing">
-  <div class="wrap">
-    <p class="eyebrow">Pricing</p>
-    <h2 class="title">Free for most sites. <em>Fair after that.</em></h2>
-    <p class="intro">Every plan has every challenge type and the full API. Allowances are per month, shared across your sites. Cancel any time.</p>
-    <div class="plans">
-      <div class="plan free">
-        <h3>Free</h3>
-        <div class="price">£0</div>
-        <p class="vol">10,000 checks / mo</p>
-        <ul><li>1 site</li><li>All challenge types</li><li>No card, no time limit</li></ul>
-        <a class="btn btn-ink" href="/dashboard/register.html?next=/dashboard/">Get a site key</a>
-      </div>
-      <div class="plan">
-        <h3>Starter</h3>
-        <div class="price">£9<span>/mo</span></div>
-        <p class="vol">100,000 checks / mo</p>
-        <ul><li>10 sites</li><li>Email support</li><li>Tremor Index &amp; Lyra chat</li></ul>
-        <a class="btn btn-line" href="/dashboard/register.html?plan=starter">Choose Starter</a>
-      </div>
-      <div class="plan">
-        <h3>Pro</h3>
-        <div class="price">£29<span>/mo</span></div>
-        <p class="vol">500,000 checks / mo</p>
-        <ul><li>Unlimited sites</li><li>Email support</li><li>Tremor Index &amp; Lyra chat</li></ul>
-        <a class="btn btn-line" href="/dashboard/register.html?plan=pro">Choose Pro</a>
-      </div>
-      <div class="plan">
-        <h3>Business</h3>
-        <div class="price">£79<span>/mo</span></div>
-        <p class="vol">2,000,000 checks / mo</p>
-        <ul><li>Unlimited sites</li><li>Email support</li><li>Tremor Index &amp; Lyra chat</li></ul>
-        <a class="btn btn-line" href="/dashboard/register.html?plan=business">Choose Business</a>
-      </div>
-      <div class="plan">
-        <h3>Enterprise</h3>
-        <div class="price">£249<span>/mo</span></div>
-        <p class="vol">Unlimited checks</p>
-        <ul><li>Unlimited sites</li><li>Self-hosted option</li><li>Tremor Index &amp; Lyra chat</li></ul>
-        <a class="btn btn-line" href="/dashboard/register.html?plan=enterprise">Choose Enterprise</a>
-      </div>
+<section class="section" id="pricing">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:56px;">
+      <span class="section-label">Pricing</span>
+      <h2>Start free.<br /><span class="gradient-text">Pay when you grow.</span></h2>
+      <p style="max-width:560px;margin:14px auto 0;">These are the LyraAuth plans for websites. Every paid one also includes the Tremor Index and Lyra chat. Only want markets and Watch? Markets Pro is £12/mo and the Markets + Watch bundle £18/mo: <a href="/pricing/"><u>see every plan</u></a>.</p>
     </div>
-    <p class="plans-note">If a free site runs out of checks in a month, the widget says so and points to an upgrade. It never lets bots through silently. All plans: <a href="/pricing/">full pricing</a>.</p>
+
+    <div class="pricing-grid-5">
+
+      <!-- FREE -->
+      <div class="price-card5">
+        <div class="price-tier5">Free</div>
+        <div class="price-amount">£0<span>/forever</span></div>
+        <p class="price-desc5">Small sites and trying it out.</p>
+        <ul class="price-features">
+          <li>10,000 verifications / mo</li>
+          <li>1 site</li>
+          <li>Newswire and the Watch directory</li>
+          <li>14-day trial of Tremor and chat</li>
+          <li>No card needed</li>
+        </ul>
+        <a href="dashboard/register.html" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Create free account</a>
+      </div>
+
+      <!-- STARTER -->
+      <div class="price-card5">
+        <div class="price-tier5">Starter</div>
+        <div class="price-amount">£9<span>/mo</span></div>
+        <p class="price-desc5">Small businesses getting started.</p>
+        <ul class="price-features">
+          <li>100,000 verifications / mo</li>
+          <li>10 sites</li>
+          <li>Tremor Index &amp; Lyra chat</li>
+          <li>Email support</li>
+          
+        </ul>
+        <a href="dashboard/register.html?plan=starter" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Starter</a>
+      </div>
+
+      <!-- PRO — FEATURED -->
+      <div class="price-card5 price-card5-featured">
+        <div class="price-tier5" style="color:var(--text);">Pro — Most Popular</div>
+        <div class="price-amount">£29<span>/mo</span></div>
+        <p class="price-desc5">Growing sites that need real scale.</p>
+        <ul class="price-features">
+          <li>500,000 verifications / mo</li>
+          <li>Unlimited sites</li>
+          <li>All Starter features</li>
+          <li>Tremor Index &amp; Lyra chat</li>
+          <li>Priority support</li>
+        </ul>
+        <a href="dashboard/register.html?plan=pro" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:auto;">Subscribe to Pro</a>
+      </div>
+
+      <!-- BUSINESS -->
+      <div class="price-card5">
+        <div class="price-tier5">Business</div>
+        <div class="price-amount">£79<span>/mo</span></div>
+        <p class="price-desc5">High-traffic sites &amp; teams.</p>
+        <ul class="price-features">
+          <li>2,000,000 verifications / mo</li>
+          <li>Unlimited sites</li>
+          <li>All Pro features</li>
+          <li>Tremor Index &amp; Lyra chat</li> <li>Priority support</li>
+        </ul>
+        <a href="dashboard/register.html?plan=business" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Get Business</a>
+      </div>
+
+      <!-- ENTERPRISE -->
+      <div class="price-card5">
+        <div class="price-tier5">Enterprise</div>
+        <div class="price-amount">£249<span>/mo</span></div>
+        <p class="price-desc5">Large orgs. Full control.</p>
+        <ul class="price-features">
+          <li>Unlimited verifications</li>
+          <li>Self-hosted deployment</li>
+          <li>All Business features</li>
+          
+          <li>GDPR DPA included</li>
+          <li>Tremor Index &amp; Lyra chat</li>
+        </ul>
+        <a href="mailto:support@lyraauth.com" class="btn btn-outline" style="width:100%;justify-content:center;margin-top:auto;">Contact Sales</a>
+      </div>
+
+    </div>
+
+    <p style="text-align:center;font-size:13px;color:var(--dim);margin-top:28px;">All plans billed monthly. No contracts. Cancel anytime. Need a custom quote? <a href="mailto:support@lyraauth.com" style="color:var(--muted);">Email us.</a></p>
   </div>
 </section>
 
-<!-- ══ FAQ ══ -->
-<section class="block" style="padding-top:0" id="faq">
-  <div class="wrap">
-    <p class="eyebrow">Questions</p>
-    <h2 class="title">Before you switch</h2>
-    <div class="faq">
-      <details><summary>Is the free plan really free?</summary><p>Yes. 10,000 checks a month on one site, with no card and no end date. You only pay if you need more checks or more sites.</p></details>
-      <details><summary>What do my visitors see?</summary><p>One short question with a few buttons or a small text box, then a tick. Try the demo at the top of this page. That's exactly what they get.</p></details>
-      <details><summary>What happens to the answers?</summary><p>They're used to check the visitor is human. After that they're anonymised and used to improve Lyra's AI models. The widget says this in a line under every question and links to the privacy policy, so nothing is hidden from your visitors.</p></details>
-      <details><summary>Can bots get past it?</summary><p>No CAPTCHA stops every bot. LyraAuth mixes more than 14 kinds of question, scores how each answer was given as well as what it was, and makes each token work once, for one site, for a few minutes. Use it with rate limits and the other checks you'd normally have on a form.</p></details>
-      <details><summary>Who runs LyraAuth?</summary><p>Lyra Labs, a trading name of Lyra Ventures Ltd, a company registered in the United Kingdom. Contact <a href="mailto:support@lyraauth.com">support@lyraauth.com</a> or, for legal and data questions, <a href="mailto:legal@lyraauth.com">legal@lyraauth.com</a>.</p></details>
-      <details><summary>Do I need to change my privacy policy?</summary><p>Usually you add a line saying your forms use LyraAuth for spam protection and link to our <a href="/pages/privacy.html">privacy policy</a>. Business customers can sign our <a href="/pages/dpa.html">DPA</a>.</p></details>
+<div class="divider"></div>
+
+<!-- ══ CTA STRIP ══ -->
+<section style="padding:72px 0;background:var(--text);">
+  <div class="container" style="text-align:center;">
+    <h2 style="color:#faf9f7;margin-bottom:12px;letter-spacing:-0.03em;">One account. Everything Lyra.</h2>
+    <p style="color:rgba(250,249,247,0.6);max-width:440px;margin:0 auto 32px;font-size:1rem;">Watch the people moving markets, read the world's news, plug in your AI and protect your site. Free to start, no card needed.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <a href="dashboard/register.html" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:#faf9f7;color:#14120e;border-radius:8px;font-size:.9375rem;font-weight:600;text-decoration:none;">Create free account &rarr;</a>
+      <a href="watch/live/" style="display:inline-flex;align-items:center;gap:8px;padding:13px 28px;background:transparent;color:rgba(250,249,247,0.7);border:1px solid rgba(250,249,247,0.2);border-radius:8px;font-size:.9375rem;font-weight:500;text-decoration:none;">Open Lyra Watch Live</a>
     </div>
   </div>
 </section>
 
-<section class="cta">
-  <div class="wrap">
-    <h2>Your next form, <em>without Google.</em></h2>
-    <p>Get a free site key and add LyraAuth to one form today. It takes about five minutes.</p>
-    <div class="hero-actions">
-      <a href="/dashboard/register.html?next=/dashboard/" class="btn btn-ink">Get a free site key &rarr;</a>
-      <a href="/pages/docs.html" class="btn btn-line">Read the docs</a>
-    </div>
-  </div>
-</section>
+<div class="divider"></div>
 
-<div class="also">
-  <div class="wrap">
-    <b>Also from Lyra Labs</b>
-    <a href="/tremor/">Tremor Index</a>
-    <a href="/watch/">Lyra Watch</a>
-    <a href="/news/">Newswire</a>
-    <a href="/labs/">Lyra Labs</a>
-  </div>
-</div>
-
-</main>
-
-<footer>
-  <div class="wrap">
-    <div class="foot-grid">
+<!-- ══ FOOTER ══ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-grid">
       <div>
-        <a href="/" class="brand" style="font-size:19px"><img src="/img/logo-mark.svg" alt="" width="24" height="24" />LyraAuth</a>
-        <p style="color:var(--muted);margin:10px 0 0;max-width:300px">Privacy-first bot protection for website forms.</p>
+        <div class="footer-logo"><img src="/img/logo-mark.svg" alt="" width="24" height="24" style="vertical-align:-6px;margin-right:8px;border-radius:6px" />Lyra AI</div>
+        <p class="footer-desc">Live news, market signals, your own AI and bot protection.</p>
       </div>
-      <div>
-        <h4>Product</h4>
+      <div class="footer-col">
+        <h4>Products</h4>
         <ul>
-          <li><a href="#how">How it works</a></li>
-          <li><a href="#migrate">Switch from reCAPTCHA</a></li>
-          <li><a href="/pages/lyraauth.html">Challenge types</a></li>
-          <li><a href="/pricing/">Pricing</a></li>
-          <li><a href="/feedback/">Send feedback</a></li>
+          <li><a href="watch/">Lyra Watch</a></li>
+          <li><a href="watch/live/">Lyra Watch Live</a></li>
+          <li><a href="/tremor/">Tremor Index</a></li>
+          <li><a href="/news/">Newswire</a></li>
+          <li><a href="/labs/">Lyra Labs</a></li>
+          <li><a href="pages/lyraauth.html">LyraAuth</a></li>
+          <li><a href="watch/account/">Watch Pro &amp; API</a></li>
+          <li><a href="advertise/">Advertise</a></li>
+          <li><a href="feedback/">Send feedback</a></li>
+          <li><a href="mailto:support@lyraauth.com">Support: support@lyraauth.com</a></li>
         </ul>
       </div>
-      <div>
+      <div class="footer-col">
         <h4>Developers</h4>
         <ul>
-          <li><a href="/pages/docs.html">Documentation</a></li>
-          <li><a href="/pages/docs.html#quickstart">Quick start</a></li>
-          <li><a href="/pages/docs.html#api">API reference</a></li>
-          <li><a href="/dashboard/">Dashboard</a></li>
-          <li><a href="mailto:support@lyraauth.com">support@lyraauth.com</a></li>
+          <li><a href="pages/docs.html">Documentation</a></li>
+          <li><a href="pages/docs.html#quickstart">Quick Start</a></li>
+          <li><a href="pages/docs.html#api">API Reference</a></li>
+          <li><a href="pages/docs.html#terminal">Terminal CLI</a></li>
+          
+          <li><a href="dashboard/chat.html">AI Chat</a></li>
         </ul>
       </div>
-      <div>
+      <div class="footer-col">
         <h4>Legal</h4>
         <ul>
-          <li><a href="/pages/privacy.html">Privacy policy</a></li>
-          <li><a href="/pages/terms.html">Terms of service</a></li>
-          <li><a href="/pages/dpa.html">Data processing agreement</a></li>
-          <li><a href="/pages/security.html">Security</a></li>
-          <li><a href="/company/">Company</a></li>
+          <li><a href="pages/terms.html">Terms of Service</a></li>
+          <li><a href="pages/privacy.html">Privacy Policy</a></li>
+          <li><a href="pages/dpa.html">Data Processing Agreement</a></li>
         </ul>
       </div>
     </div>
-    <p class="legal">&copy; 2026 Lyra Labs. Lyra Labs is a trading name of Lyra Ventures Ltd, a company registered in the United Kingdom.</p>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Lyra Labs. All rights reserved. Lyra AI, <a href="company/">AegisOS, Omni-Agent Hub and FuelTrack</a> are Lyra Labs products.</p>
+      <p>Lyra Labs is a trading name of Lyra Ventures Ltd, a company registered in the United Kingdom.</p>
+    </div>
   </div>
 </footer>
 
+<script src="js/main.js?v=20261023c"></script>
 <script>
-  // Mobile menu
-  (function () {
-    var b = document.getElementById('menuBtn'), m = document.getElementById('mobileMenu');
-    b.addEventListener('click', function () {
-      var open = m.classList.toggle('open');
-      b.setAttribute('aria-expanded', open);
-    });
-    m.addEventListener('click', function (e) { if (e.target.tagName === 'A') { m.classList.remove('open'); b.setAttribute('aria-expanded', 'false'); } });
-  })();
-
-  // Server-language tabs
-  document.querySelectorAll('.tabs button').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var step = btn.closest('.step');
-      step.querySelectorAll('.tabs button').forEach(function (x) { x.setAttribute('aria-selected', x === btn); });
-      step.querySelectorAll('[data-panel]').forEach(function (p) { p.hidden = p.dataset.panel !== btn.dataset.tab; });
-    });
-  });
-
-  // Live demo
+  fetch('/api/wire/stats').then(function (r) { return r.json(); }).then(function (s) {
+    var f = function (n) { return Number(n || 0).toLocaleString(); };
+    document.getElementById('wn-articles').textContent = f(s.articles);
+    document.getElementById('wn-countries').textContent = f(s.countries);
+    document.getElementById('wn-langs').textContent = f(s.languages);
+  }).catch(function () {});
+</script>
+<script>
   (function () {
     var out = document.getElementById('demoOut'), token = null;
-    var esc = function (s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); };
-    window.lyraDemoVerified = function (t) {
-      token = t;
-      out.innerHTML = '<span class="d">// Passed. The widget put this in the form:</span>\n<span class="k">lyraauth_token</span> = <span class="s">"' + esc(String(t).slice(0, 26)) + '…"</span>\n<span class="d">// Now press Submit.</span>';
-    };
-    window.lyraDemoExpired = function () { token = null; out.innerHTML = '<span class="d">// The token expired. Answer again.</span>'; };
+    window.lyraDemoVerified = function (t) { token = t; out.textContent = '// Passed. The widget added a one-use token to the form.\n// Now press Submit.'; };
+    window.lyraDemoExpired = function () { token = null; out.textContent = '// The token expired. Answer again.'; };
     document.getElementById('demoForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!token) {
-        var f = document.querySelector('#demoForm input[name=lyraauth_token]');
-        token = f && f.value;
-      }
-      if (!token) { out.innerHTML = '<span class="d">// Blocked: no token yet.</span>\n<span class="d">// Your server would reject this submission.</span>'; return; }
-      out.innerHTML = '<span class="d">// Your server POSTs the token to siteverify and gets:</span>\n{ <span class="k">"success"</span>: <span class="s">true</span> }\n<span class="d">// The form goes through. A bot would have stopped above.</span>';
+      if (!token) { var f = document.querySelector('#demoForm input[name=lyraauth_token]'); token = f && f.value; }
+      out.textContent = token
+        ? '// Your server sends the token to siteverify and gets:\n{ "success": true }  → the form goes through.'
+        : '// Blocked: no token. Your server would reject this.';
     });
   })();
 </script>
