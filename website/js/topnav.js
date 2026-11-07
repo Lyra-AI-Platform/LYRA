@@ -27,7 +27,6 @@
     ['/tremor/', 'Tremor Index', /^\/(tremor|market)/],
     ['/watch/', 'Watch', /^\/watch\/?$/],
     ['/watch/live/', 'Live', /^\/watch\/live/],
-    ['/pages/docs.html', 'Docs', /docs\.html$/],
   ];
   var SETTINGS = [
     ['/account/', 'Account & security', 'Profile, password, signed-in browsers'],

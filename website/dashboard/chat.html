@@ -114,7 +114,11 @@
     .msg-body  { flex: 1; min-width: 0; padding-top: 2px; }
     .msg-name  { font-size: .6875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--dim); margin-bottom: 6px; }
     .msg-text  { font-size: .9375rem; line-height: 1.75; color: var(--text); white-space: pre-wrap; word-break: break-word; }
-    .msg-text.streaming::after { content: '▌'; animation: blink .75s step-start infinite; color: var(--muted); }
+    .msg-text p { margin: 0 0 .6em; } .msg-text p:last-child { margin-bottom: 0; }
+    .msg-text .md-h { font-weight: 600; margin-top: .4em; }
+    .msg-text ul, .msg-text ol { margin: 0 0 .6em; padding-left: 1.3em; } .msg-text li { margin: .15em 0; }
+    .msg-text code { font-family: ui-monospace, Menlo, monospace; font-size: .9em; padding: 1px 5px; border-radius: 5px; background: rgba(127,127,127,.15); }
+    .msg-text.streaming > :last-child::after, .msg-text.streaming:empty::after { content: '▌'; animation: blink .75s step-start infinite; color: var(--muted); }
     @keyframes blink { 50% { opacity: 0; } }
 
     .status-pill {
@@ -432,7 +436,8 @@ function handleWSMsg(msg) {
     case 'token':
       if (!_streamEl) startAssistantBubble();
       clearStatus();
-      _streamEl.textContent += msg.content;
+      _streamEl.dataset.raw = (_streamEl.dataset.raw || '') + msg.content;
+      _streamEl.innerHTML = mdHtml(_streamEl.dataset.raw);
       scrollBottom();
       break;
     case 'done':
@@ -660,7 +665,7 @@ async function loadConversation(convId, itemEl) {
       <div class="msg-avatar ${isUser ? 'user' : 'assistant'}">${isUser ? 'Y' : '✦'}</div>
       <div class="msg-body">
         <div class="msg-name">${isUser ? 'You' : 'Lyra'}</div>
-        <div class="msg-text">${escHtml(m.content)}</div>
+        <div class="msg-text">${isUser ? escHtml(m.content) : mdHtml(m.content)}</div>
       </div>`;
     msgWrap.appendChild(el);
   });
@@ -692,6 +697,34 @@ inputEl.addEventListener('input', () => {
 document.getElementById('new-chat-btn').addEventListener('click', startNewChat);
 
 /* ════ Utility ════ */
+// Turns the model's Markdown into clean text: headings, bold, italics, code, lists and links.
+// Everything is escaped first, so a reply can never inject HTML.
+function mdInline(t) {
+  return t
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\s][^*]*)\*/g, '$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+}
+function mdHtml(src) {
+  const lines = escHtml(src).split('\n');
+  let html = '', list = null;
+  const close = () => { if (list) { html += `</${list}>`; list = null; } };
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    let m;
+    if ((m = line.match(/^\s*#{1,6}\s+(.*)$/))) { close(); html += `<p class="md-h">${mdInline(m[1].replace(/\s*#+$/, ''))}</p>`; }
+    else if ((m = line.match(/^\s*[-*•]\s+(.*)$/))) { if (list !== 'ul') { close(); html += '<ul>'; list = 'ul'; } html += `<li>${mdInline(m[1])}</li>`; }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)$/))) { if (list !== 'ol') { close(); html += '<ol>'; list = 'ol'; } html += `<li>${mdInline(m[1])}</li>`; }
+    else if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { close(); }
+    else if (!line.trim()) { close(); }
+    else { close(); html += `<p>${mdInline(line)}</p>`; }
+  }
+  close();
+  return html;
+}
+
 function escHtml(s) {
   return String(s)
     .replace(/&/g, '&amp;')

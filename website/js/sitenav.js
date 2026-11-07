@@ -1,7 +1,7 @@
 /* The same main menu on every public page. Signed-in pages get the fuller bar from topnav.js. */
 (function () {
   var LINKS = [['/news/', 'News'], ['/watch/live/', 'Live'], ['/tremor/', 'Tremor Index'], ['/watch/', 'Watch'],
-    ['/watch/account/', 'Watch Pro'], ['/pricing/', 'Pricing'], ['/pages/docs.html', 'Docs']];
+    ['/watch/account/', 'Watch Pro'], ['/pricing/', 'Pricing']];
 
   function list() {
     var ul = document.createElement('ul');

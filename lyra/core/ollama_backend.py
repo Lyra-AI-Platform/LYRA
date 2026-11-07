@@ -22,7 +22,7 @@ from lyra.core import chat_speed
 
 SYSTEM_CHARS = 2400       # about 600 tokens of the model's own instructions
 HISTORY_TURNS = 8         # the last eight messages of the conversation
-MAX_REPLY = 1024
+MAX_REPLY = 450          # a CPU model writes a few words a second, so keep replies short
 
 
 class Unavailable(Exception):
@@ -41,8 +41,14 @@ def _url() -> str:
     return os.getenv("LYRA_OLLAMA_URL", "http://127.0.0.1:11434").rstrip("/")
 
 
+# Comes first so it stays in Ollama's cache. Short plain answers arrive sooner and read cleanly.
+STYLE = ("Reply briefly: two to five sentences, or a short list when a list really helps. "
+         "Write plain conversational text. Do not use # headings, ** bold, tables or emoji.\n\n")
+
+
 def prompt_for(messages: List[Dict], system_prompt: str, context: str = "") -> List[Dict]:
-    system = system_prompt if len(system_prompt) <= SYSTEM_CHARS else system_prompt[:SYSTEM_CHARS] + "\n[…]"
+    room = SYSTEM_CHARS - len(STYLE)
+    system = STYLE + (system_prompt if len(system_prompt) <= room else system_prompt[:room] + "\n[…]")
     turns = [{"role": m["role"], "content": m["content"]} for m in messages[-HISTORY_TURNS:]
              if m.get("role") in ("user", "assistant")]
     return [{"role": "system", "content": system}] + chat_speed.with_context(turns, context)
