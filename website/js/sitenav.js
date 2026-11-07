@@ -51,7 +51,7 @@
       var pub = document.querySelector('nav.nav');
       if (pub) pub.setAttribute('data-appnav-hide', '');
       var t = document.createElement('script');
-      t.src = '/js/topnav.js?v=20261107b';
+      t.src = '/js/topnav.js?v=20261107c';
       document.head.appendChild(t);
       return;
     }
