@@ -16,8 +16,8 @@
   }
 
   // Show as many links as fit between the logo and the page's own buttons; the rest go under "More".
-  var STYLE = '.nav .nav-inner{gap:12px}.nav .nav-links.sn-fit{flex:1 1 auto;min-width:0;flex-wrap:nowrap;overflow:visible}' +
-    '.sn-fit>li{flex:none}.sn-more{position:relative}.sn-more>button{background:none;border:0;font:450 0.875rem/1.4 inherit;font-family:inherit;color:rgba(250,249,247,.72);cursor:pointer;padding:6px 9px;border-radius:6px;white-space:nowrap}' +
+  var STYLE = '.nav .nav-inner{gap:12px}.nav .nav-links.sn-fit{flex:1 1 auto;min-width:0;flex-wrap:nowrap;overflow:visible;align-items:center;justify-content:center}.sn-fit>li{display:flex;align-items:center}.sn-fit>li[hidden]{display:none}' +
+    '.sn-fit>li{flex:none}.sn-fit>li>a{line-height:1.4}.sn-more{position:relative}.sn-more>button{display:inline-flex;align-items:center;gap:4px;background:none;border:0;font-family:inherit;font-size:.875rem;font-weight:450;line-height:inherit;color:rgba(250,249,247,.72);cursor:pointer;padding:6px 9px;border-radius:6px;white-space:nowrap}' +
     '.sn-more>button:hover,.sn-more>button[aria-expanded=true]{color:#faf9f7;background:rgba(250,249,247,.08)}.sn-menu{display:none;position:absolute;top:calc(100% + 8px);left:0;min-width:200px;padding:6px;border-radius:12px;' +
     'background:#14120e;border:1px solid rgba(250,249,247,.14);box-shadow:0 12px 32px rgba(0,0,0,.35);list-style:none;margin:0;z-index:300}.sn-menu.open{display:block}' +
     '.sn-menu a{display:block;padding:9px 12px;border-radius:8px;color:#faf9f7!important;text-decoration:none;white-space:nowrap}.sn-menu a:hover{background:rgba(250,249,247,.08)}';
@@ -32,8 +32,9 @@
     function overflowing() {
       var r = ul.getBoundingClientRect();
       var limit = cta ? cta.getBoundingClientRect().left - 8 : ul.parentNode.getBoundingClientRect().right;
-      var last = [].slice.call(ul.children).filter(function (c) { return !c.hidden; }).pop();
-      return r.width > 0 && last && last.getBoundingClientRect().right > Math.min(r.right, limit);
+      var shown = [].slice.call(ul.children).filter(function (c) { return !c.hidden; });
+      if (!r.width || !shown.length) return false;
+      return shown[shown.length - 1].getBoundingClientRect().right > Math.min(r.right, limit) + 0.5 || shown[0].getBoundingClientRect().left < r.left - 0.5;
     }
     for (var i = items.length - 1; i >= 0 && overflowing(); i--) {
       items[i].hidden = true;
