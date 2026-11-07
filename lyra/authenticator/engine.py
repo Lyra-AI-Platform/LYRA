@@ -567,9 +567,9 @@ class ChallengeEngine:
                           training_value=1.9)
 
         else:
-            # Fallback to word complete
+            # Fallback to word complete, labelled as what it is so the training data stays clean
             prompt, options, answer = random.choice(WORD_COMPLETE_CHALLENGES)
-            c = Challenge(id=cid, type=ctype, prompt=prompt, options=options,
+            c = Challenge(id=cid, type=ChallengeType.WORD_COMPLETE, prompt=prompt, options=options,
                           correct_answer=answer, display_data={}, training_value=1.0)
 
         c.expires_at = now + 300  # 5 minute expiry
