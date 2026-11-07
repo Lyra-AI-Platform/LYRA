@@ -42,9 +42,9 @@
   var CHEV = 'M6 9l6 6 6-6';
 
   var CSS = '' +
-    '.tn{position:sticky;top:0;z-index:950;background:#14120e;color:#faf9f7;font:14px/1.2 Inter,system-ui,-apple-system,sans-serif;' +
+    '.tn{position:sticky;top:0;z-index:950;background:#14120e radial-gradient(600px 120px at 100% 0,rgba(225,29,72,.26),transparent 70%);color:#faf9f7;font:14px/1.2 Inter,system-ui,-apple-system,sans-serif;' +
       'background-image:radial-gradient(600px 120px at 100% 0,rgba(225,29,72,.28),transparent 70%),radial-gradient(500px 120px at 0 100%,rgba(180,83,9,.18),transparent 70%);border-bottom:1px solid rgba(250,249,247,.08)}' +
-    '.tn-in{max-width:1240px;margin:0 auto;height:60px;padding:0 20px;display:flex;align-items:center;gap:18px}' +
+    '.tn-in{max-width:1240px;margin:0 auto;height:59px;padding:0 20px;display:flex;align-items:center;gap:18px}' +
     '.tn-brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;color:#faf9f7;text-decoration:none;flex:none}' +
     '.tn-brand img{width:26px;height:26px;border-radius:7px;box-shadow:0 0 0 1px rgba(250,249,247,.16)}' +
     '.tn-tabs{display:flex;align-items:center;gap:2px;flex:1;min-width:0}' +
@@ -126,6 +126,7 @@
 
     document.body.prepend(sheet);
     document.body.prepend(nav);
+    document.documentElement.classList.add('tn-ready');
     document.querySelectorAll('[data-appnav-hide]').forEach(function (el) { el.style.display = 'none'; });
     var pill = document.getElementById('lyra-home-pill');
     if (pill) pill.remove();

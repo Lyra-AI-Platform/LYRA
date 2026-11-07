@@ -35,6 +35,39 @@
   var marker = /(?:^|;\s*)lyra_in=1/.test(document.cookie);
   window.lyraSignedIn = marker;
 
+  // One menu bar on every page, chosen before the page draws so nothing flashes and swaps.
+  // Members: the public header is hidden at once and a bar-shaped placeholder holds its place
+  // until topnav.js builds the member bar. Visitors: the public links stay invisible until
+  // sitenav.js has fitted them. Both give up after 2.5 s so a page never waits on a script.
+  try {
+    var root = document.documentElement;
+    root.classList.add(marker ? 'lyra-member' : 'sn-wait');
+    var bar = document.createElement('style');
+    bar.textContent =
+      'html.lyra-member nav.nav,html.lyra-member [data-appnav-hide]{display:none!important}' +
+      'html.lyra-member:not(.tn-ready) body::before{content:"";display:block;position:sticky;top:0;z-index:950;height:60px;' +
+        'background:#14120e radial-gradient(600px 120px at 100% 0,rgba(225,29,72,.26),transparent 70%)}' +
+      'html.sn-wait nav.nav .nav-links{visibility:hidden}' +
+      'nav.nav{height:60px!important;background:#14120e radial-gradient(600px 120px at 100% 0,rgba(225,29,72,.26),transparent 70%)!important;' +
+          'border-bottom:1px solid rgba(250,249,247,.08)!important;font-family:Inter,system-ui,-apple-system,sans-serif}' +
+          'nav.nav .nav-inner{max-width:1240px!important;height:60px!important;padding:0 20px!important;margin:0 auto}' +
+          'nav.nav .nav-logo{display:flex;align-items:center;gap:9px;font-weight:600;font-size:15px;color:#faf9f7!important;text-decoration:none}' +
+          'nav.nav .nav-logo img{width:26px;height:26px;margin:0!important;border-radius:7px!important;box-shadow:0 0 0 1px rgba(250,249,247,.16);vertical-align:middle!important}' +
+          'nav.nav .nav-links a{font-size:14px;color:rgba(250,249,247,.72)}nav.nav .nav-links a:hover,nav.nav .nav-links a[aria-current=page]{color:#faf9f7;background:rgba(250,249,247,.08)}' +
+      'header.tn,nav.nav{view-transition-name:lyra-bar}' +
+      '::view-transition-group(lyra-bar){animation:none}::view-transition-old(lyra-bar){display:none}::view-transition-new(lyra-bar){animation:none}';
+    document.head.appendChild(bar);
+    function settle() { root.classList.remove('sn-wait'); if (!root.classList.contains('tn-ready')) root.classList.remove('lyra-member'); }
+    // Pages that load neither menu script settle as soon as they're parsed.
+    document.addEventListener('DOMContentLoaded', function () {
+      var logo = document.querySelector('nav.nav .nav-logo');
+      if (logo && logo.lastChild && logo.lastChild.nodeType === 3) logo.lastChild.textContent = 'Lyra';
+      if (!document.querySelector('script[src*="sitenav.js"], script[src*="topnav.js"]')) settle();
+      else root.classList.remove('sn-wait');
+    });
+    setTimeout(settle, 2500);
+  } catch (e) {}
+
   window.lyraToLogin = function () {
     location.href = '/dashboard/login.html?next=' + encodeURIComponent(location.pathname + location.search);
   };
@@ -86,7 +119,7 @@
       nav.src = '/js/appnav.js';
       document.head.appendChild(nav);
     }
-    if (document.body.getAttribute('data-appnav') === 'drawer' && !document.querySelector('[data-appnav-toggle]') && !document.getElementById('lyra-home-pill')) {
+    if (document.body.getAttribute('data-appnav') === 'drawer' && !document.querySelector('[data-appnav-toggle]') && !document.getElementById('lyra-home-pill') && !document.querySelector('header.tn') && !window.lyraTopNav) {
       var pill = document.createElement('button');
       pill.type = 'button';
       pill.id = 'lyra-home-pill';
