@@ -49,12 +49,13 @@
   <link rel="apple-touch-icon" href="/img/app/icon-apple-180.png" />
   <link rel="stylesheet" href="css/main.css?v=20261026a" />
   <script src="/js/session.js?v=20261026a"></script>
+  <script src="/js/topnav.js?v=20261107a" defer></script>
   <script src="/js/sitenav.js" defer></script>
 </head>
 <body>
-<a class="skip-link" href="#main">Skip to content</a>
+<a class="skip-link" href="#home">Skip to content</a>
 
-<nav class="nav nav-wide" id="nav">
+<nav class="nav nav-wide" id="nav" data-appnav-hide>
   <div class="nav-inner">
     <a href="/" class="nav-logo"><img src="/img/logo-mark.svg" alt="" width="26" height="26" style="vertical-align:-7px;margin-right:8px;border-radius:6px" />Lyra AI</a>
     <ul class="nav-links">
@@ -73,12 +74,12 @@
       <a href="dashboard/login.html" class="btn btn-outline" style="padding:7px 16px;font-size:13px;">Sign in</a>
       <a href="dashboard/register.html" class="btn btn-primary" style="padding:7px 16px;font-size:13px;">Create account</a>
     </div>
-    <button class="nav-hamburger" id="hamburger" aria-label="Menu">
+    <button class="nav-hamburger" id="hamburger" aria-label="Menu" aria-controls="nav-mobile" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
 </nav>
-<div id="main" class="nav-mobile" id="nav-mobile">
+<div class="nav-mobile" id="nav-mobile">
   <a href="#products">Products</a>
   <a href="/news/">News</a>
   <a href="/labs/">Labs</a>
@@ -305,7 +306,7 @@
     <div style="text-align:center;margin-bottom:48px;">
       <span class="section-label">Integration</span>
       <h2>Add to Any Site in<br /><span class="gradient-text">30 Seconds</span></h2>
-      <p style="max-width:480px;margin:14px auto 0;">Works with every framework and language. Same API surface as reCAPTCHA — drop-in replacement.</p>
+      <p style="max-width:480px;margin:14px auto 0;">Works with every framework and language. Same API surface as reCAPTCHA — drop-in replacement. If you want it done with you, it is 30 minutes and one form: <a href="mailto:legal@lyraauth.com?subject=30%20minutes%2C%20one%20form">book that half hour</a>.</p>
     </div>
 
     <div class="two-col" style="gap:40px;">
@@ -841,12 +842,12 @@ onMounted(() => {
     </div>
     <div class="footer-bottom">
       <p>&copy; 2026 Lyra Labs. All rights reserved. Lyra AI, <a href="company/">AegisOS, Omni-Agent Hub and FuelTrack</a> are Lyra Labs products.</p>
-      <p>Lyra Labs is a trading name of Lyra Ventures Ltd, a company registered in the United Kingdom.</p>
+      <p>Lyra Labs is a trading name of Lyra Ventures Ltd, company number 17547849, registered in England and Wales. Registered office: 124 City Road, London, EC1V 2NX.</p>
     </div>
   </div>
 </footer>
 
-<script src="js/main.js?v=20261023c"></script>
+<script src="js/main.js?v=20261107a"></script>
 <script>
   fetch('/api/wire/stats').then(function (r) { return r.json(); }).then(function (s) {
     var f = function (n) { return Number(n || 0).toLocaleString(); };

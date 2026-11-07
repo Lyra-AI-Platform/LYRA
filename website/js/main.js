@@ -59,10 +59,11 @@ const hamburger = document.getElementById('hamburger');
 const navMobile = document.getElementById('nav-mobile');
 if (hamburger && navMobile) {
   hamburger.addEventListener('click', () => {
-    navMobile.classList.toggle('open');
+    const open = navMobile.classList.toggle('open');
+    hamburger.setAttribute('aria-expanded', String(open));
   });
   navMobile.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => navMobile.classList.remove('open'));
+    a.addEventListener('click', () => { navMobile.classList.remove('open'); hamburger.setAttribute('aria-expanded', 'false'); });
   });
 }
 
