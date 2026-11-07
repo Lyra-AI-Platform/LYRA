@@ -8,7 +8,7 @@ from typing import Dict, Optional, Tuple
 
 # tier: (LyraAuth verifications a month across the account, active sites). None = no limit.
 SITE_LIMITS: Dict[str, Tuple[Optional[int], Optional[int]]] = {
-    "free": (1_000, 1),
+    "free": (10_000, 1),
     "starter": (100_000, 10),
     "pro": (500_000, None),
     "business": (2_000_000, None),

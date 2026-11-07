@@ -5,8 +5,8 @@ from lyra.api import plans
 
 
 @pytest.mark.parametrize("tier,month,sites", [
-    ("free", 1_000, 1), ("starter", 100_000, 10), ("pro", 500_000, None),
-    ("business", 2_000_000, None), ("enterprise", None, None), ("markets", 1_000, 1), (None, 1_000, 1),
+    ("free", 10_000, 1), ("starter", 100_000, 10), ("pro", 500_000, None),
+    ("business", 2_000_000, None), ("enterprise", None, None), ("markets", 10_000, 1), (None, 10_000, 1),
 ])
 def test_limits(tier, month, sites):
     assert plans.site_limits(tier) == (month, sites)
