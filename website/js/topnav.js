@@ -80,7 +80,7 @@
     '.tn-sheet h6{font:600 10.5px "JetBrains Mono",monospace;letter-spacing:.14em;text-transform:uppercase;color:rgba(250,249,247,.5);margin:18px 4px 8px}' +
     '.tn-sheet a{display:block;padding:12px 8px;border-bottom:1px solid rgba(250,249,247,.08);color:#faf9f7;text-decoration:none;font-size:15px}' +
     '.tn a:focus-visible,.tn button:focus-visible{outline:2px solid #fb7185;outline-offset:2px}' +
-    '@media (max-width:1180px){.tn-tab.tn-opt{display:none}}' +
+    '.tn-tab.tn-opt,.tn-find{display:none}' +
     '@media (max-width:860px){.tn-tabs,.tn-find{display:none}.tn-burger{display:inline-flex}.tn-in{justify-content:space-between}}' +
     '@media (prefers-reduced-motion:reduce){.tn-live,.tn-pop{animation:none}}';
 
@@ -99,7 +99,7 @@
           }).join('') + '</div></div>';
       }
       var current = t[2] && t[2].test(path);
-      var optional = i >= 2 && i <= 3 ? ' tn-opt' : '';
+      var optional = [2, 3, 6].indexOf(i) > -1 ? ' tn-opt' : '';
       var label = t[1] === 'Live' ? '<span class="tn-live"></span>Live' : esc(t[1]);
       return '<a class="tn-tab' + optional + '" href="' + t[0] + '"' + (current ? ' aria-current="page"' : '') + '>' + label + '</a>';
     }).join('');
