@@ -38,6 +38,8 @@ class VerifyRequest(BaseModel):
     answer_time_ms: int
     site_key: str
     user_agent: str = ""
+    pow_nonce: Optional[int] = None    # solution to the challenge's proof of work
+    signals: dict = {}                 # webdriver / interacted / headless, from the widget
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -82,7 +84,7 @@ async def get_challenge(request: Request, site_key: str = "", difficulty: str = 
     """Serve a fresh challenge to the widget of a registered site."""
     ratelimit.check(f"lyraauth-challenge:{ratelimit.client_ip(request)}", PER_IP_PER_MINUTE, 60)
     _require_site(site_key, request, db)
-    c = challenge_engine.generate_challenge(difficulty)
+    c = challenge_engine.generate_challenge(difficulty, client_key=ratelimit.client_ip(request))
     c.site_key = site_key
     return {
         "id": c.id,
@@ -90,6 +92,7 @@ async def get_challenge(request: Request, site_key: str = "", difficulty: str = 
         "prompt": c.prompt,
         "options": c.options,
         "expires_in": TOKEN_TTL_MINUTES * 60,
+        "pow": {"alg": "SHA-256", "salt": c.pow_salt, "bits": c.pow_bits},
     }
 
 
@@ -110,11 +113,15 @@ async def verify_challenge(req: VerifyRequest, request: Request, db: Session = D
         answer_time_ms=req.answer_time_ms,
         site_key=req.site_key,
         user_agent=req.user_agent,
+        pow_nonce=req.pow_nonce,
+        signals={k: bool(v) for k, v in (req.signals or {}).items() if k in ("webdriver", "interacted", "headless")},
+        client_key=ratelimit.client_ip(request),
     )
     is_human, confidence, raw_token = challenge_engine.verify_response(resp)
 
     if not is_human:
-        return {"success": False, "message": "Verification failed. Please try again."}
+        logger.info("LyraAuth refused an attempt: %s", resp.reason)
+        return {"success": False, "message": "Verification failed. Please try again.", "reason": resp.reason}
 
     site_id = site.id if site else None
 

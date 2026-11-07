@@ -36,6 +36,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from lyra.authenticator import shield
+
 logger = logging.getLogger(__name__)
 
 DATA_DIR = Path(__file__).parent.parent.parent / "data" / "auth"
@@ -74,6 +76,9 @@ class Challenge:
     expires_at: float = 0.0
     training_value: float = 1.0  # how valuable this is as training data (0-2)
     site_key: str = ""           # the site it was issued to
+    pow_salt: str = ""           # proof of work the browser must solve (see shield.py)
+    pow_bits: int = 0
+    client_key: str = ""         # who asked for it (IP), for back-off after failures
 
 
 @dataclass
@@ -88,6 +93,10 @@ class ChallengeResponse:
     is_human: bool = False
     confidence: float = 0.0
     training_label: Optional[str] = None
+    pow_nonce: Optional[int] = None
+    signals: Dict = field(default_factory=dict)
+    client_key: str = ""
+    reason: str = ""             # why it failed, for logs and the site owner
 
 
 # ── Challenge Library ─────────────────────────────────────────────────────────
@@ -406,6 +415,7 @@ class ChallengeEngine:
         self.challenges_served = 0
         self.challenges_passed = 0
         self.training_records = 0
+        self.failures = shield.FailureLog()
         self._cleanup_task: Optional[asyncio.Task] = None
 
     def start(self):
@@ -438,10 +448,19 @@ class ChallengeEngine:
         }
         return {"site_key": site_key, "secret_key": secret_key}
 
-    def generate_challenge(self, difficulty: str = "normal") -> Challenge:
-        """Generate a fresh challenge from random type."""
-        ctype = random.choice(list(ChallengeType))
-        return self._build_challenge(ctype, difficulty)
+    def generate_challenge(self, difficulty: str = "normal", client_key: str = "") -> Challenge:
+        """A fresh challenge with a right answer, plus proof of work sized to the client's record."""
+        for _ in range(20):
+            c = self._build_challenge(random.choice(list(ChallengeType)), difficulty)
+            if c.correct_answer is not None:
+                break
+            self._active.pop(c.id, None)       # opinion questions can't pass anyone on their own
+            self.challenges_served -= 1
+        c.created_at = time.time()
+        c.client_key = client_key
+        c.pow_salt = shield.new_salt()
+        c.pow_bits = shield.difficulty_for(self.failures.count(client_key))
+        return c
 
     def _build_challenge(self, ctype: ChallengeType, difficulty: str) -> Challenge:
         cid = str(uuid.uuid4())[:12]
@@ -561,52 +580,48 @@ class ChallengeEngine:
     def verify_response(self, resp: ChallengeResponse) -> Tuple[bool, float, str]:
         """
         Verify a challenge response.
-        Returns: (is_human, confidence, token)
+        Returns: (is_human, score, token). resp.reason says why a failure failed.
         """
         # One attempt per challenge: a solved challenge must not mint a second token.
         challenge = self._active.pop(resp.challenge_id, None)
         if not challenge:
+            resp.reason = "unknown-challenge"
             return False, 0.0, ""
+        key = resp.client_key or challenge.client_key
+
+        def fail(reason: str, value: float = 0.0):
+            resp.reason = reason
+            self.failures.record(key)
+            return False, value, ""
 
         if challenge.site_key and challenge.site_key != resp.site_key:
-            return False, 0.0, ""
+            return fail("wrong-site")
+        now = time.time()
+        if now > challenge.expires_at:
+            return fail("expired")
 
-        if time.time() > challenge.expires_at:
-            return False, 0.0, ""
+        answer = (resp.answer or "").strip()
+        if challenge.options and answer not in [o.strip() for o in challenge.options]:
+            return fail("not-an-option")
+        graded = challenge.correct_answer is not None
+        correct = graded and answer == challenge.correct_answer.strip()
 
-        # Bot detection heuristics
-        if resp.answer_time_ms < 400:   # Too fast — bots answer instantly
-            return False, 0.0, ""
-        if resp.answer_time_ms > 120_000:  # 2 minutes — probably abandoned
-            return False, 0.1, ""
+        signals = dict(resp.signals or {})
+        if resp.pow_nonce is None and not resp.signals:
+            signals["legacy_widget"] = True        # an old cached widget.js (before 1.3.0)
+        value, reason = shield.score(
+            correct=correct, graded=graded,
+            pow_passed=shield.pow_ok(challenge.pow_salt, resp.pow_nonce, challenge.pow_bits),
+            issued_at=challenge.created_at, now=now, claimed_ms=resp.answer_time_ms,
+            signals=signals)
+        if reason:
+            return fail(reason, value)
 
-        # Score the answer
-        confidence = 0.5  # base
-        is_correct = True
-
-        if challenge.correct_answer is not None:
-            is_correct = resp.answer.strip() == challenge.correct_answer.strip()
-            confidence = 0.95 if is_correct else 0.1
-        else:
-            # Subjective challenge — any non-empty answer from a human is valid
-            if resp.answer.strip():
-                confidence = 0.85
-                is_correct = True
-
-        # Time-based confidence boost (human-typical response 1-30s)
-        if 1000 < resp.answer_time_ms < 30_000:
-            confidence = min(1.0, confidence + 0.05)
-
-        is_human = confidence > 0.6
-
-        if is_human:
-            # Record as training data
-            self._store_training_record(challenge, resp, confidence)
-            self.challenges_passed += 1
-            token = self._mint_token(resp.site_key, resp.session_id, confidence)
-            return True, confidence, token
-
-        return False, confidence, ""
+        self.failures.clear(key)
+        resp.is_human, resp.confidence = True, value
+        self._store_training_record(challenge, resp, value)
+        self.challenges_passed += 1
+        return True, value, self._mint_token(resp.site_key, resp.session_id, value)
 
     def _store_training_record(self, challenge: Challenge, resp: ChallengeResponse, conf: float):
         """Convert solved challenge into a training data record."""

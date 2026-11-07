@@ -20,6 +20,10 @@
  * the local server; data-callback, data-expired-callback and data-error-callback name global
  * functions; a token that expires clears itself, calls back and shows a fresh challenge.
  *
+ * Changes in 1.3.0: every challenge carries a small SHA-256 proof of work, solved in the
+ * background while the question is read, so mass solving costs real computing time; the widget
+ * also tells the server whether the browser reports automation and whether anyone touched it.
+ *
  * Privacy: Users are clearly told their answer trains an AI.
  * See our Privacy Policy and Terms at https://lyraauth.com/pages/privacy.html and https://lyraauth.com/pages/terms.html
  */
@@ -27,7 +31,7 @@
 (function (window) {
   'use strict';
 
-  const LYRAAUTH_VERSION = '1.2.0';
+  const LYRAAUTH_VERSION = '1.3.0';
   // currentScript only exists while this file first runs, so it's read here.
   const SCRIPT_SRC = document.currentScript && document.currentScript.src;
   // The API lives wherever this script came from. LYRAAUTH_API still overrides it.
@@ -39,6 +43,33 @@
   function namedFunction(container, attribute) {
     const fn = window[container.getAttribute(attribute) || ''];
     return typeof fn === 'function' ? fn : null;
+  }
+
+  // ── Proof of work ─────────────────────────────────────────────────────────
+  // Find n where SHA-256(salt + n) starts with `bits` zero bits. Hashes run in batches so the
+  // page stays responsive; a person never waits on it.
+  function zeroBits(buf) {
+    const b = new Uint8Array(buf);
+    let bits = 0;
+    for (let i = 0; i < b.length; i++) {
+      if (b[i] === 0) { bits += 8; continue; }
+      bits += Math.clz32(b[i]) - 24;
+      break;
+    }
+    return bits;
+  }
+  async function solvePow(salt, bits) {
+    if (!bits) return 0;
+    if (!(window.crypto && crypto.subtle)) throw new Error('This page needs HTTPS for LyraAuth.');
+    const enc = new TextEncoder();
+    const BATCH = 1000;
+    for (let start = 0; start < 2 ** 26; start += BATCH) {
+      const jobs = [];
+      for (let n = start; n < start + BATCH; n++) jobs.push(crypto.subtle.digest('SHA-256', enc.encode(salt + n)));
+      const results = await Promise.all(jobs);
+      for (let i = 0; i < results.length; i++) if (zeroBits(results[i]) >= bits) return start + i;
+    }
+    throw new Error('Proof of work not found');
   }
 
   // ── Styles ──────────────────────────────────────────────────────────────────
@@ -253,6 +284,10 @@
       this.selectedAnswer = null;
       this.sessionId = this._generateSessionId();
       this.startTime = 0;
+      this.interacted = false;
+      // Real pointer, touch or key input inside the widget (isTrusted is false for scripted events).
+      const touched = (e) => { if (e.isTrusted) this.interacted = true; };
+      ['pointerdown', 'touchstart', 'keydown'].forEach((t) => container.addEventListener(t, touched, { passive: true }));
       this.token = null;
 
       this._injectStyles();
@@ -280,6 +315,9 @@
         this.challenge = await res.json();
         this.selectedAnswer = null;
         this.startTime = Date.now();
+        const pow = this.challenge.pow || {};
+        this.powWork = solvePow(pow.salt || '', pow.bits || 0);
+        this.powWork.catch(() => {});
         this._render('challenge');
       } catch (e) {
         this._render('error', 'Could not load challenge. Please refresh.');
@@ -452,6 +490,8 @@
       errorDiv.style.display = 'none';
 
       const answerTimeMs = Date.now() - this.startTime;
+      let powNonce = null;
+      try { powNonce = await this.powWork; } catch (e) { powNonce = null; }
 
       try {
         const res = await fetch(`${API_BASE}/verify`, {
@@ -464,6 +504,12 @@
             answer_time_ms: answerTimeMs,
             site_key: this.siteKey,
             user_agent: navigator.userAgent,
+            pow_nonce: powNonce,
+            signals: {
+              webdriver: navigator.webdriver === true,
+              interacted: !!this.interacted,
+              headless: /HeadlessChrome/.test(navigator.userAgent),
+            },
           }),
         });
 

@@ -447,7 +447,7 @@ if SERVE_WEBSITE:
     @app.get("/widget.js")
     async def serve_widget():
         return FileResponse(str(ROOT / "lyra" / "authenticator" / "frontend" / "lyraauth.js"),
-                            media_type="application/javascript", headers={"Cache-Control": "public, max-age=3600"})
+                            media_type="application/javascript", headers={"Cache-Control": "public, max-age=300, s-maxage=300"})
 
     @app.middleware("http")
     async def security_headers(request, call_next):
