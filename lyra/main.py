@@ -511,7 +511,7 @@ if SERVE_WEBSITE:
         finally:
             db.close()
         body = b"".join([chunk async for chunk in response.body_iterator])
-        body = body.replace(b"</head>", adsense.head_tags() + b"</head>", 1)
+        body = body.replace(b"</head>", adsense.head_tags(adsense.loads_script(request.url.path)) + b"</head>", 1)
         headers = {k: v for k, v in response.headers.items() if k.lower() not in ("content-length", "etag")}
         headers["Vary"] = "Cookie"
         return Response(body, status_code=200, headers=headers, media_type="text/html")

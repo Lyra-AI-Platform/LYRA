@@ -1,11 +1,13 @@
-"""Sponsor slots on Lyra Watch.
+"""Sponsor slots on Lyra Watch, Newswire, the Tremor Index and the homepage.
 
 Anyone with an account can book a slot (a headline, a line of text and a link) for a number of
 weeks and pay through Stripe Checkout. A paid slot goes live only after the site owner approves
 it (LYRA_ADMIN_EMAILS); a rejected one is refunded from the Stripe dashboard. Free visitors see a
 sponsor, or Lyra's own offer when none is live; Watch Pro subscribers see no ads.
 
-No ad networks and no tracking cookies: an impression and a click are counted, nothing else.
+Sponsors set no cookies: an impression and a click are counted, nothing else. When AdSense is
+switched on (lyra/api/adsense.py) and a slot has no sponsor, Watch, Newswire and Tremor may show
+one labelled Google unit in the same box; the homepage and LyraAuth pages never do.
 """
 import logging
 import os
@@ -51,9 +53,22 @@ HOUSE = [
      "body": "Real-time public-figure and market-impact data over a JSON API. 100 free credits with your first key.",
      "url": "/watch/account/#api", "cta": "Get a key"},
     {"headline": "Advertise to people who follow the market",
-     "body": "Put your product in front of Lyra Watch readers. Self-serve, from one week.",
+     "body": "Put your product in front of Lyra readers. Self-serve, from one week.",
      "url": "/advertise/", "cta": "Advertise"},
 ]
+# Lyra's own offers that fit each page best (a page never advertises itself).
+HOUSE_BY_PLACE = {
+    "news": HOUSE + [{"headline": "Who's behind today's headlines?",
+                      "body": "Lyra Watch follows the people in the news: their trades, filings, deals and the companies they move.",
+                      "url": "/watch/", "cta": "Open Lyra Watch"}],
+    "tremor": [HOUSE[0], HOUSE[2], {"headline": "Every story, every country, one wire",
+                                    "body": "Lyra Newswire: hundreds of thousands of articles in dozens of languages, free.",
+                                    "url": "/news/", "cta": "Read the wire"}],
+}
+# Where each place may show a Google ad when there is no sponsor. The homepage and LyraAuth's
+# own pages never do: they promise no ad tracking.
+NETWORK_PLACES = {"watch", "news", "tremor"}
+HOUSE_PLACES = {"watch", "news", "tremor"}   # elsewhere (the homepage) a sponsor or nothing
 
 
 def live_sponsors(db: Session):
@@ -62,20 +77,33 @@ def live_sponsors(db: Session):
             if _aware(s.starts_at) and _aware(s.starts_at) <= now < _aware(s.ends_at)]
 
 
-@router.get("/slot")
-def slot(db: Session = Depends(get_db), viewer: watch_access.Viewer = Depends(watch_access.identify("person"))):
-    """The ad for a free visitor: a live sponsor, otherwise one of Lyra's own offers. Nothing for
-    subscribers and API keys."""
-    if viewer.full:
-        return {"kind": "none"}
-    live = live_sponsors(db)
-    if live:
-        s = random.choice(live)
-        s.impressions += 1
-        db.commit()
+def choose(place: str, sponsors, network) -> Dict:
+    """One ad for one place: a paid sponsor first, then a Google unit (when switched on and the
+    page allows it), then Lyra's own offer, or nothing."""
+    if sponsors:
+        s = random.choice(sponsors)
         return {"kind": "sponsor", "id": s.id, "headline": s.headline, "body": s.body,
                 "url": f"/api/ads/click/{s.id}", "cta": "Visit", "label": "Sponsored"}
-    return {"kind": "house", **random.choice(HOUSE), "label": "From Lyra"}
+    if network and place in NETWORK_PLACES:
+        return {"kind": "network", "label": "Advertisement", **network}
+    if place in HOUSE_PLACES:
+        return {"kind": "house", **random.choice(HOUSE_BY_PLACE.get(place, HOUSE)), "label": "From Lyra"}
+    return {"kind": "none"}
+
+
+@router.get("/slot")
+def slot(place: str = "watch", db: Session = Depends(get_db),
+         viewer: watch_access.Viewer = Depends(watch_access.identify("person"))):
+    """The ad for a free visitor. Nothing for Watch Pro, paid plans and API keys."""
+    from lyra.api import adsense, entitlements
+    if viewer.full or (viewer.user and entitlements.is_paid(viewer.user)):
+        return {"kind": "none"}
+    ad = choose(place[:20], live_sponsors(db), adsense.unit())
+    if ad["kind"] == "sponsor":
+        s = db.get(Sponsor, ad["id"])
+        s.impressions += 1
+        db.commit()
+    return ad
 
 
 @router.get("/click/{sid}")
@@ -120,7 +148,7 @@ def book(b: Booking, user: User = Depends(get_current_user), db: Session = Depen
         stripe, customer=watch_access._customer(user, db, stripe), mode="payment", client_reference_id=str(user.id),
         line_items=[{"quantity": weeks, "price_data": {
             "currency": watch_access.CURRENCY, "unit_amount": WEEK_CENTS,
-            "product_data": {"name": "Lyra Watch sponsor slot (1 week)", "tax_code": watch_access.TAX_CODE}}}],
+            "product_data": {"name": "Lyra sponsor slot (1 week)", "tax_code": watch_access.TAX_CODE}}}],
         metadata={"lyra_user_id": str(user.id), "product": "sponsor", "sponsor_id": str(s.id)},
         success_url=f"{watch_access.APP_URL}/advertise/?paid=1", cancel_url=f"{watch_access.APP_URL}/advertise/?cancelled=1")
     s.stripe_session_id = session.id

@@ -98,6 +98,7 @@
   <script src="/js/session.js?v=20261107d"></script>
   <script src="/js/preview.js?v=20261026b" data-product="watch" defer></script>
   <script src="/js/sitenav.js?v=20261107d" defer></script>
+  <script src="/js/adslot.js?v=20261109a" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
@@ -118,7 +119,7 @@
       funds bought and sold, deals and lawsuits in the news, the companies they're tied to and the issues they talk about.
       Every item links to its public source.</p>
 
-    <div id="adSlot" hidden></div>
+    <div id="adSlot" data-lyra-ad="watch" hidden></div>
     <div class="tabs" id="tabs" role="group" aria-label="Filter by group"></div>
     <input class="search" id="search" type="search" placeholder="Search by name, role or country" aria-label="Search" />
 
@@ -285,17 +286,6 @@
   const api = (p) => fetch(`/api/watch/${p}`)
     .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); });
   const proLink = (text) => el("a", { class: "chip aff", href: "/watch/account/", text: `🔒 ${text}` });
-
-  async function loadAd() {
-    try {
-      const ad = await fetch("/api/ads/slot").then((r) => r.json());
-      if (ad.kind === "none") return;
-      $("adSlot").replaceChildren(el("a", { class: "ad", href: ad.url, rel: ad.kind === "sponsor" ? "sponsored noopener" : "",
-        target: ad.kind === "sponsor" ? "_blank" : "_self" },
-        el("small", { text: ad.label }), el("b", { text: ad.headline }), el("span", { text: ad.body }), el("span", { class: "cta", text: `${ad.cta} →` })));
-      $("adSlot").hidden = false;
-    } catch {}
-  }
 
   const popBadge = (pop) => pop ? el("span", { class: "pop", title: `${pop.basis}${pop.daily_views != null ? ` · ${pop.daily_views.toLocaleString()} Wikipedia views a day` : ""}` },
     el("span", { class: "meter" }, el("span", { style: `width:${pop.score}%` })), el("b", { text: String(pop.score) }), ` ${pop.tier}`) : null;
@@ -616,7 +606,6 @@
       renderGrid();
     } catch { $("grid").replaceChildren(el("p", { text: "Couldn't load the watchlist. Try again in a minute." })); }
     loadFeed();
-    loadAd();
     loadMovers();
     loadPeople();
   }
