@@ -35,3 +35,10 @@ def test_google_script_scope(monkeypatch):
     assert adsense.loads_script("/news/") and adsense.loads_script("/watch/elon-musk")
     assert not adsense.loads_script("/") and not adsense.loads_script("/pages/lyraauth.html")
     assert b"adsbygoogle" not in adsense.head_tags(script=False)
+
+
+def test_on_by_default_and_switchable(monkeypatch):
+    monkeypatch.delenv("LYRA_ADSENSE_CLIENT", raising=False)
+    assert adsense.client() == adsense.PUBLISHER and "pub-4940586207754938" in adsense.ads_txt()
+    monkeypatch.setenv("LYRA_ADSENSE_CLIENT", "off")
+    assert adsense.client() is None and adsense.ads_txt() is None

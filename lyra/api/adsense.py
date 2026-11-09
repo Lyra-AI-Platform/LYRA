@@ -1,4 +1,4 @@
-"""Google AdSense on lyraauth.com: switched on by LYRA_ADSENSE_CLIENT (ca-pub-…), with the ad
+"""Google AdSense on lyraauth.com: on for the account in PUBLISHER (override or switch off with LYRA_ADSENSE_CLIENT), with the ad
 unit's ID in LYRA_ADSENSE_SLOT (AdSense → Ads → By ad unit → Display ad, "Responsive").
 
 When set:
@@ -28,8 +28,11 @@ NO_ADS_PREFIXES = ("/admin", "/account", "/home", "/dashboard", "/labs", "/feedb
 CLIENT_RE = re.compile(r"^ca-pub-\d{10,20}$")
 
 
+PUBLISHER = "ca-pub-4940586207754938"   # Lyra Ventures Ltd's AdSense account; LYRA_ADSENSE_CLIENT=off turns ads off
+
+
 def client() -> Optional[str]:
-    c = os.getenv("LYRA_ADSENSE_CLIENT", "").strip()
+    c = os.getenv("LYRA_ADSENSE_CLIENT", PUBLISHER).strip()
     return c if CLIENT_RE.match(c) else None
 
 
