@@ -40,6 +40,7 @@ class VerifyRequest(BaseModel):
     user_agent: str = ""
     pow_nonce: Optional[int] = None    # solution to the challenge's proof of work
     signals: dict = {}                 # webdriver / interacted / headless, from the widget
+    training_answer: Optional[str] = None   # optional answer to the training question (1.4.0+)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -86,11 +87,15 @@ async def get_challenge(request: Request, site_key: str = "", difficulty: str = 
     _require_site(site_key, request, db)
     c = challenge_engine.generate_challenge(difficulty, client_key=ratelimit.client_ip(request))
     c.site_key = site_key
+    t = c.training
     return {
         "id": c.id,
         "type": c.type,
         "prompt": c.prompt,
         "options": c.options,
+        "image": c.display_data.get("image"),
+        "length": c.display_data.get("length"),
+        "training": {"prompt": t.prompt, "options": t.options} if t and t.options else None,
         "expires_in": TOKEN_TTL_MINUTES * 60,
         "pow": {"alg": "SHA-256", "salt": c.pow_salt, "bits": c.pow_bits},
     }
@@ -116,6 +121,7 @@ async def verify_challenge(req: VerifyRequest, request: Request, db: Session = D
         pow_nonce=req.pow_nonce,
         signals={k: bool(v) for k, v in (req.signals or {}).items() if k in ("webdriver", "interacted", "headless")},
         client_key=ratelimit.client_ip(request),
+        training_answer=(req.training_answer or "")[:300] or None,
     )
     is_human, confidence, raw_token = challenge_engine.verify_response(resp)
 

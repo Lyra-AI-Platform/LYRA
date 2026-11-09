@@ -36,7 +36,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from lyra.authenticator import shield
+from lyra.authenticator import imagecap, shield
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +62,13 @@ class ChallengeType(str, Enum):
     ACCESSIBILITY  = "accessibility"    # alt-text / screen reader training data
     PHYSICS        = "physics"          # spatial/embodied AI training data
     VIBE_CHECK     = "vibe_check"       # tone/intent/sarcasm classification
+    # The gate since 1.4.0: a freshly drawn image (imagecap.py). The questions above ride along as
+    # optional training questions; they no longer decide who is human, since any language model
+    # answers them.
+    IMAGE_TEXT     = "image_text"
+
+# Question types that can ride along as a training question (all multiple choice).
+TRAINING_TYPES = [t for t in ChallengeType if t not in (ChallengeType.IMAGE_TEXT, ChallengeType.EMOJI_MEANING)]
 
 
 @dataclass
@@ -79,6 +86,7 @@ class Challenge:
     pow_salt: str = ""           # proof of work the browser must solve (see shield.py)
     pow_bits: int = 0
     client_key: str = ""         # who asked for it (IP), for back-off after failures
+    training: Optional["Challenge"] = None   # the optional question shown under the image
 
 
 @dataclass
@@ -97,6 +105,7 @@ class ChallengeResponse:
     signals: Dict = field(default_factory=dict)
     client_key: str = ""
     reason: str = ""             # why it failed, for logs and the site owner
+    training_answer: Optional[str] = None
 
 
 # ── Challenge Library ─────────────────────────────────────────────────────────
@@ -111,7 +120,7 @@ WORD_COMPLETE_CHALLENGES = [
     ("You sleep in a ___", ["bed", "chair", "roof", "window"], "bed"),
     ("Ice is ___ water", ["frozen", "boiling", "colored", "liquid"], "frozen"),
     ("A ___ is used to cut bread", ["knife", "spoon", "fork", "pen"], "knife"),
-    ("The moon appears at ___", ["night", "noon", "dawn", "noon"], "night"),
+    ("The moon appears at ___", ["night", "noon", "dawn", "lunchtime"], "night"),
     ("Fish live in ___", ["water", "trees", "soil", "air"], "water"),
     ("We read with our ___", ["eyes", "hands", "ears", "feet"], "eyes"),
 ]
@@ -449,13 +458,21 @@ class ChallengeEngine:
         return {"site_key": site_key, "secret_key": secret_key}
 
     def generate_challenge(self, difficulty: str = "normal", client_key: str = "") -> Challenge:
-        """A fresh challenge with a right answer, plus proof of work sized to the client's record."""
-        for _ in range(20):
-            c = self._build_challenge(random.choice(list(ChallengeType)), difficulty)
-            if c.correct_answer is not None:
-                break
-            self._active.pop(c.id, None)       # opinion questions can't pass anyone on their own
-            self.challenges_served -= 1
+        """A freshly drawn image to read, an optional training question, and proof of work sized
+        to the client's record. Clients that keep failing get a longer code with more decoys."""
+        fails = self.failures.count(client_key)
+        hard = difficulty == "hard" or fails >= 3
+        answer, svg = imagecap.generate(hard=hard)
+        cid = str(uuid.uuid4())[:12]
+        c = Challenge(id=cid, type=ChallengeType.IMAGE_TEXT,
+                      prompt="Type the **dark** characters you see. Ignore the pale ones.",
+                      options=[], correct_answer=answer,
+                      display_data={"image": imagecap.data_url(svg), "length": len(answer)},
+                      training_value=0.0, expires_at=time.time() + 300)
+        train = self._build_challenge(random.choice(TRAINING_TYPES), difficulty)
+        self._active.pop(train.id, None)       # lives inside the image challenge, not on its own
+        c.training = train
+        self._active[cid] = c
         c.created_at = time.time()
         c.client_key = client_key
         c.pow_salt = shield.new_salt()
@@ -601,10 +618,13 @@ class ChallengeEngine:
             return fail("expired")
 
         answer = (resp.answer or "").strip()
-        if challenge.options and answer not in [o.strip() for o in challenge.options]:
-            return fail("not-an-option")
-        graded = challenge.correct_answer is not None
-        correct = graded and answer == challenge.correct_answer.strip()
+        if challenge.type == ChallengeType.IMAGE_TEXT:
+            graded, correct = True, imagecap.matches(answer, challenge.correct_answer)
+        else:
+            if challenge.options and answer not in [o.strip() for o in challenge.options]:
+                return fail("not-an-option")
+            graded = challenge.correct_answer is not None
+            correct = graded and answer == challenge.correct_answer.strip()
 
         signals = dict(resp.signals or {})
         if resp.pow_nonce is None and not resp.signals:
@@ -619,7 +639,16 @@ class ChallengeEngine:
 
         self.failures.clear(key)
         resp.is_human, resp.confidence = True, value
-        self._store_training_record(challenge, resp, value)
+        # Only a verified person's answer to the training question becomes training data.
+        train = challenge.training
+        if challenge.type != ChallengeType.IMAGE_TEXT:
+            self._store_training_record(challenge, resp, value)
+        elif train and resp.training_answer and resp.training_answer.strip() in [o.strip() for o in train.options]:
+            t_answer = resp.training_answer.strip()
+            agrees = train.correct_answer is None or t_answer == train.correct_answer.strip()
+            self._store_training_record(train, ChallengeResponse(
+                challenge_id=train.id, session_id=resp.session_id, answer=t_answer,
+                answer_time_ms=resp.answer_time_ms, site_key=resp.site_key), value if agrees else value * 0.5)
         self.challenges_passed += 1
         return True, value, self._mint_token(resp.site_key, resp.session_id, value)
 

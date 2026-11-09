@@ -1,6 +1,6 @@
 /**
  * LyraAuth — Human Intelligence Authenticator
- * Version 1.2.0
+ * Version 1.4.0
  * Copyright (C) 2026 Lyra Contributors
  *
  * Drop-in replacement for reCAPTCHA. Add to any website with one line:
@@ -24,6 +24,11 @@
  * background while the question is read, so mass solving costs real computing time; the widget
  * also tells the server whether the browser reports automation and whether anyone touched it.
  *
+ * Changes in 1.4.0: the challenge is a freshly drawn image of distorted characters (dark ones to
+ * type, pale decoys to ignore), so there is no fixed question bank for a bot or a language model to
+ * answer. The old questions now appear underneath as an optional training question; answering it
+ * is what trains Lyra, and it no longer decides who is human.
+ *
  * Privacy: Users are clearly told their answer trains an AI.
  * See our Privacy Policy and Terms at https://lyraauth.com/pages/privacy.html and https://lyraauth.com/pages/terms.html
  */
@@ -31,7 +36,7 @@
 (function (window) {
   'use strict';
 
-  const LYRAAUTH_VERSION = '1.3.0';
+  const LYRAAUTH_VERSION = '1.4.0';
   // currentScript only exists while this file first runs, so it's read here.
   const SCRIPT_SRC = document.currentScript && document.currentScript.src;
   // The API lives wherever this script came from. LYRAAUTH_API still overrides it.
@@ -147,6 +152,27 @@
     color: #5a67d8;
     font-weight: 600;
   }
+  .lyraauth-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    border: 1.5px solid #e2e8f0;
+    margin-bottom: 10px;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  .lyraauth-image-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+  .lyraauth-image-row .lyraauth-text-input { letter-spacing: 3px; font-family: ui-monospace, monospace; text-transform: uppercase; font-size: 16px; }
+  .lyraauth-refresh {
+    flex: none; width: 40px; height: 40px; border-radius: 10px; border: 1.5px solid #e2e8f0;
+    background: #f8fafc; cursor: pointer; font-size: 18px; color: #4a5568;
+  }
+  .lyraauth-refresh:hover { border-color: #667eea; color: #667eea; }
+  .lyraauth-train { margin-top: 14px; padding-top: 12px; border-top: 1px dashed #e2e8f0; }
+  .lyraauth-train-label { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #718096; margin-bottom: 6px; }
+  .lyraauth-train .lyraauth-prompt { font-size: 13.5px; margin-bottom: 8px; }
+  .lyraauth-train .lyraauth-option { padding: 7px 11px; font-size: 13px; }
   .lyraauth-text-input {
     width: 100%;
     padding: 10px 14px;
@@ -355,7 +381,7 @@
         body.innerHTML = `
           <span class="lyraauth-success-icon">✅</span>
           <div class="lyraauth-success-text">You're verified!</div>
-          <div class="lyraauth-success-sub">Your answer helps train Lyra AI ✦</div>
+          <div class="lyraauth-success-sub">${this.trainingAnswer || !(this.challenge && this.challenge.image) ? 'Your answer helps train Lyra AI ✦' : 'Thanks for proving you\'re human'}</div>
         `;
         widget.appendChild(body);
       } else if (state === 'error') {
@@ -405,6 +431,8 @@
         }
       });
       body.appendChild(prompt);
+
+      if (c.image) return this._buildImageBody(body, prompt, c);
 
       // Answer input
       const answersDiv = document.createElement('div');
@@ -478,6 +506,95 @@
       return body;
     }
 
+    // 1.4.0: read the image; optionally answer the training question underneath.
+    _buildImageBody(body, prompt, c) {
+      const img = document.createElement('img');
+      img.className = 'lyraauth-image';
+      img.src = c.image;
+      img.alt = 'Distorted characters to type. If you cannot read them, use the new image button.';
+      img.draggable = false;
+      body.appendChild(img);
+
+      const row = document.createElement('div');
+      row.className = 'lyraauth-image-row';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'lyraauth-text-input';
+      input.placeholder = 'Characters';
+      input.maxLength = 12;
+      input.autocomplete = 'off';
+      input.autocapitalize = 'characters';
+      input.spellcheck = false;
+      input.setAttribute('aria-labelledby', prompt.id);
+      input.addEventListener('input', () => { this.selectedAnswer = input.value; });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); submitBtn.click(); }
+      });
+      const again = document.createElement('button');
+      again.type = 'button';
+      again.className = 'lyraauth-refresh';
+      again.title = 'New image';
+      again.setAttribute('aria-label', 'Show a new image');
+      again.textContent = '↻';
+      again.addEventListener('click', () => this._fetchChallenge());
+      row.appendChild(input);
+      row.appendChild(again);
+      body.appendChild(row);
+
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'lyraauth-error';
+      errorDiv.setAttribute('role', 'alert');
+      errorDiv.id = 'lyraauth-error-' + this.sessionId;
+      body.appendChild(errorDiv);
+
+      this.trainingAnswer = null;
+      if (c.training && c.training.options && c.training.options.length) {
+        const train = document.createElement('div');
+        train.className = 'lyraauth-train';
+        const label = document.createElement('div');
+        label.className = 'lyraauth-train-label';
+        label.textContent = 'Optional · help train Lyra';
+        const q = document.createElement('div');
+        q.className = 'lyraauth-prompt';
+        q.id = 'lyraauth-train-' + this.sessionId;
+        q.textContent = c.training.prompt.replace(/\*\*/g, '');
+        const opts = document.createElement('div');
+        opts.className = 'lyraauth-options';
+        opts.setAttribute('role', 'group');
+        opts.setAttribute('aria-labelledby', q.id);
+        c.training.options.forEach(opt => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'lyraauth-option';
+          b.textContent = opt;
+          b.setAttribute('aria-pressed', 'false');
+          b.addEventListener('click', () => {
+            const on = this.trainingAnswer !== opt;
+            this.trainingAnswer = on ? opt : null;
+            opts.querySelectorAll('.lyraauth-option').forEach(x => { x.classList.remove('selected'); x.setAttribute('aria-pressed', 'false'); });
+            if (on) { b.classList.add('selected'); b.setAttribute('aria-pressed', 'true'); }
+          });
+          opts.appendChild(b);
+        });
+        train.appendChild(label); train.appendChild(q); train.appendChild(opts);
+        body.appendChild(train);
+      }
+
+      const submitBtn = document.createElement('button');
+      submitBtn.type = 'button';
+      submitBtn.className = 'lyraauth-submit';
+      submitBtn.textContent = 'Verify →';
+      submitBtn.addEventListener('click', () => this._submit(submitBtn, errorDiv));
+      body.appendChild(submitBtn);
+
+      const note = document.createElement('div');
+      note.className = 'lyraauth-training-note';
+      note.innerHTML = `Your answer to the optional question is used to train Lyra AI.
+        <a href="https://lyraauth.com/pages/privacy.html" target="_blank">Learn more</a>`;
+      body.appendChild(note);
+      return body;
+    }
+
     async _submit(btn, errorDiv) {
       if (!this.selectedAnswer || !this.selectedAnswer.trim()) {
         errorDiv.style.display = 'block';
@@ -505,6 +622,7 @@
             site_key: this.siteKey,
             user_agent: navigator.userAgent,
             pow_nonce: powNonce,
+            training_answer: this.trainingAnswer || null,
             signals: {
               webdriver: navigator.webdriver === true,
               interacted: !!this.interacted,
