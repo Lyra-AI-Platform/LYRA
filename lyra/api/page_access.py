@@ -74,6 +74,8 @@ RULES: Tuple[Tuple[str, str, str], ...] = (
     ("/chemwarden/privacy", "unlisted", ""),
     ("/collectorshaven/privacy/", "unlisted", ""),
     ("/collectorshaven/privacy", "unlisted", ""),
+    ("/macroanvil/privacy/", "unlisted", ""),
+    ("/macroanvil/privacy", "unlisted", ""),
     ("/admin/", "owner", ""),
     ("/admin", "owner", ""),
     ("/fueltrack/", "owner", ""),
